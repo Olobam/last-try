@@ -129,7 +129,7 @@ require 'Inspired'
 	["Jinx"] = true,
 	}
 	
-	local SxcSAIOSkin = { --Credits to Icesythe7
+	local SLSkin = { --Credits to Icesythe7
 	["Vayne"] = {"Normal", "Vindicator", "Aristocrat", "Dragonslayer", "Heartseeker", "Skt T1", "Arclight", "Chroma Pack: Green", "Chroma Pack: Red", "Chroma Pack: Silver"},	
 	["Garen"] = {"Normal", "Sanguine", "Desert Trooper", "Commando", "Dreadknight", "Rugged", "Steel Legion", "Chroma Pack: Garnet", "Chroma Pack: Plum", "Chroma Pack: Ivory", "Rogue Admiral"},
 	["Soraka"] = {"Normal", "Dryad", "Divine", "Celestine", "Reaper", "Order of the Banana"},
@@ -172,13 +172,13 @@ end
    local GapCloser = {}
    local MapPositionGOS = {["Vayne"] = true, ["Poppy"] = true, ["Kalista"] = true,}
 
-	local SxcSAIO = MenuConfig("SxcSAIO", "SxcSAIO") --Scriptlogy
-	SxcSAIO:Menu("Loader", "Loader") L = SxcSAIO["Loader"] L:Boolean("LC", "Load Champion", true) L:Boolean("LD", "Load Drawings", true) L:Boolean("LSK", "Load SkinChanger", true) L:Info("516", "You will have to press 2f6") L:Info("546", "to apply the changes")
-	if L.LSK:Value() then SxcSAIO:Menu("SC", "SkinChanger") SKCH = SxcSAIO["SC"] SKCH:DropDown('Skins', "Skins for "..ChampName.." -->", 1, SxcSAIOSkin[ChampName]) end
-	if L.LD:Value() then SxcSAIO:Menu("D", "Drawings") D = SxcSAIO["D"] D:Boolean("LastHitMarker", "LastHitMarker", true) D:Boolean("DrawQ", "Draw Q", true) D:Boolean("DrawW", "Draw W", true) D:Boolean("DrawE", "Draw E", true) D:Boolean("DrawR", "Draw R", true) D:ColorPick("ColorPick", "Circle color", {255,102,102,102}) end
-	SxcSAIO:Info("511a", "") SxcSAIO:Info("512a", "Changelog :::") SxcSAIO:Info("513a", SxcSAIOChangelog1) SxcSAIO:Info("531a", SxcSAIOChangelog2) SxcSAIO:Info("535a", SxcSAIOChangelog3)
+	local SL = MenuConfig("SL-Series", "SL-Series") --Scriptlogy
+	SL:Menu("Loader", "Loader") L = SL["Loader"] L:Boolean("LC", "Load Champion", true) L:Boolean("LD", "Load Drawings", true) L:Boolean("LSK", "Load SkinChanger", true) L:Info("516", "You will have to press 2f6") L:Info("546", "to apply the changes")
+	if L.LSK:Value() then SL:Menu("SC", "SkinChanger") SKCH = SL["SC"] SKCH:DropDown('Skins', "Skins for "..ChampName.." -->", 1, SLSkin[ChampName]) end
+	if L.LD:Value() then SL:Menu("D", "Drawings") D = SL["D"] D:Boolean("LastHitMarker", "LastHitMarker", true) D:Boolean("DrawQ", "Draw Q", true) D:Boolean("DrawW", "Draw W", true) D:Boolean("DrawE", "Draw E", true) D:Boolean("DrawR", "Draw R", true) D:ColorPick("ColorPick", "Circle color", {255,102,102,102}) end
+	SL:Info("511a", "") SL:Info("512a", "Changelog :::") SL:Info("513a", SxcSAIOChangelog1) SL:Info("531a", SxcSAIOChangelog2) SL:Info("535a", SxcSAIOChangelog3)
   if L.LC:Value() then
-	SxcSAIO:Menu(ChampName, ChampName) BM = SxcSAIO[ChampName] 
+	SL:Menu(ChampName, ChampName) BM = SL[ChampName] 
 	BM:Menu("C", "Combo")	
 	BM:Menu("M", "Misc")
 	BM.M:Menu("AL", "Auto Level") BM.M.AL:DropDown("AL", "Auto Level -->", 1, {"Disabled", "Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"}) BM.M.AL:Slider("ALH", "Auto Level Humanizer", 1500, 0, 3000, 5)
