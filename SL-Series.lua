@@ -329,7 +329,7 @@ function Update:__init()
 		end
 	end
 
-	GetWebResultAsync("https://raw.githubusercontent.com/LoggeL/GoS/master/Questionmark.version", AutoUpdate)
+	GetWebResultAsync("https://raw.githubusercontent.com/xSxcSx/SL-Series/master/SL-Series.version", AutoUpdate)
 end
 
 function Update:Box()
@@ -358,7 +358,7 @@ function Update:Click(key,msg)
 	local cur = GetCursorPos()
 	if key == 513 and cur.x < 350 and cur.y < 75 then
 		self.State = "Downloading..."
-		--DownloadFileAsync("https://raw.githubusercontent.com/LoggeL/GoS/master/Questionmark.lua", SCRIPT_PATH .. "Questionmark.lua", function() self.State = "Update Complete" PrintChat("Reload the Script with 2x F6") return	end)
+		DownloadFileAsync("https://raw.githubusercontent.com/xSxcSx/SL-Series/master/SL-Series.lua", SCRIPT_PATH .. "SL-Series.lua", function() self.State = "Update Complete" PrintChat("Reload the Script with 2x F6") return	end)
 		DelayAction(function() self.State = "Update Complete" PrintChat("Reload the Script with 2x F6") Callback.Del("WndMsg", function(key,msg) end) end,1)
 	elseif key == 513 and cur.x > 370 and cur.x < 400 and cur.y > 7 and cur.y < 60 then
 		Callback.Del("Draw", function() self:Box() end)
