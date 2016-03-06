@@ -198,23 +198,23 @@ end
   end
 	
 if MapPositionGOS[ChampName] == true and FileExist(COMMON_PATH .. "MapPositionGOS.lua") then
-require 'MapPositionGOS'
+	require 'MapPositionGOS'
 end
  
 if Prediction[ChampName] == true and FileExist(COMMON_PATH .. "OpenPredict.lua") then
-require 'OpenPredict'
+	require 'OpenPredict'
 elseif ChampName == "Vayne" and FileExist(COMMON_PATH .. "OpenPredict.lua") then
-require 'OpenPredict'
+	require 'OpenPredict'
 end
 
 class 'AutoLevel'
 
 function AutoLevel:__init()
-self:Load()
+	self:Load()
 end
 
 function AutoLevel:Load()
-OnTick(function() self:Tick() end)
+	OnTick(function() self:Tick() end)
 end
 
 function AutoLevel:Tick()
@@ -226,8 +226,8 @@ function AutoLevel:Tick()
 	elseif BM.M.AL.AL:Value() == 7 then SxcSAIOLevel = {_E,_W,_Q,_E,_E,_R,_E,_W,_E,_W,_R,_W,_W,_Q,_Q,_R,_Q,_Q}
 	end
   DelayAction(function() 
-		if BM.M.AL.AL:Value() ~= 1 then LevelSpell(SxcSAIOLevel[GetLevel(myHero)]) end
-		end, math.random(1,BM.M.AL.ALH:Value()))        
+	if BM.M.AL.AL:Value() ~= 1 then LevelSpell(SxcSAIOLevel[GetLevel(myHero)]) end
+	end, math.random(1,BM.M.AL.ALH:Value()))        
 end
 
 class 'Drawings'
@@ -285,28 +285,28 @@ end
 class 'SkinChanger'
 
 function SkinChanger:__init()
-self:Load()
+	self:Load()
 end
 
 function SkinChanger:Load()
-OnDraw(function() self:Draw() end)
+	OnDraw(function() self:Draw() end)
 end
 
 function SkinChanger:Draw()
-if L.LSK:Value() then
- if SKCH.Skins:Value() ~= 1 then HeroSkinChanger(Name, SKCH.Skins:Value() - 1)
-  elseif SKCH.Skins:Value() == 1 then HeroSkinChanger(Name, 0) end
-end
+	if L.LSK:Value() then
+		if SKCH.Skins:Value() ~= 1 then HeroSkinChanger(Name, SKCH.Skins:Value() - 1)
+		elseif SKCH.Skins:Value() == 1 then HeroSkinChanger(Name, 0) end
+	end
 end
 
 if SxcSAIOChamps[ChampName] == true and SxcSAIO.Loader.LC:Value() then
-  _G[ChampName]() 
+	_G[ChampName]() 
 end
 if SxcSAIOChamps[ChampName] == true and SxcSAIO.Loader.LD:Value() then
-	Drawings()
+		Drawings()
 end
 if SxcSAIOChamps[ChampName] == true and SxcSAIO.Loader.LSK:Value() then
-	SkinChanger()
+		SkinChanger()
 end
 if SxcSAIOChamps[ChampName] == true then
 	AutoLevel()
@@ -323,7 +323,7 @@ function Update:__init()
 	function AutoUpdate(data)
 		if tonumber(data) > version then
 			self.webV = data
-			self.State = "|?| Update to v"..self.webV
+			self.State = "|SL| Update to v"..self.webV
 			Callback.Add("Draw", function() self:Box() end)
 			Callback.Add("WndMsg", function(key,msg) self:Click(key,msg) end)
 		end
