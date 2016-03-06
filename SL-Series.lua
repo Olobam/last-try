@@ -315,37 +315,53 @@ end
 class 'Update'
 
 function Update:__init()
+
 	self.webV = "Error"
+	self.Stat = "Error"
+	self.Do = true
 
 	function AutoUpdate(data)
 		if tonumber(data) > version then
 			self.webV = data
-			PrintChat("|?| New update found! Version: " .. data)
-			PrintChat("Downloading update, please wait...")
-			DownloadFileAsync("https://raw.githubusercontent.com/xSxcSx/SL-Series/master/SL-Series.lua", SCRIPT_PATH .. "SL-Series.lua", function() PrintChat("Update Complete, please 2x F6!") return end)
+			self.State = "|?| Update to v"..self.webV
 			Callback.Add("Draw", function() self:Box() end)
 			Callback.Add("WndMsg", function(key,msg) self:Click(key,msg) end)
 		end
 	end
 
-	GetWebResultAsync("https://raw.githubusercontent.com/xSxcSx/SL-Series/master/SL-Series.version", AutoUpdate)
+	GetWebResultAsync("https://raw.githubusercontent.com/LoggeL/GoS/master/Questionmark.version", AutoUpdate)
 end
 
 function Update:Box()
+	if not self.Do then return end
+	local cur = GetCursorPos()
 	FillRect(0,0,360,85,GoS.Red)
-	if GetCursorPos().x < 350 and GetCursorPos().y < 75 then
+	if cur.x < 350 and cur.y < 75 then
 		FillRect(0,0,350,75,GoS.White)
 	else
 		FillRect(0,0,350,75,GoS.Black)
 	end
-	DrawText("|?| Update to v"..self.webV, 40, 10, 10, GoS.Green)
+	
+	DrawText(self.State, 40, 10, 10, GoS.Green)
+	
+	FillRect(360,10,50,60,GoS.Red)
+	FillRect(365,15,40,50,GoS.White)
+	if cur.x < 370 or cur.x > 400 or cur.y<7 or cur.y > 60 then
+		DrawText("X", 60, 370,7, GoS.Black)
+	else
+		DrawText("X", 60, 370,7, GoS.Red)
+	end
+	
 end
 
 function Update:Click(key,msg)
-	if key == 513 and GetCursorPos().x < 350 and GetCursorPos().y < 75 then
-		DownloadFileAsync("https://raw.githubusercontent.com/xSxcSx/SL-Series/master/SL-Series.lua", SCRIPT_PATH .. "SL-Series.lua", function() PrintChat("Update Complete, please 2x F6!") return end)
-		print("DL")
+	local cur = GetCursorPos()
+	if key == 513 and cur.x < 350 and cur.y < 75 then
+		self.State = "Downloading..."
+		--DownloadFileAsync("https://raw.githubusercontent.com/LoggeL/GoS/master/Questionmark.lua", SCRIPT_PATH .. "Questionmark.lua", function() self.State = "Update Complete" PrintChat("Reload the Script with 2x F6") return	end)
+		DelayAction(function() self.State = "Update Complete" PrintChat("Reload the Script with 2x F6") Callback.Del("WndMsg", function(key,msg) end) end,1)
+	elseif key == 513 and cur.x > 370 and cur.x < 400 and cur.y > 7 and cur.y < 60 then
+		Callback.Del("Draw", function() self:Box() end)
+		self.Do = false
 	end
 end
-
-Update()
