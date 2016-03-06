@@ -172,29 +172,29 @@ end
    local GapCloser = {}
    local MapPositionGOS = {["Vayne"] = true, ["Poppy"] = true, ["Kalista"] = true,}
 
-	local SL = MenuConfig("SL-Series", "SL-Series") --Scriptlogy
-	SL:Menu("Loader", "Loader") L = SL["Loader"] L:Boolean("LC", "Load Champion", true) L:Boolean("LD", "Load Drawings", true) L:Boolean("LSK", "Load SkinChanger", true) L:Info("516", "You will have to press 2f6") L:Info("546", "to apply the changes")
-	if L.LSK:Value() then SL:Menu("SC", "SkinChanger") SKCH = SL["SC"] SKCH:DropDown('Skins', "Skins for "..ChampName.." -->", 1, SLSkin[ChampName]) end
-	if L.LD:Value() then SL:Menu("D", "Drawings") D = SL["D"] D:Boolean("LastHitMarker", "LastHitMarker", true) D:Boolean("DrawQ", "Draw Q", true) D:Boolean("DrawW", "Draw W", true) D:Boolean("DrawE", "Draw E", true) D:Boolean("DrawR", "Draw R", true) D:ColorPick("ColorPick", "Circle color", {255,102,102,102}) end
+	local SL = MenuConfig("SL-Series", "SL-Series")
+	SL:Menu("Loader", "|SL| Loader") L = SL["Loader"] L:Boolean("LC", "|SL| Load Champion", true) L:Boolean("LD", "|SL| Load Drawings", true) L:Boolean("LSK", "|SL| Load SkinChanger", true) L:Info("516", "You will have to press 2f6") L:Info("546", "to apply the changes")
+	if L.LSK:Value() then SL:Menu("SC", "|SL| SkinChanger") SKCH = SL["SC"] SKCH:DropDown('Skins', "|SL| Skins for "..ChampName.." -->", 1, SLSkin[ChampName]) end
+	if L.LD:Value() then SL:Menu("D", "|SL| Drawings") D = SL["D"] D:Boolean("LastHitMarker", "|SL| LastHitMarker", true) D:Boolean("DrawQ", "|SL| Draw Q", true) D:Boolean("DrawW", "|SL| Draw W", true) D:Boolean("DrawE", "|SL| Draw E", true) D:Boolean("DrawR", "|SL| Draw R", true) D:ColorPick("ColorPick", "|SL| Circle color", {255,102,102,102}) end
 	SL:Info("511a", "") SL:Info("512a", "Changelog :::") SL:Info("513a", SxcSAIOChangelog1) SL:Info("531a", SxcSAIOChangelog2) SL:Info("535a", SxcSAIOChangelog3)
   if L.LC:Value() then
 	SL:Menu(ChampName, ChampName) BM = SL[ChampName] 
-	BM:Menu("C", "Combo")	
-	BM:Menu("M", "Misc")
-	BM.M:Menu("AL", "Auto Level") BM.M.AL:DropDown("AL", "Auto Level -->", 1, {"Disabled", "Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"}) BM.M.AL:Slider("ALH", "Auto Level Humanizer", 1500, 0, 3000, 5)
-	if AntiGapCloser[ChampName] == true then BM.M:Menu("AGP", "AntiGapCloser") end
-	if Harass[ChampName] == true then BM:Menu("H", "Harass") end
-	if Last[ChampName] == true then BM:Menu("LH", "LastHit") end
-	if Lane[ChampName] == true then BM:Menu("LC", "LaneClear") end
-	if Jungle[ChampName] == true then BM:Menu("JC", "JungleClear")	end
-	if Kill[ChampName] == true then BM:Menu("KS", "KillSteal") end
-	if AutoQ[ChampName] == true then BM:Menu("AQ", "Auto Q") end
-	if AutoW[ChampName] == true then BM:Menu("AW", "Auto W") end
-	if AutoE[ChampName] == true then BM:Menu("AE", "Auto E") end
-	if AutoR[ChampName] == true then BM:Menu("AR", "Auto R") end
-	if Prediction[ChampName] == true then BM.M:Menu("P", "Prediction") BM.M.P:Slider("QHC", "Q HitChance", 40, 1, 100, 10) BM.M.P:Slider("WHC", "W HitChance", 40, 1, 100, 10) BM.M.P:Slider("EHC", "E HitChance", 40, 1, 100, 10) BM.M.P:Slider("RHC", "R HitChance", 65, 1, 100, 10) end
-	if ManaManager[ChampName] == true then BM.M:Menu("MM", "ManaManager") BM.M.MM:Slider("MQ", "Mana to use Q >= x ", 10, 1, 100, 10) BM.M.MM:Slider("MW", "Mana to use W >= x ", 10, 1, 100, 10) BM.M.MM:Slider("ME", "Mana to use E >= x ", 10, 1, 100, 10) BM.M.MM:Slider("MR", "Mana to use R >= x ", 10, 1, 100, 10) end
-	if GapCloser[ChampName] == true then BM.M:Menu("GC", "GapCloser") end
+	BM:Menu("C", "|SL| Combo")	
+	BM:Menu("M", "|SL| Misc")
+	BM.M:Menu("AL", "|SL| Auto Level") BM.M.AL:DropDown("AL", "|SL| Auto Level -->", 1, {"Disabled", "Q-W-E", "Q-E-W", "W-Q-E", "W-E-Q", "E-Q-W", "E-W-Q"}) BM.M.AL:Slider("ALH", "|SL| Auto Level Humanizer", 1500, 0, 3000, 5)
+	if AntiGapCloser[ChampName] == true then BM.M:Menu("AGP", "|SL| AntiGapCloser") end
+	if Harass[ChampName] == true then BM:Menu("H", "|SL| Harass") end
+	if Last[ChampName] == true then BM:Menu("LH", "|SL| LastHit") end
+	if Lane[ChampName] == true then BM:Menu("LC", "|SL| LaneClear") end
+	if Jungle[ChampName] == true then BM:Menu("JC", "|SL| JungleClear")	end
+	if Kill[ChampName] == true then BM:Menu("KS", "|SL| KillSteal") end
+	if AutoQ[ChampName] == true then BM:Menu("AQ", "|SL| Auto Q") end
+	if AutoW[ChampName] == true then BM:Menu("AW", "|SL| Auto W") end
+	if AutoE[ChampName] == true then BM:Menu("AE", "|SL| Auto E") end
+	if AutoR[ChampName] == true then BM:Menu("AR", "|SL| Auto R") end
+	if Prediction[ChampName] == true then BM.M:Menu("P", "|SL| Prediction") BM.M.P:Slider("QHC", "|SL| Q HitChance", 40, 1, 100, 10) BM.M.P:Slider("WHC", "|SL| W HitChance", 40, 1, 100, 10) BM.M.P:Slider("EHC", "|SL| E HitChance", 40, 1, 100, 10) BM.M.P:Slider("RHC", "|SL| R HitChance", 65, 1, 100, 10) end
+	if ManaManager[ChampName] == true then BM.M:Menu("MM", "|SL| ManaManager") BM.M.MM:Slider("MQ", "|SL| Mana to use Q >= x ", 10, 1, 100, 10) BM.M.MM:Slider("MW", "|SL| Mana to use W >= x ", 10, 1, 100, 10) BM.M.MM:Slider("ME", "|SL| Mana to use E >= x ", 10, 1, 100, 10) BM.M.MM:Slider("MR", "|SL| Mana to use R >= x ", 10, 1, 100, 10) end
+	if GapCloser[ChampName] == true then BM.M:Menu("GC", "|SL| GapCloser") end
   end
 	
 if MapPositionGOS[ChampName] == true and FileExist(COMMON_PATH .. "MapPositionGOS.lua") then
