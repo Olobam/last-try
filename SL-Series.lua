@@ -321,7 +321,7 @@ function Update:__init()
 	self.Do = true
 
 	function AutoUpdate(data)
-		if tonumber(data) > version then
+		if tonumber(data) > SL-Series then
 			self.webV = data
 			self.State = "|SL| Update to v"..self.webV
 			Callback.Add("Draw", function() self:Box() end)
