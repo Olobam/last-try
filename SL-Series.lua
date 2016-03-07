@@ -219,39 +219,26 @@ function Vayne:ProcessSpellComplete(unit, spell)
   local QPos = Vector(unit) - (Vector(unit) - Vector(myHero)):perpendicular():normalized() * 350
 	if _G.IOW then
 		if unit == myHero and spell.name:lower():find("attack") then
-			if IOW:Mode() == "Combo" and BM.C.Q:Value() and BM.C.QL:Value() == 1 and SReady[0] and ValidTarget(unit, 800) then
-				CastSkillShot(0, QPos)
-			elseif IOW:Mode() == "Combo" and BM.C.Q:Value() and BM.C.QL:Value() == 2 and SReady[0] and ValidTarget(unit, 800) then
-				CastSkillShot(0, GetMousePos())
-			elseif IOW:Mode() == "Harass" and BM.H.Q:Value() and BM.H.QL:Value() == 1 and SReady[0] and ValidTarget(unit, 800) then
-				CastSkillShot(0, QPos)
-			elseif IOW:Mode() == "Harass" and BM.H.Q:Value() and BM.H.QL:Value() == 2 and SReady[0] and ValidTarget(unit, 800) then
-				CastSkillShot(0, GetMousePos())
+			if IOW:Mode() == "Combo" and BM.C.Q:Value() and and SReady[0] and ValidTarget(unit, 800) then
+				if BM.C.QL:Value() == 1 then
+					CastSkillShot(0, QPos)
+				elseif if BM.C.QL:Value() == 2 then
+					CastSkillShot(0, GetMousePos())
+				end
+			elseif IOW:Mode() == "Harass" and BM.H.Q:Value() and SReady[0] and ValidTarget(unit, 800) then
+				if BM.H.QL:Value() == 1 then
+					CastSkillShot(0, QPos)
+				elseif BM.H.QL:Value() == 2 then
+					CastSkillShot(0, GetMousePos())
+				end
 			end
 		  for _, mob in pairs(minionManager.objects) do
-			if IOW:Mode() == "LaneClear" and BM.JC.Q:Value() and BM.JC.QL:Value() == 1 and SReady[0] and ValidTarget(mob, 500) and GetTeam(mob) == MINION_JUNGLE then
-				CastSkillShot(0, QPos)
-			elseif IOW:Mode() == "LaneClear" and BM.JC.Q:Value() and BM.JC.QL:Value() == 2 and SReady[0] and ValidTarget(mob, 500) and GetTeam(mob) == MINION_JUNGLE then
-				CastSkillShot(0, GetMousePos())
-			end
-		  end
-		end
-	elseif _G.DAC_Loaded then
-		if unit == myHero and spell.name:lower():find("attack") then
-			if DAC:Mode() == "Combo" and BM.C.Q:Value() and BM.C.QL:Value() == 1 and SReady[0] and ValidTarget(unit, 800) then
-				CastSkillShot(0, QPos)
-			elseif DAC:Mode() == "Combo" and BM.C.Q:Value() and BM.C.QL:Value() == 2 and SReady[0] and ValidTarget(unit, 800) then
-				CastSkillShot(0, GetMousePos())
-			elseif DAC:Mode() == "Harass" and BM.H.Q:Value() and BM.H.QL:Value() == 1 and SReady[0] and ValidTarget(unit, 800) then
-				CastSkillShot(0, QPos)
-			elseif DAC:Mode() == "Harass" and BM.H.Q:Value() and BM.H.QL:Value() == 2 and SReady[0] and ValidTarget(unit, 800) then
-				CastSkillShot(0, GetMousePos())
-			end
-		  for _, mob in pairs(minionManager.objects) do
-			if DAC:Mode() == "LaneClear" and BM.JC.Q:Value() and BM.JC.QL:Value() == 1 and SReady[0] and ValidTarget(mob, 500) and GetTeam(mob) == MINION_JUNGLE then
-				CastSkillShot(0, QPos)
-			elseif DAC:Mode() == "LaneClear" and BM.JC.Q:Value() and BM.JC.QL:Value() == 2 and SReady[0] and ValidTarget(mob, 500) and GetTeam(mob) == MINION_JUNGLE then
-				CastSkillShot(0, GetMousePos())
+			if IOW:Mode() == "LaneClear" and BM.JC.Q:Value() and SReady[0] and ValidTarget(mob, 500) and GetTeam(mob) == MINION_JUNGLE then
+				if BM.JC.QL:Value() == 1 then
+					CastSkillShot(0, QPos)
+				elseif BM.JC.QL:Value() == 2 then
+					CastSkillShot(0, GetMousePos())
+				end
 			end
 		  end
 		end
