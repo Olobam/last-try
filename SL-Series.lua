@@ -202,7 +202,7 @@ function Vayne:Tick()
 end
 
 function Vayne:CastE(unit)
-	local e = GetPrediction(unit, E)
+	local e = GetPrediction(unit, self.Spell[2])
 	local ePos = Vector(e.castPos)
 	local c = math.ceil(BM.C.a:Value())
 	local cd = math.ceil(BM.C.pd:Value()/c)
@@ -210,7 +210,7 @@ function Vayne:CastE(unit)
 		local PP = Vector(ePos) + Vector(Vector(ePos) - Vector(myHero)):normalized()*(cd*rekt)
 			
 		if MapPosition:inWall(PP) == true and GotBuff(unit,"BlackShield") ~= 1 then
-			CastTargetSpell(unit, _E)
+			CastTargetSpell(unit, 2)
 		end		
 	end
 end
