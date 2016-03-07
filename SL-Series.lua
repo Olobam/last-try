@@ -38,6 +38,7 @@ end
 
 Callback.Add("Load", function()	
 	Init()
+	Update()
 	if SLSChamps[ChampName] and SLS.Loader.LC:Value() then
 		_G[ChampName]() 
 		PrintChat("<font color=\"#fd8b12\"><b>[SL-Series] - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> Loaded! </b></font>")
@@ -120,8 +121,8 @@ function Vayne:__init()
 	BM.C:Info("2", "")
 	BM.C:Boolean("R", "Use R", true)
 	BM.C:Slider("RE", "Use R if x enemies", 2, 1, 5, 1)
-	BM.C:Slider("RHP", "Use R at HP <= x ", 75, 1, 100, 5)
-	BM.C:Slider("REHP", "Enemy HP ", 65, 1, 100, 5)
+	BM.C:Slider("RHP", "myHeroHP ", 75, 1, 100, 5)
+	BM.C:Slider("REHP", "EnemyHP ", 65, 1, 100, 5)
 	
 	BM:Menu("H", "Harass")
 	BM.H:DropDown("QL", "Q-Logic", 1, {"Advanced", "Simple"})
@@ -141,6 +142,7 @@ function Vayne:__init()
 
 	
 	Callback.Add("Tick", function() self:Tick() end)
+	OnProcessSpellComplete(function(unit, spell) self:ProcessSpellComplete(unit, spell) end)
 	
 	
 	self.SReady = {
@@ -169,24 +171,134 @@ function Vayne:Tick()
 		
 		self:SpellCheck()
 		
-		-- self:KS()
+		self:KS()
 		
-		-- local Mode = nil
-		-- if _G.DAC_Loaded then 
-			-- Mode = DAC:Mode()
-		-- elseif _G.IOW then
-			-- Mode = IOW:Mode()
-		-- end
+		local Mode = nil
+		if _G.DAC_Loaded then 
+			Mode = DAC:Mode()
+		elseif _G.IOW then
+			Mode = IOW:Mode()
+		end
 
-		-- if Mode == "Combo" then
-			-- self:Combo()
-		-- elseif Mode == "Laneclear" then
-			-- self:JungleClear()
-		-- elseif Mode == "Harass" then
-			-- self:Harass()
-		-- else
-			-- return
-		-- end
+	    if Mode == "Combo" then
+			self:Combo()
+		elseif Mode == "Laneclear" then
+			self:JungleClear()
+		elseif Mode == "Harass" then
+			self:Harass()
+		else
+			return
+		end
+	end
+end
+
+function Vayne:CastE(unit)
+ local e = GetPrediction(unit, E)
+  local ePos = Vector(e.castPos)
+   local c = math.ceil(BM.C.a:Value())
+    local cd = math.ceil(BM.C.pd:Value()/c)
+	  for rekt = 1, c, 1 do
+	   local PP = Vector(ePos) + Vector(Vector(ePos) - Vector(myHero)):normalized()*(cd*rekt)
+			
+		 if MapPosition:inWall(PP) == true and GotBuff(unit,"BlackShield") ~= 1 then
+                CastTargetSpell(unit, _E)
+	     end		
+      end
+end
+
+function Vayne:ProcessSpellComplete(unit, spell)
+  local QPos = Vector(unit) - (Vector(unit) - Vector(myHero)):perpendicular():normalized() * 350
+	if _G.IOW then
+		if unit == myHero and spell.name:lower():find("attack") then
+			if IOW:Mode() == "Combo" and BM.C.Q:Value() and BM.C.QL:Value() == 1 and self.SReady[0] and ValidTarget(unit, 800) then
+				CastSkillShot(0, QPos)
+			elseif IOW:Mode() == "Combo" and BM.C.Q:Value() and BM.C.QL:Value() == 2 and self.SReady[0] and ValidTarget(unit, 800) then
+				CastSkillShot(0, QPos)
+			elseif IOW:Mode() == "Harass" and BM.H.Q:Value() and BM.H.QL:Value() == 1 and self.SReady[0] and ValidTarget(unit, 800) then
+				CastSkillShot(0, QPos)
+			elseif IOW:Mode() == "Harass" and BM.H.Q:Value() and BM.H.QL:Value() == 2 and self.SReady[0] and ValidTarget(unit, 800) then
+				CastSkillShot(0, GetMousePos())
+			end
+		  for _, mob in pairs(minionManager.objects) do
+			if IOW:Mode() == "LaneClear" and BM.JC.Q:Value() and BM.JC.QL:Value() == 1 and self.SReady[0] and ValidTarget(mob, 500) and GetTeam(mob) == MINION_JUNGLE then
+				CastSkillShot(0, QPos)
+			elseif IOW:Mode() == "LaneClear" and BM.JC.Q:Value() and BM.JC.QL:Value() == 2 and self.SReady[0] and ValidTarget(mob, 500) and GetTeam(mob) == MINION_JUNGLE then
+				CastSkillShot(0, GetMousePos())
+			end
+		  end
+		end
+	elseif _G.DAC_Loaded then
+		if unit == myHero and spell.name:lower():find("attack") then
+			if DAC:Mode() == "Combo" and BM.C.Q:Value() and BM.C.QL:Value() == 1 and self.SReady[0] and ValidTarget(unit, 800) then
+				CastSkillShot(0, QPos)
+			elseif DAC:Mode() == "Combo" and BM.C.Q:Value() and BM.C.QL:Value() == 2 and self.SReady[0] and ValidTarget(unit, 800) then
+				CastSkillShot(0, QPos)
+			elseif DAC:Mode() == "Harass" and BM.H.Q:Value() and BM.H.QL:Value() == 1 and self.SReady[0] and ValidTarget(unit, 800) then
+				CastSkillShot(0, QPos)
+			elseif DAC:Mode() == "Harass" and BM.H.Q:Value() and BM.H.QL:Value() == 2 and self.SReady[0] and ValidTarget(unit, 800) then
+				CastSkillShot(0, GetMousePos())
+			end
+		  for _, mob in pairs(minionManager.objects) do
+			if DAC:Mode() == "LaneClear" and BM.JC.Q:Value() and BM.JC.QL:Value() == 1 and self.SReady[0] and ValidTarget(mob, 500) and GetTeam(mob) == MINION_JUNGLE then
+				CastSkillShot(0, QPos)
+			elseif DAC:Mode() == "LaneClear" and BM.JC.Q:Value() and BM.JC.QL:Value() == 2 and self.SReady[0] and ValidTarget(mob, 500) and GetTeam(mob) == MINION_JUNGLE then
+				CastSkillShot(0, GetMousePos())
+			end
+		  end
+		end
+	end
+end
+
+function Vayne:Combo()
+	local target = nil
+	if _G.DAC_Loaded then
+		target = DAC:GetTarget() 
+	elseif _G.IOW then
+		target = GetCurrentTarget()
+	else
+		return
+	end
+	if self.SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() then
+		self:CastE(target)
+	end
+	if self.SReady[3] and ValidTarget(target, 800) and BM.C.R:Value() and EnemiesAround(myHero,800) >= BM.C.RE:Value() and GetPercentHP(myHero) < BM.C.RHP:Value() and GetPercentHP(target) < BM.C.REHP:Value() then
+		CastSpell(3)
+	end
+end
+
+function Vayne:Harass()
+	local target = nil
+	if _G.DAC_Loaded then
+		target = DAC:GetTarget() 
+	elseif _G.IOW then
+		target = GetCurrentTarget()
+	else
+		return
+	end
+	if self.SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() then
+		self:CastE(target)
+	end
+end
+
+function Vayne:JungleClear()
+ for _,mob in pairs(minionManager.objects) do
+	if self.SReady[2] and ValidTarget(mob, self.Spell[2].range) and BM.JC.E:Value() and GetTeam(mob) == MINION_JUNGLE then
+		self:CastE(mob)
+	end
+ end
+end
+
+function Vayne:KS()
+	local target = nil
+	if _G.DAC_Loaded then
+		target = DAC:GetTarget() 
+	elseif _G.IOW then
+		target = GetCurrentTarget()
+	else
+		return
+	end
+	if self.SReady[2] and GetADHP(target) < CalcDamage(myHero,unit,self.Dmg[2](),0) and ValidTarget(target, self.Spell[2].range) then
+		CastTargetSpell(target, 2)
 	end
 end
 
@@ -650,8 +762,8 @@ function Update:Click(key,msg)
 	local cur = GetCursorPos()
 	if key == 513 and cur.x < 350 and cur.y < 75 then
 		self.State = "Downloading..."
-		DownloadFileAsync("https://raw.githubusercontent.com/xSxcSx/SL-Series/master/SL-Series.lua", SCRIPT_PATH .. "SLSeries.lua", function() self.State = "Update Complete" PrintChat("<font color=\"#fd8b12\"><b>[SL-Series] - <font color=\"#F2EE00\">Reload the Script with 2x F6</b></font>") return	end)
-		DelayAction(function() self.State = "Update Complete" PrintChat("<font color=\"#fd8b12\"><b>[SL-Series] - <font color=\"#F2EE00\">Reload the Script with 2x F6</b></font>") Callback.Del("WndMsg", function(key,msg) end) end,1)
+		DownloadFileAsync("https://raw.githubusercontent.com/xSxcSx/SL-Series/master/SL-Series.lua", SCRIPT_PATH .. "SL-Series.lua", function() self.State = "Update Complete" PrintChat("<font color=\"#fd8b12\"><b>[SL-Series] - <font color=\"#F2EE00\">Reload the Script with 2x F6</b></font>") return	end)
+		 self.State = "Update Complete" PrintChat("<font color=\"#fd8b12\"><b>[SL-Series] - <font color=\"#F2EE00\">Reload the Script with 2x F6</b></font>") Callback.Del("WndMsg", function(key,msg) end)
 	elseif key == 513 and cur.x > 370 and cur.x < 400 and cur.y > 7 and cur.y < 60 then
 		Callback.Del("Draw", function() self:Box() end)
 		self.Do = false
