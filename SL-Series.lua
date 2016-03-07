@@ -216,31 +216,30 @@ function Vayne:CastE(unit)
 end
 
 function Vayne:ProcessSpellComplete(unit, spell)
-  local QPos = Vector(unit) - (Vector(unit) - Vector(myHero)):perpendicular():normalized() * 350
-	if _G.IOW then
-		if unit == myHero and spell.name:lower():find("attack") then
-			if IOW:Mode() == "Combo" and BM.C.Q:Value() and and SReady[0] and ValidTarget(unit, 800) then
-				if BM.C.QL:Value() == 1 then
-					CastSkillShot(0, QPos)
-				elseif if BM.C.QL:Value() == 2 then
-					CastSkillShot(0, GetMousePos())
-				end
-			elseif IOW:Mode() == "Harass" and BM.H.Q:Value() and SReady[0] and ValidTarget(unit, 800) then
+	local QPos = Vector(unit) - (Vector(unit) - Vector(myHero)):perpendicular():normalized() * 350
+	if unit == myHero and spell.name:lower():find("attack") then
+		if IOW:Mode() == "Combo" and BM.C.Q:Value() and SReady[0] and ValidTarget(unit, 800) then
+			if BM.C.QL:Value() == 1 then
+				CastSkillShot(0, QPos)
+			elseif BM.C.QL:Value() == 2 then
+				CastSkillShot(0, GetMousePos())
+			end
+			if IOW:Mode() == "Harass" and BM.H.Q:Value() and SReady[0] and ValidTarget(unit, 800) then
 				if BM.H.QL:Value() == 1 then
 					CastSkillShot(0, QPos)
 				elseif BM.H.QL:Value() == 2 then
 					CastSkillShot(0, GetMousePos())
 				end
 			end
-		  for _, mob in pairs(minionManager.objects) do
-			if IOW:Mode() == "LaneClear" and BM.JC.Q:Value() and SReady[0] and ValidTarget(mob, 500) and GetTeam(mob) == MINION_JUNGLE then
-				if BM.JC.QL:Value() == 1 then
-					CastSkillShot(0, QPos)
-				elseif BM.JC.QL:Value() == 2 then
-					CastSkillShot(0, GetMousePos())
+			for _, mob in pairs(minionManager.objects) do
+				if IOW:Mode() == "LaneClear" and BM.JC.Q:Value() and SReady[0] and ValidTarget(mob, 500) and GetTeam(mob) == MINION_JUNGLE then
+					if BM.JC.QL:Value() == 1 then
+						CastSkillShot(0, QPos)
+					elseif BM.JC.QL:Value() == 2 then
+						CastSkillShot(0, GetMousePos())
+					end
 				end
 			end
-		  end
 		end
 	end
 end
