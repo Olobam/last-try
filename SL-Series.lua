@@ -365,7 +365,6 @@ function Aatrox:Tick()
 	if myHero.dead then return end
 	
 	if (_G.IOW or _G.DAC_Loaded) then
-		
 		GetReady()
 		
 		self:KS()
@@ -408,10 +407,10 @@ function Aatrox:Combo()
 			CastSkillShot(0,Pred.castPos)
 		end
 	end
-	if SReady[1] and BM.C.W:Value() and ValidTarget(target,400) then
+	if SReady[1] and BM.C.W:Value() and ValidTarget(target,750) then
 		if GetPercentHP(myHero) < BM.C.WT:Value()+1 and self.W == "dmg" then
 			CastSpell(1)
-		elseif GetPercentHP(myHero) > BM.C.WT:Value()+	1 and self.W == "heal" then
+		elseif GetPercentHP(myHero) > BM.C.WT:Value() and self.W == "heal" then
 			CastSpell(1)
 		end
 	end
@@ -448,9 +447,9 @@ function Aatrox:KS()
 end
 
 function Aatrox:Stat(unit, buff)
-	if unit == myHero and buff.Name:lower() == "self.aatroxwlife" then
+	if unit == myHero and buff.Name:lower() == "aatroxwlife" then
 		self.W = "heal"
-	elseif unit == myHero and buff.Name:lower() == "self.aatroxwpower" then
+	elseif unit == myHero and buff.Name:lower() == "aatroxwpower" then
 		self.W = "dmg"
 	end
 end
