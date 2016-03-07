@@ -136,7 +136,7 @@ function Vayne:__init()
 	}
 	
 	Dmg = {
-	[2] = function () return 35 * GetCastLevel(myHero,2) + 45 + GetBonusDmg(myHero) * .5 end,
+	[2] = function (unit) return CalcDamage(myHero, unit, 35 * GetCastLevel(myHero,2) + 45 + GetBonusDmg(myHero) * .5, 0) end
 	}
 	
 	BM:Menu("C", "Combo")
@@ -209,7 +209,7 @@ function Vayne:CastE(unit)
 	for rekt = 1, c, 1 do
 		local PP = Vector(ePos) + Vector(Vector(ePos) - Vector(myHero)):normalized()*(cd*rekt)
 			
-		if MapPosition:inWall(PP) then
+		if MapPosition:inWall(PP) == true then
 			CastTargetSpell(unit, 2)
 		end		
 	end
@@ -292,11 +292,10 @@ function Vayne:KS()
 	else
 		return
 	end
-	if SReady[2] and GetADHP(target) < CalcDamage(myHero,unit,Dmg[2](),0) and ValidTarget(target, self.Spell[2].range) then
+	if SReady[2] and GetADHP(target) < Dmg[2](unit) and ValidTarget(target, self.Spell[2].range) then
 		CastTargetSpell(target, 2)
 	end
 end
-
 
 
 class "Aatrox"
@@ -311,10 +310,10 @@ function Aatrox:__init()
 	
 	--SpellDmg
 	Dmg = {
-	[0] = function () return 35 + GetCastLevel(myHero,0)*45 + GetBonusDmg(myHero)*.6 end,
-	[1] = function () return 25 + GetCastLevel(myHero,1)*35 + GetBonusDmg(myHero) end,
-	[2] = function () return 35 + GetCastLevel(myHero,2)*35 + GetBonusDmg(myHero)*.6 + GetBonusAP(myHero)*.6 end,
-	[3] = function () return 100 + GetCastLevel(myHero,3)*100 + GetBonusAP(myHero) end,
+	[0] = function (unit) return CalcDamage(myHero, unit, 35 + GetCastLevel(myHero,0)*45 + GetBonusDmg(myHero)*.6, 0) end,
+	[1] = function (unit) return CalcDamage(myHero, unit, 25 + GetCastLevel(myHero,1)*35 + GetBonusDmg(myHero), 0) end,
+	[2] = function (unit) return CalcDamage(myHero, unit, 0, 35 + GetCastLevel(myHero,2)*35 + GetBonusDmg(myHero)*.6 + GetBonusAP(myHero)*.6) end,
+	[3] = function (unit) return CalcDamage(myHero, unit, 0, 100 + GetCastLevel(myHero,3)*100 + GetBonusAP(myHero)) end,
 	}
 	
 	--Menu
@@ -448,13 +447,13 @@ end
 function Aatrox:KS()
 	if not BM.KS.Enable:Value() then return end
 	for _,unit in pairs(GetEnemyHeroes()) do
-		if GetADHP(unit) < CalcDamage(myHero,unit, Dmg[0](), 0) and SReady[0] and ValidTarget(unit, self.Spell[0].range*1.1) and BM.KS.Q:Value() then
+		if GetADHP(unit) < Dmg[0](unit) and SReady[0] and ValidTarget(unit, self.Spell[0].range*1.1) and BM.KS.Q:Value() then
 			local Pred = GetCircularAOEPrediction(unit, self.Spell[0])
 			if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
 				CastSkillShot(0,Pred.castPos)
 			end
 		end
-		if GetAPHP(unit) < CalcDamage(myHero,unit, 0, Dmg[2]()) and SReady[2] and ValidTarget(unit, self.Spell[2].range*1.1) and BM.KS.E:Value() then
+		if GetAPHP(unit) < Dmg[2](unit) and SReady[2] and ValidTarget(unit, self.Spell[2].range*1.1) and BM.KS.E:Value() then
 			local Pred = GetPrediction(unit, self.Spell[2])
 			if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[2].range then
 				CastSkillShot(2,Pred.castPos)
@@ -735,7 +734,6 @@ end
 class 'DmgDraw'
 
 function DmgDraw:__init()
-	require('DamageLib')
 
 	self.dmgSpell = {}
 	self.spellName= {"Q","W","E","R"} 
@@ -743,16 +741,30 @@ function DmgDraw:__init()
 	self.aa = {}
 	self.dCheck = {}
 	self.dX = {}
+	self.Own = nil
 
 	SLS:SubMenu("D","|SL| Draw Damage")
 	SLS.D:Boolean("dAA","Count AA to kill", true)
 	SLS.D:Boolean("dAAc","Consider Crit", true)
 	SLS.D:Slider("dR","Draw Range", 1500, 500, 3000, 100)
-
-	for i=1,4,1 do
-		if getdmg(self.spellName[i],myHero,myHero,1,3)~=0 then
-			SLS.D:Boolean(self.spellName[i], "Draw "..self.spellName[i], true)
-			SLS.D:ColorPick(self.spellName[i].."c", "Color for "..self.spellName[i], self.dC[i])
+	
+	if SLSChamps[ChampName] then
+		self.Own = true
+		for i=1,4,1 do
+			if Dmg[i-1] then
+				SLS.D:Boolean(self.spellName[i], "Draw "..self.spellName[i], true)
+				SLS.D:ColorPick(self.spellName[i].."c", "Color for "..self.spellName[i], self.dC[i])
+			end
+		end
+	else
+		self.Own = false
+		require('DamageLib')
+		PrintChat("<font color=\"#fd8b12\"><b>[SL-Series] - <font color=\"#F2EE00\">DamageLib loaded</b></font>")
+		for i=1,4,1 do
+			if getdmg(self.spellName[i],myHero,myHero,1,3)~=0 then
+				SLS.D:Boolean(self.spellName[i], "Draw "..self.spellName[i], true)
+				SLS.D:ColorPick(self.spellName[i].."c", "Color for "..self.spellName[i], self.dC[i])
+			end
 		end
 	end
 
@@ -773,7 +785,11 @@ function DmgDraw:Set()
 		local lock = false
 		for i=1,4,1 do
 			if SLS.D[self.spellName[i]] and SLS.D[self.spellName[i]]:Value() and Ready(i-1) and GetDistance(GetOrigin(myHero),GetOrigin(champ)) < SLS.D.dR:Value() then
-				self.dmgSpell[GetObjectName(champ)][i] = getdmg(self.spellName[i],champ,myHero,GetCastLevel(myHero,i-1))
+				if self.Own then
+					self.dmgSpell[GetObjectName(champ)][i] = Dmg[i-1](champ)
+				else
+					self.dmgSpell[GetObjectName(champ)][i] = getdmg(self.spellName[i],champ,myHero,GetCastLevel(myHero,i-1))
+				end
 				self.dCheck[GetObjectName(champ)][i]=true
 			else 
 				self.dmgSpell[GetObjectName(champ)][i] = 0
