@@ -222,7 +222,7 @@ function Vayne:ProcessSpellComplete(unit, spell)
 			if IOW:Mode() == "Combo" and BM.C.Q:Value() and BM.C.QL:Value() == 1 and SReady[0] and ValidTarget(unit, 800) then
 				CastSkillShot(0, QPos)
 			elseif IOW:Mode() == "Combo" and BM.C.Q:Value() and BM.C.QL:Value() == 2 and SReady[0] and ValidTarget(unit, 800) then
-				CastSkillShot(0, QPos)
+				CastSkillShot(0, GetMousePos())
 			elseif IOW:Mode() == "Harass" and BM.H.Q:Value() and BM.H.QL:Value() == 1 and SReady[0] and ValidTarget(unit, 800) then
 				CastSkillShot(0, QPos)
 			elseif IOW:Mode() == "Harass" and BM.H.Q:Value() and BM.H.QL:Value() == 2 and SReady[0] and ValidTarget(unit, 800) then
@@ -241,7 +241,7 @@ function Vayne:ProcessSpellComplete(unit, spell)
 			if DAC:Mode() == "Combo" and BM.C.Q:Value() and BM.C.QL:Value() == 1 and SReady[0] and ValidTarget(unit, 800) then
 				CastSkillShot(0, QPos)
 			elseif DAC:Mode() == "Combo" and BM.C.Q:Value() and BM.C.QL:Value() == 2 and SReady[0] and ValidTarget(unit, 800) then
-				CastSkillShot(0, QPos)
+				CastSkillShot(0, GetMousePos())
 			elseif DAC:Mode() == "Harass" and BM.H.Q:Value() and BM.H.QL:Value() == 1 and SReady[0] and ValidTarget(unit, 800) then
 				CastSkillShot(0, QPos)
 			elseif DAC:Mode() == "Harass" and BM.H.Q:Value() and BM.H.QL:Value() == 2 and SReady[0] and ValidTarget(unit, 800) then
