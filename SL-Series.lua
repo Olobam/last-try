@@ -298,6 +298,7 @@ function Vayne:KS()
 end
 
 
+
 class "Aatrox"
 
 function Aatrox:__init()
@@ -324,6 +325,11 @@ function Aatrox:__init()
 	BM.C:Boolean("E", "Use E", true)
 	BM.C:Boolean("R", "Use R", true)
 	BM.C:Slider("RE", "Use R if x enemies", 2, 1, 5, 1)
+	
+	BM:Menu("H", "Harass")
+	BM.H:Boolean("W", "Use W", true)
+	BM.H:Slider("WT", "Toggle W at % HP", 45, 5, 90, 5)
+	BM.H:Boolean("E", "Use E", true)
 	
 	BM:Menu("KS", "Killsteal")
 	BM.KS:Boolean("Enable", "Enable Killsteal", true)
@@ -367,9 +373,9 @@ function Aatrox:Tick()
 		--[[elseif Mode == "Laneclear" then
 			self:LaneClear()
 		elseif Mode == "LastHit" then
-			self:LastHit()
+			self:LastHit()--]]
 		elseif Mode == "Harass" then
-			self:Harass()--]]
+			self:Harass()
 		else
 			return
 		end
@@ -410,6 +416,31 @@ function Aatrox:Combo()
 		local Pred = GetPrediction(target, self.Spell[2])
 		if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[2].range then
 			CastSkillShot(2,Pred.castPos)
+		end
+	end
+end
+
+function Aatrox:Harass()
+	local target = nil
+	if _G.DAC_Loaded then
+		target = DAC:GetTarget() 
+	elseif _G.IOW then
+		target = GetCurrentTarget()
+	else
+		return
+	end
+	
+	if SReady[2] and ValidTarget(target, self.Spell[2].range*1.1) and BM.H.E:Value() then
+		local Pred = GetPrediction(target, self.Spell[2])
+		if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[2].range then
+			CastSkillShot(2,Pred.castPos)
+		end
+	end
+	if SReady[1] and BM.H.W:Value() and ValidTarget(target,750) then
+		if GetPercentHP(myHero) < BM.H.WT:Value()+1 and self.W == "dmg" then
+			CastSpell(1)
+		elseif GetPercentHP(myHero) > BM.H.WT:Value() and self.W == "heal" then
+			CastSpell(1)
 		end
 	end
 end
