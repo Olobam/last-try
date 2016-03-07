@@ -209,7 +209,7 @@ function Vayne:CastE(unit)
 	for rekt = 1, c, 1 do
 		local PP = Vector(ePos) + Vector(Vector(ePos) - Vector(myHero)):normalized()*(cd*rekt)
 			
-		if MapPosition:inWall(PP) == true and GotBuff(unit,"BlackShield") ~= 1 then
+		if MapPosition:inWall(PP) then
 			CastTargetSpell(unit, 2)
 		end		
 	end
