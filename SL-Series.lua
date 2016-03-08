@@ -80,6 +80,9 @@ Callback.Add("Load", function()
 	if SLS.Loader.LD:Value() then
 		DmgDraw()
 	end
+	if SLS.Loader.LH:Value() then
+		Humanizer()
+	end
 end)    
 
 
@@ -103,8 +106,10 @@ function Init:__init()
 	L:Info("0.4", "")
 	L:Boolean("LI", "Load Items", true)
 	L:Info("0.5", "")
-	L:Info("0.6", "You will have to press 2f6")
-	L:Info("0.7", "to apply the changes")
+	L:Boolean("LH", "Load Humanizer", true)
+	L:Info("0.6", "")
+	L:Info("0.7", "You will have to press 2f6")
+	L:Info("0.8", "to apply the changes")
 
 	if L.LC:Value() then
 		SLS:Menu(ChampName, "|SL| "..ChampName) 
@@ -480,6 +485,82 @@ end
 ---------------------------------------------------------------------------------------------
 -------------------------------------UTILITY-------------------------------------------------
 ---------------------------------------------------------------------------------------------
+--Humanizer
+class 'Humanizer'
+
+function Humanizer:__init()
+
+self.bCount = 0
+self.lastCommand = 0
+
+	SLS:SubMenu("Hum", "|SL| Humanizer")
+	SLS.Hum:Boolean("Draw", "Draw blocked movements", true)
+	SLS.Hum:Boolean("enable", "Use Movement Limiter", true)
+	SLS.Hum:Slider("lhit", "Last Hit", 6, 1, 20, 1)
+	SLS.Hum:Slider("lclear", "Lane Clear", 6, 1, 20, 1)
+	SLS.Hum:Slider("harass", "Harass", 7, 1, 20, 1)
+	SLS.Hum:Slider("combo", "Combo", 8, 1, 20, 1)
+	SLS.Hum:Slider("perm", "Persistant", 7, 1, 20, 1)
+	
+ Callback.Add("IssueOrder", function(order) self:IssueOrder(order) end)
+ Callback.Add("Draw", function() self:Draw() end)
+end
+
+function Humanizer:IsLaneclear()
+	if IOW:Mode() == "LaneClear" then
+		return true
+	end
+end
+
+function Humanizer:IsLastHit()
+	if IOW:Mode() == "LastHit" then
+		return true
+	end
+end
+
+function Humanizer:IsCombo()
+	if IOW:Mode() == "Combo" then
+		return true
+	end
+end
+
+function Humanizer:IsHarass()
+	if IOW:Mode() == "Harass" then
+		return true
+	end
+end
+
+function Humanizer:moveEvery()
+	if self:IsCombo() then
+		return 1 / SLS.Hum.combo:Value()
+	elseif self:IsLastHit() then
+		return 1 / SLS.Hum.lhit:Valuer()
+	elseif self:IsHarass() then
+		return 1 / SLS.Hum.harass:Value()
+	elseif self:IsLaneclear() then
+		return 1 / SLS.Hum.lclear:Value()
+	else
+		return 1 / SLS.Hum.perm:Value()
+	end
+end
+
+function Humanizer:IssueOrder(order)
+	if order.flag == 2 and SLS.Hum.enable:Value() and IOW:Mode() ~= nil then
+		if os.clock() - self.lastCommand < self:moveEvery() then
+		  BlockOrder()
+		  self.bCount = self.bCount + 1
+		else
+		  self.lastCommand = os.clock()
+		end
+	end
+end
+
+function Humanizer:Draw()
+  if SLS.Hum.Draw:Value() then
+  DrawText("Blocked Movements : "..tostring(self.bCount),25,50,60,ARGB(255,159,242,12))
+  end
+end
+
 
 --AutoLevel
 class 'AutoLevel'
@@ -833,7 +914,6 @@ function DmgDraw:Draw()
 		end
 	end
 end
-
 
 --Updater
 class 'Update'
