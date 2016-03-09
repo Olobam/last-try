@@ -132,9 +132,9 @@ end
 -------------------------------------CHAMPS--------------------------------------------------
 ---------------------------------------------------------------------------------------------
 
-----/|----------|\----
----/-|--Vayne---|-\---
---/--|----------|--\--
+-----/|----------|\----
+----/-|--Vayne---|-\---
+---/--|----------|--\--
 
 class 'Vayne'
 
@@ -306,17 +306,11 @@ function Vayne:JungleClear()		--E Wall check?
 end
 
 function Vayne:KS()
-	local target = nil
-	if _G.DAC_Loaded then
-		target = DAC:GetTarget() 
-	elseif _G.IOW then
-		target = GetCurrentTarget()
-	else
-		return
-	end
+  for _,target in pairs(GetEnemyHeroes()) do
 	if SReady[2] and GetADHP(target) < Dmg[2](target) and ValidTarget(target, self.Spell[2].range) then
 		CastTargetSpell(target, 2)
 	end
+  end
 end
 
 
@@ -513,6 +507,7 @@ self.lastCommand = 0
 	SLS:SubMenu("Hum", "|SL| Humanizer")
 	SLS.Hum:Boolean("Draw", "Draw blocked movements", true)
 	SLS.Hum:Boolean("enable", "Use Movement Limiter", true)
+	SLS.Hum:Info("xcxsycxcw", "")
 	SLS.Hum:Slider("lhit", "Last Hit", 6, 1, 20, 1)
 	SLS.Hum:Slider("lclear", "Lane Clear", 6, 1, 20, 1)
 	SLS.Hum:Slider("harass", "Harass", 7, 1, 20, 1)
