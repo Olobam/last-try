@@ -957,6 +957,10 @@ function Update:Click(key,msg)
 	end
 end
 
+
+class 'HitMe'
+
+
 function HitMe:__init()
 	SLS:SubMenu("SB","|SL| Spellblock")
 	
