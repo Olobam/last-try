@@ -132,6 +132,10 @@ end
 -------------------------------------CHAMPS--------------------------------------------------
 ---------------------------------------------------------------------------------------------
 
+----/|----------|\----
+---/-|--Vayne---|-\---
+--/--|----------|--\--
+
 class 'Vayne'
 
 function Vayne:__init()
@@ -176,7 +180,7 @@ function Vayne:__init()
 
 	
 	Callback.Add("Tick", function() self:Tick() end)
-	Callback.Add("ProcessSpellAttack", function(unit, spell) self:AAReset(unit, spell) end)
+	Callback.Add("ProcessSpellComplete", function(unit, spell) self:AAReset(unit, spell) end)
 	
 end
 
@@ -238,29 +242,25 @@ end
 
 function Vayne:AAReset(unit, spell)
 	local ta = spell.target
-	if unit == myHero and ta ~= nil then
-	  local QPos = Vector(unit) - (Vector(unit) - Vector(myHero)):perpendicular():normalized() * 350
-		if IOW:Mode() == "Combo" and BM.C.Q:Value() and SReady[0] and ValidTarget(unit, 800) then
+	if unit == myHero and ta ~= nil and spell.name:lower():find("attack") and SReady[0] then
+	  local QPos = Vector(ta) - (Vector(ta) - Vector(myHero)):perpendicular():normalized() * 350
+		if IOW:Mode() == "Combo" and BM.C.Q:Value() and ValidTarget(ta, 800) then
 			if BM.C.QL:Value() == 1 then
 				CastSkillShot(0, QPos)
 			elseif BM.C.QL:Value() == 2 then
 				CastSkillShot(0, GetMousePos())
 			end
-			if IOW:Mode() == "Harass" and BM.H.Q:Value() and SReady[0] and ValidTarget(unit, 800) then
-				if BM.H.QL:Value() == 1 then
-					CastSkillShot(0, QPos)
-				elseif BM.H.QL:Value() == 2 then
-					CastSkillShot(0, GetMousePos())
-				end
+		elseif IOW:Mode() == "Harass" and BM.H.Q:Value() and ValidTarget(ta, 800) then
+			if BM.H.QL:Value() == 1 then
+				CastSkillShot(0, QPos)
+			elseif BM.H.QL:Value() == 2 then
+				CastSkillShot(0, GetMousePos())
 			end
-			for _, mob in pairs(minionManager.objects) do
-				if IOW:Mode() == "LaneClear" and BM.JC.Q:Value() and SReady[0] and ValidTarget(mob, 500) and GetTeam(mob) == MINION_JUNGLE then
-					if BM.JC.QL:Value() == 1 then
-						CastSkillShot(0, QPos)
-					elseif BM.JC.QL:Value() == 2 then
-						CastSkillShot(0, GetMousePos())
-					end
-				end
+		elseif IOW:Mode() == "LaneClear" and BM.JC.Q:Value() and GetTeam(ta) == MINION_JUNGLE then
+			if BM.JC.QL:Value() == 1 then
+				CastSkillShot(0, QPos)
+			elseif BM.JC.QL:Value() == 2 then
+				CastSkillShot(0, GetMousePos())
 			end
 		end
 	end
@@ -314,7 +314,7 @@ function Vayne:KS()
 	else
 		return
 	end
-	if SReady[2] and GetADHP(target) < Dmg[2](unit) and ValidTarget(target, self.Spell[2].range) then
+	if SReady[2] and GetADHP(target) < Dmg[2](target) and ValidTarget(target, self.Spell[2].range) then
 		CastTargetSpell(target, 2)
 	end
 end
