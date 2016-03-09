@@ -173,12 +173,11 @@ function Vayne:__init()
 	BM.JC:Boolean("Q", "Use Q", true)
 	BM.JC:Info("4", "")
 	BM.JC:Boolean("E", "Use E", true)
-	BM.JC:Slider("a", "accuracy", 30, 1, 50, 5)
-	BM.JC:Slider("pd", "Push distance", 480, 1, 550, 5)	
 
 	
 	Callback.Add("Tick", function() self:Tick() end)
-	OnProcessSpellComplete(function(unit, spell) self:ProcessSpellComplete(unit, spell) end)	
+	Callback.Add("ProcessSpellAttack", function(unit, spell) self:AAReset(unit, spell) end)
+	
 end
 
 function Vayne:Tick()
@@ -223,9 +222,24 @@ function Vayne:CastE(unit)
 	end
 end
 
-function Vayne:ProcessSpellComplete(unit, spell)
-	local QPos = Vector(unit) - (Vector(unit) - Vector(myHero)):perpendicular():normalized() * 350
-	if unit == myHero and spell.name:lower():find("attack") then
+function Vayne:CastE2(unit)
+	local e = GetPrediction(unit, self.Spell[2])
+	local ePos = Vector(e.castPos)
+	local c = math.ceil(BM.H.a:Value())
+	local cd = math.ceil(BM.H.pd:Value()/c)
+	for rekt = 1, c, 1 do
+		local PP = Vector(ePos) + Vector(Vector(ePos) - Vector(myHero)):normalized()*(cd*rekt)
+			
+		if MapPosition:inWall(PP) == true then
+			CastTargetSpell(unit, 2)
+		end		
+	end
+end
+
+function Vayne:AAReset(unit, spell)
+	local ta = spell.target
+	if unit == myHero and ta ~= nil then
+	  local QPos = Vector(unit) - (Vector(unit) - Vector(myHero)):perpendicular():normalized() * 350
 		if IOW:Mode() == "Combo" and BM.C.Q:Value() and SReady[0] and ValidTarget(unit, 800) then
 			if BM.C.QL:Value() == 1 then
 				CastSkillShot(0, QPos)
@@ -278,8 +292,8 @@ function Vayne:Harass()
 	else
 		return
 	end
-	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() then
-		self:CastE(target)
+	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.H.E:Value() then
+		self:CastE2(target)
 	end
 end
 
