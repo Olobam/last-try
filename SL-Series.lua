@@ -852,8 +852,9 @@ function DmgDraw:Set()
 		self.dCheck[GetObjectName(champ)]={false,false,false,false}
 		local last = GetPercentHP(champ)*1.04
 		local lock = false
+			GetReady()
 		for i=1,4,1 do
-			if SLS.D[self.spellName[i]] and SLS.D[self.spellName[i]]:Value() and Ready(i-1) and GetDistance(GetOrigin(myHero),GetOrigin(champ)) < SLS.D.dR:Value() then
+			if SLS.D[self.spellName[i]] and SLS.D[self.spellName[i]]:Value() and (SReady[i-1] or CanUseSpell(myHero,i-1) == 8) and GetDistance(GetOrigin(myHero),GetOrigin(champ)) < SLS.D.dR:Value() then
 				if self.Own then
 					self.dmgSpell[GetObjectName(champ)][i] = Dmg[i-1](champ)
 				else
