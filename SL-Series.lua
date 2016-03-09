@@ -506,38 +506,14 @@ self.lastCommand = 0
  Callback.Add("Draw", function() self:Draw() end)
 end
 
-function Humanizer:IsLaneclear()
-	if IOW:Mode() == "LaneClear" then
-		return true
-	end
-end
-
-function Humanizer:IsLastHit()
-	if IOW:Mode() == "LastHit" then
-		return true
-	end
-end
-
-function Humanizer:IsCombo()
-	if IOW:Mode() == "Combo" then
-		return true
-	end
-end
-
-function Humanizer:IsHarass()
-	if IOW:Mode() == "Harass" then
-		return true
-	end
-end
-
 function Humanizer:moveEvery()
-	if self:IsCombo() then
+	if IOW:Mode() == "Combo" then
 		return 1 / SLS.Hum.combo:Value()
-	elseif self:IsLastHit() then
-		return 1 / SLS.Hum.lhit:Valuer()
-	elseif self:IsHarass() then
+	elseif IOW:Mode() == "LastHit" then
+		return 1 / SLS.Hum.lhit:Value()
+	elseif IOW:Mode() == "Harass" then
 		return 1 / SLS.Hum.harass:Value()
-	elseif self:IsLaneclear() then
+	elseif IOW:Mode() == "LaneClear" then
 		return 1 / SLS.Hum.lclear:Value()
 	else
 		return 1 / SLS.Hum.perm:Value()
@@ -556,9 +532,9 @@ function Humanizer:IssueOrder(order)
 end
 
 function Humanizer:Draw()
-  if SLS.Hum.Draw:Value() then
-  DrawText("Blocked Movements : "..tostring(self.bCount),25,50,60,ARGB(255,159,242,12))
-  end
+	if SLS.Hum.Draw:Value() then
+  		DrawText("Blocked Movements : "..tostring(self.bCount),25,50,60,ARGB(255,159,242,12))
+	end
 end
 
 
