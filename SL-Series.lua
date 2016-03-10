@@ -454,12 +454,17 @@ function Blitzcrank:KS()
 	end
 end
 
+----/|----------|\----
+---/-|--Soraka--|-\---
+--/--|----------|--\--
+
+
 class 'Soraka'
 
 function Soraka:__init()
 
 	self.Spell = {
-	[0] = { delay = 0.250, speed = 1000, width = 260, range = 900 },
+	[0] = { delay = 0.250, speed = math.huge, width = 235, range = 800 },
 	[2] = { delay = 1.75, speed = math.huge, width = 310, range = 900 }
 	}
 	
@@ -478,10 +483,14 @@ function Soraka:__init()
 
 	BM:Menu("AW", "Auto W")
 	BM.AW:Boolean("Enable", "Enable Auto W", true)
-	BM.AW:Info("5620-", "(myHeroHP) To Heal ally")
+	BM.AW:Info("5620-", "(myHeroHP) To Heal ally", true)
 	BM.AW:Slider("myHeroHP", "myHeroHP >= X", 5, 1, 100, 10)
 	BM.AW:Slider("allyHP", "AllyHP <= X", 85, 1, 100, 10)
 	BM.AW:Slider("ATRR", "Ally To Enemy Range", 1500, 500, 3000, 10)	
+	
+	for _,i in pairs(GetAllyHeroes()) do
+		BM.AW:Boolean("h"..GetObjectName(i), "Heal "..GetObjectName(i))
+	end
 
 	BM:Menu("AR", "Auto R")
 	BM.AR:Boolean("Enable", "Enable Auto R", true)
@@ -498,6 +507,7 @@ function Soraka:__init()
 	BM:Menu("p", "Prediction")
 	BM.p:Slider("hQ", "HitChance Q", 20, 0, 100, 1)
 	BM.p:Slider("hE", "HitChance E", 20, 0, 100, 1)
+	BM.p:Slider("aE", "Adjust E Delay", 1.5, .5, 2, .1)
 	
 	Callback.Add("Tick", function() self:Tick() end)
 	
@@ -505,7 +515,7 @@ end
 
 function Soraka:Tick()
 	if myHero.dead then return end
-	
+	self.Spell[0].delay = BM.p.aE:Value()
 	if (_G.IOW or _G.DAC_Loaded) then
 		
 		GetReady()
@@ -542,18 +552,19 @@ function Soraka:Combo()
 	else
 		return
 	end
-		if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() then
-			local Pred = GetCircularAOEPrediction(target, self.Spell[0])
-			if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-				CastSkillShot(0,Pred.castPos)
-			end
+	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() then
+		self.Spell[0].delay = .25 + (GetDistance(myHero,target) / self.Spell[0].range)*.75
+		local Pred = GetCircularAOEPrediction(target, self.Spell[0])
+		if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+			CastSkillShot(0,Pred.castPos)
 		end
-		if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() then
-			local Pred = GetCircularAOEPrediction(target, self.Spell[2])
-			if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[2].range then
-				CastSkillShot(2,Pred.castPos)
-			end
+	end
+	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() then
+		local Pred = GetCircularAOEPrediction(target, self.Spell[2])
+		if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[2].range then
+			CastSkillShot(2,Pred.castPos)
 		end
+	end
 end
 
 function Soraka:Harass()
@@ -565,7 +576,8 @@ function Soraka:Harass()
 	else
 		return
 	end
-		if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.H.Q:Value() then
+		if SReady[0] and ValidTarget(target, self.Spell[0].range*1.1) and BM.H.Q:Value() then
+			self.Spell[0].delay = .25 + (GetDistance(myHero,target) / self.Spell[0].range)*.55
 			local Pred = GetCircularAOEPrediction(target, self.Spell[0])
 			if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
 				CastSkillShot(0,Pred.castPos)
@@ -583,6 +595,7 @@ function Soraka:KS()
 	if not BM.KS.Enable:Value() then return end
 	for _,unit in pairs(GetEnemyHeroes()) do
 		if GetAPHP(unit) < Dmg[0](unit) and SReady[0] and ValidTarget(unit, self.Spell[0].range) and BM.KS.Q:Value() then
+			self.Spell[0].delay = .25 + (GetDistance(myHero,target) / self.Spell[0].range)*.55
 			local Pred = GetCircularAOEPrediction(unit, self.Spell[0])
 			if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
 				CastSkillShot(0,Pred.castPos)
@@ -599,7 +612,7 @@ end
 
 function Soraka:AutoW()
     for _,ally in pairs(GetAllyHeroes()) do
-	    if GetDistance(myHero,ally)<GetCastRange(myHero,1) and SReady[1] and GetPercentHP(myHero) >= BM.AW.myHeroHP:Value() and GetPercentHP(ally) <= BM.AW.allyHP:Value() and BM.AW.Enable:Value() and EnemiesAround(GetOrigin(ally), BM.AW.ATRR:Value()) >= 1 then
+	    if GetDistance(myHero,ally)<GetCastRange(myHero,1) and SReady[1] and GetPercentHP(myHero) >= BM.AW.myHeroHP:Value() and GetPercentHP(ally) <= BM.AW.allyHP:Value() and BM.AW.Enable:Value() and EnemiesAround(GetOrigin(ally), BM.AW.ATRR:Value()) >= 1 and BM.AW["h"..GetObjectName(ally)]:Value() then
 		    CastTargetSpell(ally, 1)
 		end
 	end
@@ -607,9 +620,9 @@ end
 
 function Soraka:AutoR()
     for _,ally in pairs(GetAllyHeroes()) do
-	    if IsReady(3) and not IsDead(ally) and GetPercentHP(ally) <= BM.AR.allyHP:Value() and BM.AR.Enable:Value() and EnemiesAround(GetOrigin(ally), BM.AR.ATRR:Value()) >= 1 then
+	    if SReady[3] and not ally.dead and GetPercentHP(ally) <= BM.AR.allyHP:Value() and BM.AR.Enable:Value() and EnemiesAround(GetOrigin(ally), BM.AR.ATRR:Value()) >= 1 then
 		    CastSpell(3)
-	    elseif IsReady(3) and not IsDead(myHero) and GetPercentHP(myHero) <= BM.AR.myHeroHP:Value() and BM.AR.Enable:Value() and EnemiesAround(GetOrigin(myHero), BM.AR.ATRR:Value()) >= 1 then
+	    elseif SReady[3] and not myHero.dead and GetPercentHP(myHero) <= BM.AR.myHeroHP:Value() and BM.AR.Enable:Value() and EnemiesAround(GetOrigin(myHero), BM.AR.ATRR:Value()) >= 1 then
 		    CastSpell(3)
 		end
 	end
