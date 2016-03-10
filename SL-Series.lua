@@ -9,7 +9,7 @@ local SLSChamps = {
 	-- ["Garen"] = true,
 	["Soraka"] = true,
 	-- ["DrMundo"] = true,
-	-- ["Blitzcrank"] = true,
+	["Blitzcrank"] = true,
 	-- ["Leona"] = true,
 	-- ["Ezreal"] = true,
 	-- ["Lux"] = true,
@@ -317,6 +317,136 @@ function Vayne:KS()
   end
 end
 
+class 'Blitzcrank'
+
+function Blitzcrank:__init()
+
+	self.Spell = {
+	[0] = { delay = 0.25, speed = 1800, width = 70, range = 900 }
+	}
+	
+	Dmg = {
+	[0] = function (unit) return CalcDamage(myHero, unit, 0, 55 * GetCastLevel(myHero,0) + 80 + GetBonusAP(myHero)) end,
+	[2] = function (unit) return CalcDamage(myHero, unit, 0, (GetBaseDamage(myHero) + GetBonusDmg(myHero)) * 2, 0) end,
+	[3] = function (unit) return CalcDamage(myHero, unit, 0, 125 * GetCastLevel(myHero,3) + 200 + GetBonusAP(myHero)) end,
+	}
+	
+	BM:Menu("C", "Combo")
+	BM.C:Boolean("Q", "Use Q", true)
+	BM.C:Boolean("W", "Use W", true)
+	BM.C:Boolean("E", "Use E", true)
+	BM.C:Boolean("R", "Use R", true)
+	BM.C:Slider("RHP", "my HP to use R <= X ", 80, 1, 100, 5)
+	
+	BM:Menu("H", "Harass")
+	BM.H:Boolean("Q", "Use Q", true)
+	BM.H:Boolean("W", "Use W", true)
+	BM.H:Boolean("E", "Use E", true)
+	BM.H:Boolean("R", "Use R", true)
+	BM.H:Slider("RHP", "my HP to use R <= X ", 80, 1, 100, 5)
+	
+	BM:Menu("KS", "Killsteal")
+	BM.KS:Boolean("Enable", "Enable Killsteal", true)
+	BM.KS:Boolean("Q", "Use Q", true)
+	BM.KS:Boolean("E", "Use E", true)
+	BM.KS:Boolean("R", "Use R", true)
+	
+	BM:Menu("p", "Prediction")
+	BM.p:Slider("hQ", "HitChance Q", 20, 0, 100, 1)
+	
+	Callback.Add("Tick", function() self:Tick() end)
+	
+end
+
+function Blitzcrank:Tick()
+	if myHero.dead then return end
+	
+	if (_G.IOW or _G.DAC_Loaded) then
+		
+		GetReady()
+		
+		self:KS()
+		
+		local Mode = nil
+		if _G.DAC_Loaded then 
+			Mode = DAC:Mode()
+		elseif _G.IOW then
+			Mode = IOW:Mode()
+		end
+
+	    if Mode == "Combo" then
+			self:Combo()
+		elseif Mode == "Harass" then
+			self:Harass()
+		else
+			return
+		end
+	end
+end
+
+function Blitzcrank:Combo()
+	local target = nil
+	if _G.DAC_Loaded then
+		target = DAC:GetTarget() 
+	elseif _G.IOW then
+		target = GetCurrentTarget()
+	else
+		return
+	end
+		if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() then
+			local Pred = GetPrediction(target, self.Spell[0])
+			if Pred.hitChance >= BM.p.hQ:Value()/100 and not Pred:mCollision(1) and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+				CastSkillShot(0,Pred.castPos)
+			end
+		end
+		if SReady[2] and ValidTarget(target, 300) and BM.C.E:Value() then
+			CastSpell(2)
+		end
+		if SReady[3] and ValidTarget(target, 600) and GetPercentHP(myHero) <= BM.C.RHP:Value() and BM.C.R:Value() then
+			CastSpell(3)
+		end
+end
+
+function Blitzcrank:Harass()
+	local target = nil
+	if _G.DAC_Loaded then
+		target = DAC:GetTarget() 
+	elseif _G.IOW then
+		target = GetCurrentTarget()
+	else
+		return
+	end
+		if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.H.Q:Value() then
+			local Pred = GetPrediction(target, self.Spell[0])
+			if Pred.hitChance >= BM.p.hQ:Value()/100 and not Pred:mCollision(1) and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+				CastSkillShot(0,Pred.castPos)
+			end
+		end
+		if SReady[2] and ValidTarget(target, 300) and BM.H.E:Value() then
+			CastSpell(2)
+		end
+		if SReady[3] and ValidTarget(target, 600) and GetPercentHP(myHero) <= BM.H.RHP:Value() and BM.H.R:Value() then
+			CastSpell(3)
+		end
+end
+
+function Blitzcrank:KS()
+	if not BM.KS.Enable:Value() then return end
+	for _,unit in pairs(GetEnemyHeroes()) do
+		if GetAPHP(unit) < Dmg[0](unit) and SReady[0] and ValidTarget(unit, self.Spell[0].range) and BM.KS.Q:Value() then
+			local Pred = GetPrediction(unit, self.Spell[0])
+			if Pred.hitChance >= BM.p.hQ:Value()/100 and not Pred:mCollision(1) and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+				CastSkillShot(0,Pred.castPos)
+			end
+		end
+		if GetADHP(unit) < Dmg[2](unit) and SReady[2] and ValidTarget(unit, 300) and BM.KS.E:Value() then
+			CastSpell(2)
+		end
+		if GetAPHP(unit) < Dmg[3](unit) and SReady[3] and ValidTarget(unit, 600) and BM.KS.R:Value() then
+			CastSpell(3)
+		end
+	end
+end
 
 class 'Soraka'
 
