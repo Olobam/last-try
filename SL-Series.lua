@@ -132,9 +132,10 @@ end
 -------------------------------------CHAMPS--------------------------------------------------
 ---------------------------------------------------------------------------------------------
 
------/|----------|\----
-----/-|--Vayne---|-\---
----/--|----------|--\--
+
+----/|----------|\----
+---/-|--Vayne---|-\---
+--/--|----------|--\--
 
 class 'Vayne'
 
@@ -169,18 +170,12 @@ function Vayne:__init()
 	BM.H:Boolean("Q", "Use Q", true)
 	BM.H:Info("3", "")
 	BM.H:Boolean("E", "Use E", true)
-	BM.H:Slider("a", "accuracy", 30, 1, 50, 5)
-	BM.H:Slider("pd", "Push distance", 480, 1, 550, 5)	
 	
 	BM:Menu("JC", "JungleClear")
 	BM.JC:DropDown("QL", "Q-Logic", 1, {"Advanced", "Simple"})
 	BM.JC:Boolean("Q", "Use Q", true)
 	BM.JC:Info("4", "")
 	BM.JC:Boolean("E", "Use E", true)
-	
-	BM:Menu("KS", "Killsteal")
-	BM.KS:Boolean("Enable", "Enable Killsteal", true)
-	BM.KS:Boolean("E", "Use E", true)
 
 	
 	Callback.Add("Tick", function() self:Tick() end)
@@ -221,8 +216,8 @@ function Vayne:CastE(unit)
 	local ePos = Vector(e.castPos)
 	local c = math.ceil(BM.C.a:Value())
 	local cd = math.ceil(BM.C.pd:Value()/c)
-	for rekt = 1, c, 1 do
-		local PP = Vector(ePos) + Vector(Vector(ePos) - Vector(myHero)):normalized()*(cd*rekt)
+	for step = 1, c, 5 do
+		local PP = Vector(ePos) + Vector(Vector(ePos) - Vector(myHero)):normalized()*(cd*step)
 			
 		if MapPosition:inWall(PP) == true then
 			CastTargetSpell(unit, 2)
@@ -231,12 +226,8 @@ function Vayne:CastE(unit)
 end
 
 function Vayne:CastE2(unit)
-	local e = GetPrediction(unit, self.Spell[2])
-	local ePos = Vector(e.castPos)
-	local c = math.ceil(BM.H.a:Value())
-	local cd = math.ceil(BM.H.pd:Value()/c)
-	for rekt = 1, c, 1 do
-		local PP = Vector(ePos) + Vector(Vector(ePos) - Vector(myHero)):normalized()*(cd*rekt)
+	for step = 1, c, 5 do
+		local PP = Vector(ePos) + Vector(Vector(ePos) - Vector(myHero)):normalized()*(cd*step)
 			
 		if MapPosition:inWall(PP) == true then
 			CastTargetSpell(unit, 2)
@@ -297,25 +288,37 @@ function Vayne:Harass()
 		return
 	end
 	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.H.E:Value() then
-		self:CastE2(target)
+		self:CastE(target)
 	end
 end
 
-function Vayne:JungleClear()		--E Wall check?
+function Vayne:JungleClear()
  for _,mob in pairs(minionManager.objects) do
 	if SReady[2] and ValidTarget(mob, self.Spell[2].range) and BM.JC.E:Value() and GetTeam(mob) == MINION_JUNGLE then
-		self:CastE(mob)
+		self:CastE2(mob)
 	end
  end
 end
 
 function Vayne:KS()
-  for _,target in pairs(GetEnemyHeroes()) do
-	if SReady[2] and BM.KS.Enable:Value() and BM.KS.E:Value() and GetADHP(target) < Dmg[2](target) and ValidTarget(target, self.Spell[2].range) then
+	local target = nil
+	if _G.DAC_Loaded then
+		target = DAC:GetTarget() 
+	elseif _G.IOW then
+		target = GetCurrentTarget()
+	else
+		return
+	end
+	if SReady[2] and GetADHP(target) < Dmg[2](target) and ValidTarget(target, self.Spell[2].range) then
 		CastTargetSpell(target, 2)
 	end
-  end
 end
+
+
+----/|----------|\----
+---/-|--Blitz---|-\---
+--/--|----------|--\--
+
 
 class 'Blitzcrank'
 
@@ -393,7 +396,7 @@ function Blitzcrank:Combo()
 	else
 		return
 	end
-		if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() then
+		if SReady[0] and ValidTarget(target, self.Spell[0].range*1.1) and BM.C.Q:Value() then
 			local Pred = GetPrediction(target, self.Spell[0])
 			if Pred.hitChance >= BM.p.hQ:Value()/100 and not Pred:mCollision(1) and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
 				CastSkillShot(0,Pred.castPos)
@@ -402,8 +405,9 @@ function Blitzcrank:Combo()
 		if SReady[1] and ValidTarget(target, 1000) and BM.C.W:Value() and GetDistance(myHero,target) <= 650 then
 			CastSpell(1)
 		end
-		if SReady[2] and ValidTarget(target, 300) and BM.C.E:Value() then
+		if SReady[2] and ValidTarget(target, 250) and BM.C.E:Value() then
 			CastSpell(2)
+			AttackUnit(target)
 		end
 		if SReady[3] and ValidTarget(target, 600) and GetPercentHP(myHero) <= BM.C.RHP:Value() and BM.C.R:Value() then
 			CastSpell(3)
@@ -430,7 +434,8 @@ function Blitzcrank:Harass()
 		end
 		if SReady[2] and ValidTarget(target, 300) and BM.H.E:Value() then
 			CastSpell(2)
-		end
+			AttackUnit(target)
+		end 
 		if SReady[3] and ValidTarget(target, 600) and GetPercentHP(myHero) <= BM.H.RHP:Value() and BM.H.R:Value() then
 			CastSpell(3)
 		end
