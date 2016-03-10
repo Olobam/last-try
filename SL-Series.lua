@@ -399,6 +399,9 @@ function Blitzcrank:Combo()
 				CastSkillShot(0,Pred.castPos)
 			end
 		end
+		if SReady[1] and ValidTarget(target, 1000) and BM.C.W:Value() and GetDistance(myHero,target) <= 650 then
+			CastSpell(1)
+		end
 		if SReady[2] and ValidTarget(target, 300) and BM.C.E:Value() then
 			CastSpell(2)
 		end
@@ -421,6 +424,9 @@ function Blitzcrank:Harass()
 			if Pred.hitChance >= BM.p.hQ:Value()/100 and not Pred:mCollision(1) and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
 				CastSkillShot(0,Pred.castPos)
 			end
+		end
+		if SReady[1] and ValidTarget(target, 1000) and BM.H.W:Value() and GetDistance(myHero,target) <= 650 then
+			CastSpell(1)
 		end
 		if SReady[2] and ValidTarget(target, 300) and BM.H.E:Value() then
 			CastSpell(2)
