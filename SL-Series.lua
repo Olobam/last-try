@@ -162,11 +162,9 @@ function Vayne:__init()
 	BM:Menu("C", "Combo")
 	BM.C:DropDown("QL", "Q-Logic", 1, {"Advanced", "Simple"})
 	BM.C:Boolean("Q", "Use Q", true)
-	BM.C:Info("1", "")
 	BM.C:Boolean("E", "Use E", true)
 	BM.C:Slider("a", "accuracy", 30, 1, 50, 5)
 	BM.C:Slider("pd", "Push distance", 480, 1, 550, 5)	
-	BM.C:Info("2", "")
 	BM.C:Boolean("R", "Use R", true)
 	BM.C:Slider("RE", "Use R if x enemies", 2, 1, 5, 1)
 	BM.C:Slider("RHP", "myHeroHP ", 75, 1, 100, 5)
@@ -175,14 +173,17 @@ function Vayne:__init()
 	BM:Menu("H", "Harass")
 	BM.H:DropDown("QL", "Q-Logic", 1, {"Advanced", "Simple"})
 	BM.H:Boolean("Q", "Use Q", true)
-	BM.H:Info("3", "")
 	BM.H:Boolean("E", "Use E", true)
 	
 	BM:Menu("JC", "JungleClear")
 	BM.JC:DropDown("QL", "Q-Logic", 1, {"Advanced", "Simple"})
 	BM.JC:Boolean("Q", "Use Q", true)
-	BM.JC:Info("4", "")
 	BM.JC:Boolean("E", "Use E", true)
+	
+	BM:Menu("LC", "LaneClear")
+	BM.LC:DropDown("QL", "Q-Logic", 1, {"Advanced", "Simple"})
+	BM.LC:Boolean("Q", "Use Q", true)
+	BM.LC:Boolean("E", "Use E", false)
 
 	
 	Callback.Add("Tick", function() self:Tick() end)
@@ -208,8 +209,9 @@ function Vayne:Tick()
 
 	    if Mode == "Combo" then
 			self:Combo()
-		elseif Mode == "Laneclear" then
+		elseif Mode == "LaneClear" then
 			self:JungleClear()
+			self:LaneClear()
 		elseif Mode == "Harass" then
 			self:Harass()
 		else
@@ -264,6 +266,12 @@ function Vayne:AAReset(unit, spell)
 			elseif BM.JC.QL:Value() == 2 then
 				CastSkillShot(0, GetMousePos())
 			end
+		elseif IOW:Mode() == "LaneClear" and BM.LC.Q:Value() and GetTeam(ta) == MINION_ENEMY then
+			if BM.JC.QL:Value() == 1 then
+				CastSkillShot(0, QPos)
+			elseif BM.JC.QL:Value() == 2 then
+				CastSkillShot(0, GetMousePos())
+			end
 		end
 	end
 end
@@ -303,6 +311,14 @@ function Vayne:JungleClear()
  for _,mob in pairs(minionManager.objects) do
 	if SReady[2] and ValidTarget(mob, self.Spell[2].range) and BM.JC.E:Value() and GetTeam(mob) == MINION_JUNGLE then
 		self:CastE2(mob)
+	end
+ end
+end
+
+function Vayne:LaneClear()
+ for _,minion in pairs(minionManager.objects) do
+	if SReady[2] and ValidTarget(minion, self.Spell[2].range) and BM.LC.E:Value() and GetTeam(minion) == MINION_ENEMY then
+		self:CastE2(minion)
 	end
  end
 end
@@ -364,6 +380,20 @@ function Blitzcrank:__init()
 	BM.KS:Boolean("E", "Use E", true)
 	BM.KS:Boolean("R", "Use R", true)
 	
+	BM:Menu("LC", "LaneClear")
+	BM.LC:Boolean("Q", "Use Q", true)
+	BM.LC:Boolean("W", "Use W", true)
+	BM.LC:Boolean("E", "Use E", true)
+	BM.LC:Boolean("R", "Use R", true)
+	BM.LC:Slider("RHP", "my HP to use R <= X ", 80, 1, 100, 5)
+	
+	BM:Menu("JC", "JungleClear")
+	BM.JC:Boolean("Q", "Use Q", true)
+	BM.JC:Boolean("W", "Use W", true)
+	BM.JC:Boolean("E", "Use E", true)
+	BM.JC:Boolean("R", "Use R", true)
+	BM.JC:Slider("RHP", "my HP to use R <= X ", 80, 1, 100, 5)
+	
 	BM:Menu("p", "Prediction")
 	BM.p:Slider("hQ", "HitChance Q", 20, 0, 100, 1)
 	
@@ -389,6 +419,9 @@ function Blitzcrank:Tick()
 
 	    if Mode == "Combo" then
 			self:Combo()
+		elseif Mode == "LaneClear" then
+			self:LaneClear()
+			self:JungleClear()
 		elseif Mode == "Harass" then
 			self:Harass()
 		else
@@ -451,6 +484,52 @@ function Blitzcrank:Harass()
 		end
 end
 
+function Blitzcrank:LaneClear()
+	for _,minion in pairs(minionManager.objects) do
+		if GetTeam(minion) == MINION_ENEMY then
+			if SReady[0] and ValidTarget(minion, self.Spell[0].range) and BM.LC.Q:Value() then
+			local Pred = GetPrediction(minion, self.Spell[0])
+				if Pred.hitChance >= BM.p.hQ:Value()/100 and not Pred:mCollision(1) and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+					CastSkillShot(0,Pred.castPos)
+				end
+			end
+			if SReady[1] and ValidTarget(minion, 1000) and BM.LC.W:Value() and GetDistance(myHero,minion) <= 650 then
+				CastSpell(1)
+			end
+			if SReady[2] and ValidTarget(minion, 300) and BM.LC.E:Value() then
+				CastSpell(2)
+				AttackUnit(minion)
+			end 
+			if SReady[3] and ValidTarget(minion, 600) and GetPercentHP(myHero) <= BM.LC.RHP:Value() and BM.LC.R:Value() then
+				CastSpell(3)
+			end
+		end
+	end
+end
+
+function Blitzcrank:JungleClear()
+	for _,mob in pairs(minionManager.objects) do
+		if GetTeam(mob) == MINION_ENEMY then
+			if SReady[0] and ValidTarget(mob, self.Spell[0].range) and BM.JC.Q:Value() then
+			local Pred = GetPrediction(mob, self.Spell[0])
+				if Pred.hitChance >= BM.p.hQ:Value()/100 and not Pred:mCollision(1) and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+					CastSkillShot(0,Pred.castPos)
+				end
+			end
+			if SReady[1] and ValidTarget(mob, 1000) and BM.JC.W:Value() and GetDistance(myHero,mob) <= 650 then
+				CastSpell(1)
+			end
+			if SReady[2] and ValidTarget(mob, 300) and BM.JC.E:Value() then
+				CastSpell(2)
+				AttackUnit(mob)
+			end 
+			if SReady[3] and ValidTarget(mob, 600) and GetPercentHP(myHero) <= BM.JC.RHP:Value() and BM.JC.R:Value() then
+				CastSpell(3)
+			end
+		end
+	end
+end
+
 function Blitzcrank:KS()
 	if not BM.KS.Enable:Value() then return end
 	for _,unit in pairs(GetEnemyHeroes()) do
@@ -505,7 +584,7 @@ function Soraka:__init()
 
 	BM:Menu("AW", "Auto W")
 	BM.AW:Boolean("Enable", "Enable Auto W", true)
-	BM.AW:Info("5620-", "(myHeroHP) To Heal ally", true)
+	BM.AW:Info("5620-", "(myHeroHP) To Heal ally")
 	BM.AW:Slider("myHeroHP", "myHeroHP >= X", 5, 1, 100, 10)
 	BM.AW:Slider("allyHP", "AllyHP <= X", 85, 1, 100, 10)
 	BM.AW:Slider("ATRR", "Ally To Enemy Range", 1500, 500, 3000, 10)	
@@ -525,6 +604,14 @@ function Soraka:__init()
 	BM.KS:Boolean("Enable", "Enable Killsteal", true)
 	BM.KS:Boolean("Q", "Use Q", false)
 	BM.KS:Boolean("E", "Use E", true)
+	
+	BM:Menu("LC", "LaneClear")
+	BM.LC:Boolean("Q", "Use Q", true)
+	BM.LC:Boolean("E", "Use E", true)
+	
+	BM:Menu("JC", "JungleClear")
+	BM.JC:Boolean("Q", "Use Q", true)
+	BM.JC:Boolean("E", "Use E", true)
 	
 	BM:Menu("p", "Prediction")
 	BM.p:Slider("hQ", "HitChance Q", 20, 0, 100, 1)
@@ -557,6 +644,9 @@ function Soraka:Tick()
 
 	    if Mode == "Combo" then
 			self:Combo()
+		elseif Mode == "LaneClear" then
+			self:JungleClear()
+			self:LaneClear()
 		elseif Mode == "Harass" then
 			self:Harass()
 		else
@@ -632,6 +722,46 @@ function Soraka:KS()
 	end
 end
 
+function Soraka:LaneClear()
+	for _,minion in pairs(minionManager.objects) do
+		if GetTeam(minion) == MINION_ENEMY then
+			if SReady[0] and ValidTarget(minion, self.Spell[0].range*1.1) and BM.LC.Q:Value() then
+				self.Spell[0].delay = .25 + (GetDistance(myHero,minion) / self.Spell[0].range)*.55
+				local Pred = GetCircularAOEPrediction(minion, self.Spell[0])
+				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+					CastSkillShot(0,Pred.castPos)
+				end
+			end
+			if SReady[2] and ValidTarget(minion, self.Spell[2].range) and BM.LC.E:Value() then
+				local Pred = GetCircularAOEPrediction(minion, self.Spell[2])
+				if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[2].range then
+					CastSkillShot(2,Pred.castPos)
+				end
+			end
+		end
+	end
+end
+
+function Soraka:JungleClear()
+	for _,mob in pairs(minionManager.objects) do
+		if GetTeam(mob) == MINION_JUNGLE then
+			if SReady[0] and ValidTarget(mob, self.Spell[0].range*1.1) and BM.JC.Q:Value() then
+				self.Spell[0].delay = .25 + (GetDistance(myHero,mob) / self.Spell[0].range)*.55
+				local Pred = GetCircularAOEPrediction(mob, self.Spell[0])
+				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+					CastSkillShot(0,Pred.castPos)
+				end
+			end
+			if SReady[2] and ValidTarget(mob, self.Spell[2].range) and BM.JC.E:Value() then
+				local Pred = GetCircularAOEPrediction(mob, self.Spell[2])
+				if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[2].range then
+					CastSkillShot(2,Pred.castPos)
+				end
+			end
+		end
+	end
+end
+
 function Soraka:AutoW()
     for _,ally in pairs(GetAllyHeroes()) do
 	    if GetDistance(myHero,ally)<GetCastRange(myHero,1) and SReady[1] and GetPercentHP(myHero) >= BM.AW.myHeroHP:Value() and GetPercentHP(ally) <= BM.AW.allyHP:Value() and BM.AW.Enable:Value() and EnemiesAround(GetOrigin(ally), BM.AW.ATRR:Value()) >= 1 and BM.AW["h"..GetObjectName(ally)]:Value() then
@@ -692,6 +822,22 @@ function Aatrox:__init()
 	BM.H:Slider("WT", "Toggle W at % HP", 45, 5, 90, 5)
 	BM.H:Boolean("E", "Use E", true)
 	
+	BM:Menu("LC", "LaneClear", true)
+	BM.LC:Boolean("Q", "Use Q", true)
+	BM.LC:Boolean("W", "Use W", true)
+	BM.LC:Slider("WT", "Toggle W at % HP", 45, 5, 90, 5)
+	BM.LC:Boolean("E", "Use E", true)	
+	
+	BM:Menu("JC", "JungleClear")
+	BM.JC:Boolean("Q", "Use Q", true)
+	BM.JC:Boolean("W", "Use W", true)
+	BM.JC:Slider("WT", "Toggle W at % HP", 45, 5, 90, 5)
+	BM.JC:Boolean("E", "Use E", true)
+	
+	BM:Menu("LH", "LastHit")
+	BM.LH:Boolean("W", "Use W", true)
+	BM.LH:Slider("WT", "Toggle W at % HP", 45, 5, 90, 5)
+	
 	BM:Menu("KS", "Killsteal")
 	BM.KS:Boolean("Enable", "Enable Killsteal", true)
 	BM.KS:Boolean("Q", "Use Q", false)
@@ -731,10 +877,11 @@ function Aatrox:Tick()
 
 		if Mode == "Combo" then
 			self:Combo()
-		--[[elseif Mode == "Laneclear" then
+		elseif Mode == "LaneClear" then
 			self:LaneClear()
+			self:JungleClear()
 		elseif Mode == "LastHit" then
-			self:LastHit()--]]
+			self:LastHit()
 		elseif Mode == "Harass" then
 			self:Harass()
 		else
@@ -804,6 +951,72 @@ function Aatrox:Harass()
 			CastSpell(1)
 		end
 	end
+end
+
+function Aatrox:LaneClear()
+	for _,minion in pairs(minionManager.objects) do
+		if GetTeam(minion) == MINION_ENEMY then
+			if SReady[0] and ValidTarget(minion, self.Spell[0].range*1.1) and BM.LC.Q:Value() then
+			local Pred = GetCircularAOEPrediction(minion, self.Spell[0])
+				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+					CastSkillShot(0,Pred.castPos)
+				end
+			end
+			if SReady[1] and BM.LC.W:Value() and ValidTarget(minion,750) then
+				if GetPercentHP(myHero) < BM.LC.WT:Value()+1 and self.W == "dmg" then
+					CastSpell(1)
+				elseif GetPercentHP(myHero) > BM.LC.WT:Value() and self.W == "heal" then
+					CastSpell(1)
+				end
+			end
+			if SReady[2] and ValidTarget(minion, self.Spell[2].range*1.1) and BM.LC.E:Value() then
+			local Pred = GetPrediction(minion, self.Spell[2])
+				if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[2].range then
+					CastSkillShot(2,Pred.castPos)
+				end
+			end
+		end
+	end		
+end
+
+function Aatrox:JungleClear()
+	for _,mob in pairs(minionManager.objects) do
+		if GetTeam(mob) == MINION_JUNGLE then
+			if SReady[0] and ValidTarget(mob, self.Spell[0].range) and BM.JC.Q:Value() then
+			local Pred = GetCircularAOEPrediction(mob, self.Spell[0])
+				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+					CastSkillShot(0,Pred.castPos)
+				end
+			end
+			if SReady[1] and BM.JC.W:Value() and ValidTarget(mob,750) then
+				if GetPercentHP(myHero) < BM.JC.WT:Value()+1 and self.W == "dmg" then
+					CastSpell(1)
+				elseif GetPercentHP(myHero) > BM.JC.WT:Value() and self.W == "heal" then
+					CastSpell(1)
+				end
+			end
+			if SReady[2] and ValidTarget(mob, self.Spell[2].range) and BM.JC.E:Value() then
+			local Pred = GetPrediction(mob, self.Spell[2])
+				if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[2].range then
+					CastSkillShot(2,Pred.castPos)
+				end
+			end
+		end
+	end		
+end
+
+function Aatrox:LastHit()
+	for _,minion in pairs(minionManager.objects) do
+		if GetTeam(minion) == MINION_ENEMY then
+			if SReady[1] and BM.LH.W:Value() and ValidTarget(mob,750) then
+				if GetPercentHP(myHero) < BM.LH.WT:Value()+1 and self.W == "dmg" then
+					CastSpell(1)
+				elseif GetPercentHP(myHero) > BM.LH.WT:Value() and self.W == "heal" then
+					CastSpell(1)
+				end
+			end
+		end
+	end	
 end
 
 function Aatrox:KS()
