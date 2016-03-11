@@ -85,6 +85,9 @@ Callback.Add("Load", function()
 		if SLS.Loader.U.LH:Value() then
 			Humanizer()
 		end
+		if SLS.Loader.U.LS:Value() then
+			Summoners()
+		end
 	end
 end)    
 
@@ -115,6 +118,8 @@ function Init:__init()
 	L.U:Info("0.5", "")
 	L.U:Boolean("LH", "Load Humanizer", true)
 	L.U:Info("0.6.", "")
+	L.U:Boolean("LS", "Load Summoners", true)
+	L.U:Info("0.6xc", "")
 	L.U:Info("0.7.", "You will have to press 2f6")
 	L.U:Info("0.8.", "to apply the changes")
 	end
@@ -1268,6 +1273,74 @@ function Items:RemoveBuff(unit, buff)
 	end
 end
 
+--Summoners
+class 'Summoners'
+
+function Summoners:__init()
+
+    local Ignite = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerdot") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonerdot") and SUMMONER_2 or nil))
+	local Heal = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerheal") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonerheal") and SUMMONER_2 or nil))
+	
+	SLS:SubMenu("Sum", "|SL| Summoners")
+	if Ignite then
+	SLS.Sum:Menu("ign", "Ignite")
+	SLS.Sum.ign:Boolean("enable","Enable Ignite", true)
+	end
+	if Heal then 
+	SLS.Sum:Menu("Heal", "Heal")
+	SLS.Sum.Heal:Boolean("healme","Heal myself", true)
+	SLS.Sum.Heal:Boolean("healally", "Heal ally", true)
+	SLS.Sum.Heal:Slider("allyHP", "Ally HP to heal him", 8, 1, 100, 2)
+	SLS.Sum.Heal:Slider("myHP", "my HP to heal myself", 8, 1, 100, 2)
+	end
+	
+	Callback.Add("Tick", function() self:Tick() end)
+end
+
+function Summoners:Tick()
+	if myHero.dead then return end
+	
+	if (_G.IOW or _G.DAC_Loaded) then
+		
+		local Mode = nil
+		local target = nil
+		if _G.DAC_Loaded then 
+			Mode = DAC:Mode()
+			target = DAC:GetTarget() 
+		elseif _G.IOW then
+			Mode = IOW:Mode()
+			target = GetCurrentTarget()
+		end
+		
+		if Ignite then self:Ignite() end
+		
+		if Heal then self:Heal() end
+		
+	end
+end
+
+function Summoners:Ignite()
+  for _,k in pairs(GetEnemyHeroes()) do
+	if SLS.Sum.ign:Value() and IsReady(Ignite) then
+  		if 20*GetLevel(myHero)+50 > GetCurrentHP(k)+GetHPRegen(k)*3 and ValidTarget(k, 600) then
+			CastTargetSpell(k, Ignite)
+		end
+	end
+  end
+end
+
+function Summoners:Heal()
+	for _,k in pairs(GetEnemyHeroes()) do
+		if IsReady(Heal) and SLS.Sum.Heal.healme:Value() and GetPercentHP(myHero) < SLS.Sum.Heal.myHP:Value() and ValidTarget(k, 675) then
+			CastSpell(Heal)
+		end
+	end
+	for _,a in pairs(GetAllyHeroes()) do
+		if IsReady(Heal) and SLS.Sum.Heal.healally:Value() and GetPercentHP(a) < SLS.Sum.Heal.allyHP:Value() and EnemiesAround(GetOrigin(myHero), 675) > 1 and GetDistance(myHero,a) < 675 then
+			CastSpell(Heal)
+		end
+	end
+end
 
 --DamageDraw (Paint.lua)
 class 'DmgDraw'
