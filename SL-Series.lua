@@ -212,19 +212,22 @@ function Vayne:Tick()
 		self:KS()
 		
 		local Mode = nil
+		local target = nil
 		if _G.DAC_Loaded then 
 			Mode = DAC:Mode()
+			target = DAC:GetTarget() 
 		elseif _G.IOW then
 			Mode = IOW:Mode()
+			target = GetCurrentTarget()
 		end
 
 	    if Mode == "Combo" then
-			self:Combo()
+			self:Combo(target)
 		elseif Mode == "LaneClear" then
 			self:JungleClear()
 			self:LaneClear()
 		elseif Mode == "Harass" then
-			self:Harass()
+			self:Harass(target)
 		else
 			return
 		end
@@ -287,15 +290,7 @@ function Vayne:AAReset(unit, spell)
 	end
 end
 
-function Vayne:Combo()
-	local target = nil
-	if _G.DAC_Loaded then
-		target = DAC:GetTarget() 
-	elseif _G.IOW then
-		target = GetCurrentTarget()
-	else
-		return
-	end
+function Vayne:Combo(target)
 	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() then
 		self:CastE(target)
 	end
@@ -304,15 +299,7 @@ function Vayne:Combo()
 	end
 end
 
-function Vayne:Harass()
-	local target = nil
-	if _G.DAC_Loaded then
-		target = DAC:GetTarget() 
-	elseif _G.IOW then
-		target = GetCurrentTarget()
-	else
-		return
-	end
+function Vayne:Harass(target)
 	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.H.E:Value() then
 		self:CastE(target)
 	end
@@ -335,16 +322,10 @@ function Vayne:LaneClear()
 end
 
 function Vayne:KS()
-	local target = nil
-	if _G.DAC_Loaded then
-		target = DAC:GetTarget() 
-	elseif _G.IOW then
-		target = GetCurrentTarget()
-	else
-		return
-	end
-	if SReady[2] and GetADHP(target) < Dmg[2](target) and ValidTarget(target, self.Spell[2].range) then
-		CastTargetSpell(target, 2)
+	for _,target in pairs(GetEnemyHeroes()) do
+		if SReady[2] and GetADHP(target) < Dmg[2](target) and ValidTarget(target, self.Spell[2].range) then
+			CastTargetSpell(target, 2)
+		end
 	end
 end
 
@@ -380,9 +361,9 @@ function Blitzcrank:__init()
 	
 	BM:Menu("H", "Harass")
 	BM.H:Boolean("Q", "Use Q", true)
-	BM.H:Boolean("W", "Use W", true)
+	BM.H:Boolean("W", "Use W", false)
 	BM.H:Boolean("E", "Use E", true)
-	BM.H:Boolean("R", "Use R", true)
+	BM.H:Boolean("R", "Use R", false)
 	BM.H:Slider("RHP", "my HP to use R <= X ", 80, 1, 100, 5)
 	
 	BM:Menu("KS", "Killsteal")
@@ -392,7 +373,7 @@ function Blitzcrank:__init()
 	BM.KS:Boolean("R", "Use R", true)
 	
 	BM:Menu("LC", "LaneClear")
-	BM.LC:Boolean("Q", "Use Q", true)
+	BM.LC:Boolean("Q", "Use Q", false)
 	BM.LC:Boolean("W", "Use W", true)
 	BM.LC:Boolean("E", "Use E", true)
 	BM.LC:Boolean("R", "Use R", true)
@@ -422,19 +403,22 @@ function Blitzcrank:Tick()
 		self:KS()
 		
 		local Mode = nil
+		local target = nil
 		if _G.DAC_Loaded then 
 			Mode = DAC:Mode()
+			target = DAC:GetTarget() 
 		elseif _G.IOW then
 			Mode = IOW:Mode()
+			target = GetCurrentTarget()
 		end
 
 	    if Mode == "Combo" then
-			self:Combo()
+			self:Combo(target)
 		elseif Mode == "LaneClear" then
 			self:LaneClear()
 			self:JungleClear()
 		elseif Mode == "Harass" then
-			self:Harass()
+			self:Harass(target)
 		else
 			return
 		end
@@ -442,14 +426,6 @@ function Blitzcrank:Tick()
 end
 
 function Blitzcrank:Combo()
-	local target = nil
-	if _G.DAC_Loaded then
-		target = DAC:GetTarget() 
-	elseif _G.IOW then
-		target = GetCurrentTarget()
-	else
-		return
-	end
 		if SReady[0] and ValidTarget(target, self.Spell[0].range*1.1) and BM.C.Q:Value() then
 			local Pred = GetPrediction(target, self.Spell[0])
 			if Pred.hitChance >= BM.p.hQ:Value()/100 and not Pred:mCollision(1) and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
@@ -469,14 +445,6 @@ function Blitzcrank:Combo()
 end
 
 function Blitzcrank:Harass()
-	local target = nil
-	if _G.DAC_Loaded then
-		target = DAC:GetTarget() 
-	elseif _G.IOW then
-		target = GetCurrentTarget()
-	else
-		return
-	end
 		if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.H.Q:Value() then
 			local Pred = GetPrediction(target, self.Spell[0])
 			if Pred.hitChance >= BM.p.hQ:Value()/100 and not Pred:mCollision(1) and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
@@ -606,7 +574,7 @@ function Soraka:__init()
 
 	BM:Menu("AR", "Auto R")
 	BM.AR:Boolean("Enable", "Enable Auto R", true)
-	BM.AR:Info("2.-,.", "(myHeroHP) to Heal me with ult")
+	BM.AR:Info("HealInfo", "(myHeroHP) to Heal me with ult")
 	BM.AR:Slider("myHeroHP", "myHeroHP <= X", 8, 1, 100, 10)
 	BM.AR:Slider("allyHP", "AllyHP <= X", 8, 1, 100, 10)
     BM.AR:Slider("ATRR", "Ally To Enemy Range", 1500, 500, 3000, 10)
@@ -647,34 +615,29 @@ function Soraka:Tick()
 		self:AutoR()
 		
 		local Mode = nil
+		local target = nil
 		if _G.DAC_Loaded then 
 			Mode = DAC:Mode()
+			target = DAC:GetTarget() 
 		elseif _G.IOW then
 			Mode = IOW:Mode()
+			target = GetCurrentTarget()
 		end
 
 	    if Mode == "Combo" then
-			self:Combo()
+			self:Combo(target)
 		elseif Mode == "LaneClear" then
 			self:JungleClear()
 			self:LaneClear()
 		elseif Mode == "Harass" then
-			self:Harass()
+			self:Harass(target)
 		else
 			return
 		end
 	end
 end
 
-function Soraka:Combo()
-	local target = nil
-	if _G.DAC_Loaded then
-		target = DAC:GetTarget() 
-	elseif _G.IOW then
-		target = GetCurrentTarget()
-	else
-		return
-	end
+function Soraka:Combo(target)
 	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() then
 		self.Spell[0].delay = .25 + (GetDistance(myHero,target) / self.Spell[0].range)*.75
 		local Pred = GetCircularAOEPrediction(target, self.Spell[0])
@@ -690,15 +653,7 @@ function Soraka:Combo()
 	end
 end
 
-function Soraka:Harass()
-	local target = nil
-	if _G.DAC_Loaded then
-		target = DAC:GetTarget() 
-	elseif _G.IOW then
-		target = GetCurrentTarget()
-	else
-		return
-	end
+function Soraka:Harass(target)
 		if SReady[0] and ValidTarget(target, self.Spell[0].range*1.1) and BM.H.Q:Value() then
 			self.Spell[0].delay = .25 + (GetDistance(myHero,target) / self.Spell[0].range)*.55
 			local Pred = GetCircularAOEPrediction(target, self.Spell[0])
@@ -823,31 +778,22 @@ function Aatrox:__init()
 	BM:Menu("C", "Combo")
 	BM.C:Boolean("Q", "Use Q", true)
 	BM.C:Boolean("W", "Use W", true)
+	BM.C:Boolean("WE", "Only Toggle if enemy nearby", true)
 	BM.C:Slider("WT", "Toggle W at % HP", 45, 5, 90, 5)
 	BM.C:Boolean("E", "Use E", true)
 	BM.C:Boolean("R", "Use R", true)
 	BM.C:Slider("RE", "Use R if x enemies", 2, 1, 5, 1)
 	
 	BM:Menu("H", "Harass")
-	BM.H:Boolean("W", "Use W", true)
-	BM.H:Slider("WT", "Toggle W at % HP", 45, 5, 90, 5)
 	BM.H:Boolean("E", "Use E", true)
 	
 	BM:Menu("LC", "LaneClear", true)
 	BM.LC:Boolean("Q", "Use Q", true)
-	BM.LC:Boolean("W", "Use W", true)
-	BM.LC:Slider("WT", "Toggle W at % HP", 45, 5, 90, 5)
 	BM.LC:Boolean("E", "Use E", true)	
 	
 	BM:Menu("JC", "JungleClear")
 	BM.JC:Boolean("Q", "Use Q", true)
-	BM.JC:Boolean("W", "Use W", true)
-	BM.JC:Slider("WT", "Toggle W at % HP", 45, 5, 90, 5)
 	BM.JC:Boolean("E", "Use E", true)
-	
-	BM:Menu("LH", "LastHit")
-	BM.LH:Boolean("W", "Use W", true)
-	BM.LH:Slider("WT", "Toggle W at % HP", 45, 5, 90, 5)
 	
 	BM:Menu("KS", "Killsteal")
 	BM.KS:Boolean("Enable", "Enable Killsteal", true)
@@ -880,49 +826,47 @@ function Aatrox:Tick()
 		self:KS()
 		
 		local Mode = nil
+		local target = nil
 		if _G.DAC_Loaded then 
 			Mode = DAC:Mode()
+			target = DAC:GetTarget() 
 		elseif _G.IOW then
 			Mode = IOW:Mode()
+			target = GetCurrentTarget()
 		end
-
+		
+		self:Toggle(target)
+		
 		if Mode == "Combo" then
-			self:Combo()
+			self:Combo(target)
 		elseif Mode == "LaneClear" then
 			self:LaneClear()
 			self:JungleClear()
 		elseif Mode == "LastHit" then
-			self:LastHit()
+		--	self:LastHit()
 		elseif Mode == "Harass" then
-			self:Harass()
+			self:Harass(target)
 		else
 			return
 		end
 	end
 end
 
-
-function Aatrox:Combo()
-
-	local target = nil
-	if _G.DAC_Loaded then
-		target = DAC:GetTarget() 
-	elseif _G.IOW then
-		target = GetCurrentTarget()
-	else
-		return
-	end
-	if SReady[0] and ValidTarget(target, self.Spell[0].range*1.1) and BM.C.Q:Value() then
-		local Pred = GetCircularAOEPrediction(target, self.Spell[0])
-		if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-			CastSkillShot(0,Pred.castPos)
-		end
-	end
-	if SReady[1] and BM.C.W:Value() and ValidTarget(target,750) then
+function Aatrox:Toggle(target)
+	if SReady[1] and BM.C.W:Value() and (not BM.C.W.WE:Value() or ValidTarget(target,750)) then
 		if GetPercentHP(myHero) < BM.C.WT:Value()+1 and self.W == "dmg" then
 			CastSpell(1)
 		elseif GetPercentHP(myHero) > BM.C.WT:Value() and self.W == "heal" then
 			CastSpell(1)
+		end
+	end
+end
+
+function Aatrox:Combo(target)
+	if SReady[0] and ValidTarget(target, self.Spell[0].range*1.1) and BM.C.Q:Value() then
+		local Pred = GetCircularAOEPrediction(target, self.Spell[0])
+		if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+			CastSkillShot(0,Pred.castPos)
 		end
 	end
 	if SReady[2] and ValidTarget(target, self.Spell[2].range*1.1) and BM.C.E:Value() then
@@ -939,27 +883,11 @@ function Aatrox:Combo()
 	end
 end
 
-function Aatrox:Harass()
-	local target = nil
-	if _G.DAC_Loaded then
-		target = DAC:GetTarget() 
-	elseif _G.IOW then
-		target = GetCurrentTarget()
-	else
-		return
-	end
-	
+function Aatrox:Harass(target)
 	if SReady[2] and ValidTarget(target, self.Spell[2].range*1.1) and BM.H.E:Value() then
 		local Pred = GetPrediction(target, self.Spell[2])
 		if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[2].range then
 			CastSkillShot(2,Pred.castPos)
-		end
-	end
-	if SReady[1] and BM.H.W:Value() and ValidTarget(target,750) then
-		if GetPercentHP(myHero) < BM.H.WT:Value()+1 and self.W == "dmg" then
-			CastSpell(1)
-		elseif GetPercentHP(myHero) > BM.H.WT:Value() and self.W == "heal" then
-			CastSpell(1)
 		end
 	end
 end
@@ -971,13 +899,6 @@ function Aatrox:LaneClear()
 			local Pred = GetCircularAOEPrediction(minion, self.Spell[0])
 				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
 					CastSkillShot(0,Pred.castPos)
-				end
-			end
-			if SReady[1] and BM.LC.W:Value() and ValidTarget(minion,750) then
-				if GetPercentHP(myHero) < BM.LC.WT:Value()+1 and self.W == "dmg" then
-					CastSpell(1)
-				elseif GetPercentHP(myHero) > BM.LC.WT:Value() and self.W == "heal" then
-					CastSpell(1)
 				end
 			end
 			if SReady[2] and ValidTarget(minion, self.Spell[2].range*1.1) and BM.LC.E:Value() then
@@ -999,10 +920,10 @@ function Aatrox:JungleClear()
 					CastSkillShot(0,Pred.castPos)
 				end
 			end
-			if SReady[1] and BM.JC.W:Value() and ValidTarget(mob,750) then
-				if GetPercentHP(myHero) < BM.JC.WT:Value()+1 and self.W == "dmg" then
+			if SReady[1] and BM.C.W:Value() and ValidTarget(mob,750) then
+				if GetPercentHP(myHero) < BM.C.WT:Value()+1 and self.W == "dmg" then
 					CastSpell(1)
-				elseif GetPercentHP(myHero) > BM.JC.WT:Value() and self.W == "heal" then
+				elseif GetPercentHP(myHero) > BM.C.WT:Value() and self.W == "heal" then
 					CastSpell(1)
 				end
 			end
@@ -1014,20 +935,6 @@ function Aatrox:JungleClear()
 			end
 		end
 	end		
-end
-
-function Aatrox:LastHit()
-	for _,minion in pairs(minionManager.objects) do
-		if GetTeam(minion) == MINION_ENEMY then
-			if SReady[1] and BM.LH.W:Value() and ValidTarget(mob,750) then
-				if GetPercentHP(myHero) < BM.LH.WT:Value()+1 and self.W == "dmg" then
-					CastSpell(1)
-				elseif GetPercentHP(myHero) > BM.LH.WT:Value() and self.W == "heal" then
-					CastSpell(1)
-				end
-			end
-		end
-	end	
 end
 
 function Aatrox:KS()
