@@ -68,20 +68,23 @@ Callback.Add("Load", function()
 		PrintChat("<font color=\"#fd8b12\"><b>[SL-Series] - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> is not Supported </b></font>")
 		PrintChat("<font color=\"#fd8b12\"><b>[SL-Series] - <font color=\"#F2EE00\">Utility Loaded </b></font>")
 	end
-	if SLS.Loader.LSK:Value() then
-		SkinChanger()
-	end
-	if SLS.Loader.LAL:Value() then
-		AutoLevel()
-	end
-	if SLS.Loader.LI:Value() then
-		Items()
-	end
-	if SLS.Loader.LD:Value() then
-		DmgDraw()
-	end
-	if SLS.Loader.LH:Value() then
-		Humanizer()
+	if SLS.Loader.LU:Value() then
+	
+		if SLS.Loader.U.LSK:Value() then
+			SkinChanger()
+		end
+		if SLS.Loader.U.LAL:Value() then
+			AutoLevel()
+		end
+		if SLS.Loader.U.LI:Value() then
+			Items()
+		end
+		if SLS.Loader.U.LD:Value() then
+			DmgDraw()
+		end
+		if SLS.Loader.U.LH:Value() then
+			Humanizer()
+		end
 	end
 end)    
 
@@ -96,17 +99,25 @@ function Init:__init()
 	SLS = MenuConfig("SL-Series", "SL-Series")
 	SLS:Menu("Loader", "|SL| Loader")
 	L = SLS["Loader"]
+	L:Info("0.1xy", "")
 	L:Boolean("LC", "Load Champion", true)
 	L:Info("0.1", "")
-	L:Boolean("LD", "Load DmgDraw", true)
-	L:Info("0.2", "")
-	L:Boolean("LSK", "Load SkinChanger", true)
-	L:Info("0.3", "")
-	L:Boolean("LAL", "Load AutoLevel", true)
-	L:Info("0.4", "")
-	L:Boolean("LI", "Load Items", true)
-	L:Info("0.5", "")
-	L:Boolean("LH", "Load Humanizer", true)
+	L:Boolean("LU", "Load Utility", true)
+	if L.LU:Value() then
+	L:Menu("U", "|SL| Utility")
+	L.U:Boolean("LD", "Load DmgDraw", true)
+	L.U:Info("0.2", "")
+	L.U:Boolean("LSK", "Load SkinChanger", true)
+	L.U:Info("0.3", "")
+	L.U:Boolean("LAL", "Load AutoLevel", true)
+	L.U:Info("0.4", "")
+	L.U:Boolean("LI", "Load Items", true)
+	L.U:Info("0.5", "")
+	L.U:Boolean("LH", "Load Humanizer", true)
+	L.U:Info("0.6.", "")
+	L.U:Info("0.7.", "You will have to press 2f6")
+	L.U:Info("0.8.", "to apply the changes")
+	end
 	L:Info("0.6", "")
 	L:Info("0.7", "You will have to press 2f6")
 	L:Info("0.8", "to apply the changes")
