@@ -1330,11 +1330,9 @@ function Summoners:Ignite()
 end
 
 function Summoners:Heal()
-	for _,k in pairs(GetEnemyHeroes()) do
-		if IsReady(Heal) and SLS.Sum.Heal.healme:Value() and GetPercentHP(myHero) < SLS.Sum.Heal.myHP:Value() and ValidTarget(k, 675) then
+		if IsReady(Heal) and SLS.Sum.Heal.healme:Value() and GetPercentHP(myHero) < SLS.Sum.Heal.myHP:Value() and EnemiesAround(GetOrigin(myHero), 675) > 1 then
 			CastSpell(Heal)
 		end
-	end
 	for _,a in pairs(GetAllyHeroes()) do
 		if IsReady(Heal) and SLS.Sum.Heal.healally:Value() and GetPercentHP(a) < SLS.Sum.Heal.allyHP:Value() and EnemiesAround(GetOrigin(myHero), 675) > 1 and GetDistance(myHero,a) < 675 then
 			CastSpell(Heal)
