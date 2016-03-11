@@ -425,7 +425,7 @@ function Blitzcrank:Tick()
 	end
 end
 
-function Blitzcrank:Combo()
+function Blitzcrank:Combo(target)
 		if SReady[0] and ValidTarget(target, self.Spell[0].range*1.1) and BM.C.Q:Value() then
 			local Pred = GetPrediction(target, self.Spell[0])
 			if Pred.hitChance >= BM.p.hQ:Value()/100 and not Pred:mCollision(1) and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
@@ -444,7 +444,7 @@ function Blitzcrank:Combo()
 		end
 end
 
-function Blitzcrank:Harass()
+function Blitzcrank:Harass(target)
 		if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.H.Q:Value() then
 			local Pred = GetPrediction(target, self.Spell[0])
 			if Pred.hitChance >= BM.p.hQ:Value()/100 and not Pred:mCollision(1) and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
