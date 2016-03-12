@@ -2405,7 +2405,9 @@ function AntiChannel:__init()
 						BM:Menu("AC","AntiChannel")
 						Callback.Add("ProcessSpell", function(unit,spellProc) self:Check(unit,spellProc) end)
 					end
-					BM.AC:Boolean(GetObjectName(i),"Stop "..GetObjectName(i).." Channels", true)
+					if not BM.AC[GetObjectName(i)] then
+						BM.AC:Boolean(GetObjectName(i),"Stop "..GetObjectName(i).." Channels", true)
+					end
 				end
 			end
 		end
