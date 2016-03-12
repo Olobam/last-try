@@ -616,7 +616,7 @@ end
 
 function Soraka:AntiChannel(unit,range)
 	if SReady[2] and BM.AC.E:Value() and ValidTarget(unit,Soraka.Spell[2].range) then
-		CastSkillShot(2,GetOrigin(unit)
+		CastSkillShot(2,GetOrigin(unit))
 	end
 end
 
