@@ -170,7 +170,7 @@ function Vayne:__init()
 	
 	Dmg = {
 	[0] = function (unit) return CalcDamage(myHero, unit, 5 * GetCastLevel(myHero,0) + 25 + ((GetBaseDamage(myHero) + GetBonusDmg(myHero)) * .5), 0) end,
-	[1] = function (unit) return CalcDamage(myHero, unit, 1.5 * GetCastLevel(myHero,1) + 4.5 * GetMaxHP(unit), 0) end,
+	[1] = function (unit) return CalcDamage(myHero, unit, (1.5 * GetCastLevel(myHero,1) + 4.5 / GetMaxHP(unit)) * 75 , 0) end,
 	[2] = function (unit) return CalcDamage(myHero, unit, 35 * GetCastLevel(myHero,2) + 15 + GetBonusDmg(myHero) * .5, 0) end,
 	[3] = function (unit) return CalcDamage(myHero, unit, 20 * GetCastLevel(myHero,3) + 10, 0) end,
 	}
@@ -253,16 +253,6 @@ function Vayne:CastE(unit)
 	end
 end
 
-function Vayne:CastE2(unit)
-	for step = 1, c, 5 do
-		local PP = Vector(ePos) + Vector(Vector(ePos) - Vector(myHero)):normalized()*(cd*step)
-			
-		if MapPosition:inWall(PP) == true then
-			CastTargetSpell(unit, 2)
-		end		
-	end
-end
-
 function Vayne:AAReset(unit, spell)
 	local ta = spell.target
 	if unit == myHero and ta ~= nil and spell.name:lower():find("attack") and SReady[0] then
@@ -313,7 +303,7 @@ end
 function Vayne:JungleClear()
  for _,mob in pairs(minionManager.objects) do
 	if SReady[2] and ValidTarget(mob, self.Spell[2].range) and BM.JC.E:Value() and GetTeam(mob) == MINION_JUNGLE then
-		self:CastE2(mob)
+		self:CastE(mob)
 	end
  end
 end
@@ -321,7 +311,7 @@ end
 function Vayne:LaneClear()
  for _,minion in pairs(minionManager.objects) do
 	if SReady[2] and ValidTarget(minion, self.Spell[2].range) and BM.LC.E:Value() and GetTeam(minion) == MINION_ENEMY then
-		self:CastE2(minion)
+		self:CastE(minion)
 	end
  end
 end
@@ -1567,8 +1557,8 @@ class 'AutoLevel'
 
 function AutoLevel:__init()
 	SLS:SubMenu("AL", "|SL| Auto Level")
-	SLS.AL:Boolean("aL", "Use AutoLvl", true)
-	SLS.AL:DropDown("aLS", "AutoLvL", 1, {"Disabled","Q-W-E","Q-E-W","W-Q-E","W-E-Q","E-Q-W","E-W-Q"})
+	SLS.AL:Boolean("aL", "Use AutoLvl", false)
+	SLS.AL:DropDown("aLS", "AutoLvL", 1, {"Q-W-E","Q-E-W","W-Q-E","W-E-Q","E-Q-W","E-W-Q"})
 	SLS.AL:Slider("sL", "Start AutoLvl with LvL x", 4, 1, 18, 1)
 	SLS.AL:Boolean("hL", "Humanize LvLUP", true)
 	
@@ -1587,7 +1577,7 @@ end
 
 function AutoLevel:Do()
 	if SLS.AL.aL:Value() and GetLevelPoints(myHero) >= 1 and GetLevel(myHero) >= SLS.AL.sL:Value() then
-		if SLS.AL.hL:Value() and not SLS.AL.aLS:Value() == 1 then
+		if SLS.AL.hL:Value() then
 			DelayAction(function() LevelSpell(self.lTable[SLS.AL.aLS:Value()][GetLevel(myHero)-GetLevelPoints(myHero)+1]) end, math.random(1,3000))
 		else
 			LevelSpell(self.lTable[SLS.AL.aLS:Value()][GetLevel(myHero)-GetLevelPoints(myHero)+1])
