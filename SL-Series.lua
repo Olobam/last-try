@@ -553,7 +553,7 @@ class 'Soraka'
 
 function Soraka:__init()
 
-	self.Spell = {
+	Soraka.Spell = {
 	[0] = { delay = 0.250, speed = math.huge, width = 235, range = 800 },
 	[2] = { delay = 1.75, speed = math.huge, width = 310, range = 900 }
 	}
@@ -587,7 +587,7 @@ function Soraka:__init()
 	BM.AR:Info("HealInfo", "(myHeroHP) to Heal me with ult")
 	BM.AR:Slider("myHeroHP", "myHeroHP <= X", 8, 1, 100, 10)
 	BM.AR:Slider("allyHP", "AllyHP <= X", 8, 1, 100, 10)
-    BM.AR:Slider("ATRR", "Ally To Enemy Range", 1500, 500, 3000, 10)
+    	BM.AR:Slider("ATRR", "Ally To Enemy Range", 1500, 500, 3000, 10)
 
 	BM:Menu("KS", "Killsteal")
 	BM.KS:Boolean("Enable", "Enable Killsteal", true)
@@ -608,7 +608,16 @@ function Soraka:__init()
 	BM.p:Slider("aE", "Adjust E Delay", 1.5, .5, 2, .1)
 	
 	Callback.Add("Tick", function() self:Tick() end)
-	
+	AntiChannel()
+	DelayAction( function ()
+	BM.AC:Boolean("E","Use E", true)
+	end,.001)
+end
+
+function Soraka:AntiChannel(unit,range)
+	if SReady[2] and BM.AC.E:Value() and ValidTarget(unit,Soraka.Spell[2].range) then
+		CastSkillShot(2,GetOrigin(unit)
+	end
 end
 
 function Soraka:Tick()
