@@ -347,14 +347,14 @@ class 'Blitzcrank'
 
 function Blitzcrank:__init()
 
-	self.Spell = {
-	[0] = { delay = 0.25, speed = 1800, width = 70, range = 900 }
+	Blitzcrank.Spell = {
+	[0] = { delay = 0.25, speed = 1800, width = 70, range = 900 },
 	}
 	
 	Dmg = {
-	[0] = function (unit) return CalcDamage(myHero, unit, 0, 55 * GetCastLevel(myHero,0) + 25 + GetBonusAP(myHero)) end,
+	[0] = function (unit) return CalcDamage(myHero, unit, 0, 55 * GetCastLevel(myHero,0) + 80 + GetBonusAP(myHero)) end,
 	[2] = function (unit) return CalcDamage(myHero, unit, 0, (GetBaseDamage(myHero) + GetBonusDmg(myHero)) * 2, 0) end,
-	[3] = function (unit) return CalcDamage(myHero, unit, 0, 125 * GetCastLevel(myHero,3) + 75 + GetBonusAP(myHero)) end,
+	[3] = function (unit) return CalcDamage(myHero, unit, 0, 125 * GetCastLevel(myHero,3) + 200 + GetBonusAP(myHero)) end,
 	}
 	
 	BM:Menu("C", "Combo")
@@ -395,7 +395,7 @@ function Blitzcrank:__init()
 	BM.p:Slider("hQ", "HitChance Q", 20, 0, 100, 1)
 	
 	Callback.Add("Tick", function() self:Tick() end)
-	
+	AntiChannel()
 end
 
 function Blitzcrank:Tick()
@@ -426,6 +426,17 @@ function Blitzcrank:Tick()
 			self:Harass(target)
 		else
 			return
+		end
+	end
+end
+
+function Blitzcrank:AntiChannel(unit,range)
+	if range < 600 and SReady[3] then
+		CastSpell(3)
+	elseif SReady[0] and range < Blitzcrank.Spell[0].range then
+		local Pred = GetPrediction(unit, Blitzcrank.Spell[0])
+		if not Pred:mCollision(1) then
+			CastSkillShot(0,Pred.castPos)
 		end
 	end
 end
