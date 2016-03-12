@@ -16,7 +16,7 @@ local SLSChamps = {
 	-- ["Rumble"] = true,
 	-- ["Swain"] = true,
 	-- ["Thresh"] = true,
-	-- ["Kalista"] = true,
+	["Kalista"] = true,
 	-- ["Poppy"] = true,
 	-- ["Nami"] = true,
 	-- ["Corki"] = true,
@@ -97,7 +97,7 @@ class 'Init'
 function Init:__init()
 	local AntiGapCloser = {}
 	local GapCloser = {}
-	local MapPositionGOS = {["Vayne"] = true, ["Poppy"] = true,}
+	local MapPositionGOS = {["Vayne"] = true, ["Poppy"] = true, ["Kalista"] = true,}
 
 	SLS = MenuConfig("SL-Series", "SL-Series")
 	SLS:Menu("Loader", "|SL| Loader")
@@ -1267,6 +1267,243 @@ function Jinx:KS()
 		end
 	end
 end
+
+class 'Kalista'
+
+function Kalista:__init()
+
+
+self.eTrack = {}
+
+	DelayAction( function()
+		for _,i in pairs(GetEnemyHeroes()) do
+			self.eTrack[GetObjectName(i)]=0
+		end
+	end,1)
+
+	
+	self.Spell = {
+	[0] = { delay = 0.25, speed = 2000, width = 50, range = GetCastRange(myHero,_Q) }
+	}
+	
+	
+	Dmg = {
+	[0] = function (unit) return CalcDamage(myHero, unit, 60 * GetCastLevel(myHero,0) - 50 + GetBonusDmg(myHero), 0) end, 
+	[2] = function (unit) return CalcDamage(myHero, unit, (10 * GetCastLevel(myHero,2) + 10 + GetBonusDmg(myHero) * .6) + ((GetBaseDamage(myHero) + GetBonusDmg(myHero)) * 1.2) + ((self.eTrack[GetObjectName(unit)] or 0)-1) *  ({10,14,19,25,32})[GetCastLevel(myHero,2)] +  ({0.2,0.225,0.25,0.275,0.3})[GetCastLevel(myHero,2)], 0) end,
+	}
+	
+	
+	BM:Menu("C", "Combo")
+	BM.C:Boolean("Q", "Use Q", true)
+	
+	BM:Menu("H", "Harass")
+	BM.H:Boolean("Q", "Use Q", true)
+	
+	BM:Menu("JC", "JungleClear")
+	BM.JC:Boolean("Q", "Use Q", false)
+	
+	BM:Menu("LC", "LaneClear")
+	BM.LC:Boolean("Q", "Use Q", false)
+	
+	BM:Menu("AE", "Auto E")
+	BM.AE:Menu("MobOpt", "Mob Option")
+	BM.AE.MobOpt:Boolean("UseJ", "Use on Jungle mobs", true)
+	BM.AE.MobOpt:Boolean("UseM", "Use on Minions", true)
+	BM.AE.MobOpt:Slider("Emin", "Minions to use E >= X", 2, 1, 6, 1)
+	BM.AE:Boolean("UseC", "Use on Champs", true)
+	BM.AE:Slider("OK", "Over kill", 50, 0, 250, 10)
+	BM.AE:Slider("D", "Delay to use E", 10, 0, 50, 5)	
+	
+	BM:Menu("AR", "Auto R")
+	BM.AR:Boolean("enable", "Enable Auto R")
+	BM.AR:Slider("myHeroHP", "myHeroHP >= X", 5, 1, 100, 10)
+	BM.AR:Slider("allyHP", "allyHP <= X", 5, 1, 100, 5)
+	
+	BM:Menu("KS", "Killsteal")
+	BM.KS:Boolean("Q", "Use Q", true)
+	
+	BM:Menu("WJ", "WallJump")
+	BM.WJ:KeyBinding("J", "Wall Jump", string.byte("G"))
+	
+	BM:Menu("p", "Prediction")
+	BM.p:Slider("hQ", "HitChance Q", 20, 0, 100, 1)
+
+	
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("UpdateBuff", function(unit, buff) self:UpdateBuff(unit, buff) end)
+	Callback.Add("RemoveBuff", function(unit, buff) self:RemoveBuff(unit, buff) end)
+	
+end
+
+function Kalista:UpdateBuff(unit, buff) 
+	if unit ~= myHero and buff.Name:lower() == "kalistaexpungemarker" then
+		self.eTrack[GetObjectName(unit)]=buff.Count 
+	end
+end
+
+function Kalista:RemoveBuff(unit, buff) 
+	if unit ~= myHero and buff.Name:lower() == "kalistaexpungemarker" then
+		self.eTrack[GetObjectName(unit)]=0 
+	end
+end
+
+function Kalista:Tick()
+	if myHero.dead then return end
+	
+	if (_G.IOW or _G.DAC_Loaded) then
+	
+		GetReady()
+		
+		self:KS()
+		
+		self:AutoR()
+		
+		self:WallJump()
+		
+		local Mode = nil
+		local target = nil
+		if _G.DAC_Loaded then 
+			Mode = DAC:Mode()
+			target = DAC:GetTarget() 
+		elseif _G.IOW then
+			Mode = IOW:Mode()
+			target = GetCurrentTarget()
+		end
+		
+		if Mode == "Combo" then
+			self:Combo(target)
+		elseif Mode == "LaneClear" then
+			self:LaneClear()
+			self:JungleClear()
+		elseif Mode == "Harass" then
+			self:Harass(target)
+		else
+			return
+		end
+	end
+end
+
+function Kalista:AutoR()
+	for _, a in pairs(GetAllyHeroes()) do
+		if GotBuff(a, "kalistacoopstrikeally") == 1 and BM.AR.enable:Value() and GetPercentHP(myHero) >= BM.AR.myHeroHP:Value() and GetPercentHP(a) <= BM.AR.allyHP:Value() and EnemiesAround(GetOrigin(ally), 1000) >= 1 then
+			CastSpell(3)
+		end
+	end
+end
+
+function Kalista:Combo(target)
+	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() then
+		local Pred = GetPrediction(target, self.Spell[0])
+		if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+			CastSkillShot(0,Pred.castPos)
+		end
+	end
+end
+
+function Kalista:Harass(target)
+	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.H.Q:Value() then
+		local Pred = GetPrediction(target, self.Spell[0])
+		if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+			CastSkillShot(0,Pred.castPos)
+		end
+	end
+end
+
+function Kalista:JungleClear()
+ self.kmo = 0
+	for _,mob in pairs(minionManager.objects) do
+		if GetTeam(mob) == MINION_JUNGLE then
+			if SReady[0] and ValidTarget(mob, self.Spell[0].range) and BM.JC.Q:Value() then
+				local Pred = GetPrediction(mob, self.Spell[0])
+				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+					CastSkillShot(0,Pred.castPos)
+				end
+			end
+            if Dmg[2](mob) > GetCurrentHP(mob) and ValidTarget(mob, 750) and BM.AE.MobOpt.UseM:Value() then
+                self.kmo = self.kmo + 1
+            end
+            if self.kmo > BM.AE.MobOpt.Emin:Value() and Dmg[2](mob) > GetCurrentHP(mob) and ValidTarget(mob, 750) then
+                CastSpell(2)
+            end
+        end
+    end
+end
+
+function Kalista:LaneClear()
+ self.km = 0
+    for _,minion in pairs(minionManager.objects) do
+        if GetTeam(minion) == MINION_ENEMY then
+			if SReady[0] and ValidTarget(minion, self.Spell[0].range) and BM.JC.Q:Value() then
+				local Pred = GetPrediction(minion, self.Spell[0])
+				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+					CastSkillShot(0,Pred.castPos)
+				end
+			end
+            if Dmg[2](minion) > GetCurrentHP(minion) and ValidTarget(minion, 750) and BM.AE.MobOpt.UseM:Value() then
+                self.km = self.km + 1
+            end
+            if self.km > BM.AE.MobOpt.Emin:Value() and Dmg[2](minion) > GetCurrentHP(minion) and ValidTarget(minion, 750) then
+                CastSpell(2)
+            end
+        end
+    end
+end
+
+function Kalista:KS()
+	for _,target in pairs(GetEnemyHeroes()) do
+		if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.KS.Q:Value() and GetADHP(target) < Dmg[0](target) then
+			local Pred = GetPrediction(target, self.Spell[0])
+			if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+				CastSkillShot(0,Pred.castPos)
+			end
+		end
+		if SReady[2] and ValidTarget(target, GetCastRange(myHero,2)) and BM.AE.UseC:Value() and (GetADHP(target) + BM.AE.OK:Value()) < Dmg[2](target) and GotBuff(target, "kalistaexpungemarker") > 1 then
+			DelayAction(function()
+				CastSpell(2)
+			end,BM.AE.D:Value()/100)
+		end
+	end
+end
+
+function Kalista:WallJump()
+	if Ready(0) and BM.WJ.J:Value() and GetDistance(GetMousePos(),GetOrigin(myHero))<1500 then
+		local mou = GetMousePos()
+		local wallEnd = nil
+		local wallStart = nil
+		if not MapPosition:inWall(mou) then
+			--DrawLine(WorldToScreen(0, GetOrigin(myHero)).x, WorldToScreen(0, GetOrigin(myHero)).y, WorldToScreen(0, mou).x, WorldToScreen(0, mou).y, 3, GoS.White)
+			local dV = Vector(GetOrigin(myHero))-Vector(mou)
+			for i = 1, dV:len(), 5 do
+				if MapPosition:inWall(mou+dV:normalized()*i) and not wallEnd then
+					wallEnd = Vector(mou+dV:normalized()*i)
+				elseif wallEnd and not MapPosition:inWall(Vector(mou+dV:normalized()*i)) then
+					wallStart = Vector(mou+dV:normalized()*i)
+					DrawCircle(wallStart,50,0,3,GoS.White)
+					break
+				end
+			end
+			if wallEnd and wallStart then
+				local WS = WorldToScreen(0,wallStart)
+				local WE = WorldToScreen(0,wallEnd)
+				if Vector(wallEnd-wallStart):len() < 300 then
+					DrawLine(WS.x,WS.y,WE.x,WE.y,3,GoS.Green)
+					MoveToXYZ(wallStart)
+				else
+					DrawLine(WS.x,WS.y,WE.x,WE.y,3,GoS.Red)
+					DrawCircle(wallEnd,50,0,3,GoS.White)
+					DrawCircle(wallStart,50,0,3,GoS.White)
+				end
+				if GetDistance(GetOrigin(myHero),wallEnd) < 300 then
+					CastSkillShot(0,wallEnd)
+					DelayAction(function()
+						MoveToXYZ(mou)
+					end, 0.001)
+				end
+			end
+		end
+	end
+end
+
 
 ---------------------------------------------------------------------------------------------
 -------------------------------------UTILITY-------------------------------------------------
