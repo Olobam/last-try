@@ -2355,3 +2355,51 @@ function HitMe:Detect(unit, spellProc)
 		end
 	end
 end
+
+class 'AntiChannel'
+
+function AntiChannel:__init()
+	self.CSpell = {
+		["Caitlyn"] 		= {SpellName = "CaitlynAceintheHole"},
+		--["FiddleSticks"] 	= {SpellName = "Crowstorm"},
+		["FiddleSticks"] 	= {SpellName = "Drain"},
+		["Galio"] 			= {SpellName = "GalioIdolOfDurand"},
+		["Janna"]			= {SpellName = "ReapTheWhirlwind"},
+		["Jhin"]			= {SpellName = "JhinR"},
+		["Karthus"]			= {SpellName = "KarthusFallenOne"},
+		["Katarina"] 		= {SpellName = "KatarinaR"},
+		["Lucian"] 			= {SpellName = "LucianR"},
+		["Malzahar"] 		= {SpellName = "AlZaharNetherGrasp"},
+		["MissFortune"] 	= {SpellName = "MissFortuneBulletTime"},
+		["Nunu"] 			= {SpellName = "AbsoluteZero"},    
+		["Pantheon"] 		= {SpellName = "PantheonRJump"},
+		--["Pantheon"]  		= {SpellName = "PantheonRFall"},
+		["Shen"] 			= {SpellName = "ShenStandUnited"},
+		["TwistedFate"] 	= {SpellName = "Destiny"},
+		["Urgot"] 			= {SpellName = "UrgotSwap2"},
+		["Varus"] 			= {SpellName = "VarusQ"},
+		["Velkoz"] 			= {SpellName = "VelkozR"},
+		["Warwick"]			= {SpellName = "InfiniteDuress"},
+		["Xerath"] 			= {SpellName = "XerathLocusOfPower2"},
+	}
+	
+	DelayAction(function ()
+		for _,i in pairs(GetEnemyHeroes()) do
+			if self.CSpell[GetObjectName(i)] then
+				if self.CSpell[GetObjectName(i)] then
+					if not BM["AC"] then
+						BM:Menu("AC","AntiChannel")
+						Callback.Add("ProcessSpell", function(unit,spellProc) self:Check(unit,spellProc) end)
+					end
+					BM.AC:Boolean(GetObjectName(i),"Stop "..GetObjectName(i).." Channels", true)
+				end
+			end
+		end
+	end, .001)
+end
+
+function AntiChannel:Check(unit,spellProc)
+	if GetTeam(unit) == MINION_ENEMY and self.CSpell[GetObjectName(unit)] and self.CSpell[GetObjectName(unit)].SpellName == spellProc.name and BM.AC[GetObjectName(unit)]:Value() then
+		_G[ChampName]:AntiChannel(unit,GetDistance(myHero,unit))
+	end
+end
