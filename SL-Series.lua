@@ -396,6 +396,10 @@ function Blitzcrank:__init()
 	
 	Callback.Add("Tick", function() self:Tick() end)
 	AntiChannel()
+	DelayAction( function ()
+	BM.AC:Boolean("Q","Use Q", true)
+	BM.AC:Boolean("R","Use R", true)
+	end,.001)
 end
 
 function Blitzcrank:Tick()
@@ -431,9 +435,9 @@ function Blitzcrank:Tick()
 end
 
 function Blitzcrank:AntiChannel(unit,range)
-	if range < 600 and SReady[3] then
+	if BM.AC.Q:Value() and range < 600 and SReady[3] then
 		CastSpell(3)
-	elseif SReady[0] and range < Blitzcrank.Spell[0].range then
+	elseif BM.AC.R:Value() and SReady[0] and range < Blitzcrank.Spell[0].range then
 		local Pred = GetPrediction(unit, Blitzcrank.Spell[0])
 		if not Pred:mCollision(1) then
 			CastSkillShot(0,Pred.castPos)
@@ -2371,33 +2375,32 @@ class 'AntiChannel'
 
 function AntiChannel:__init()
 	self.CSpell = {
-		["Caitlyn"] 		= {SpellName = "CaitlynAceintheHole"},
-		--["FiddleSticks"] 	= {SpellName = "Crowstorm"},
-		["FiddleSticks"] 	= {SpellName = "Drain"},
-		["Galio"] 			= {SpellName = "GalioIdolOfDurand"},
-		["Janna"]			= {SpellName = "ReapTheWhirlwind"},
-		["Jhin"]			= {SpellName = "JhinR"},
-		["Karthus"]			= {SpellName = "KarthusFallenOne"},
-		["Katarina"] 		= {SpellName = "KatarinaR"},
-		["Lucian"] 			= {SpellName = "LucianR"},
-		["Malzahar"] 		= {SpellName = "AlZaharNetherGrasp"},
-		["MissFortune"] 	= {SpellName = "MissFortuneBulletTime"},
-		["Nunu"] 			= {SpellName = "AbsoluteZero"},    
-		["Pantheon"] 		= {SpellName = "PantheonRJump"},
-		--["Pantheon"]  		= {SpellName = "PantheonRFall"},
-		["Shen"] 			= {SpellName = "ShenStandUnited"},
-		["TwistedFate"] 	= {SpellName = "Destiny"},
-		["Urgot"] 			= {SpellName = "UrgotSwap2"},
-		["Varus"] 			= {SpellName = "VarusQ"},
-		["Velkoz"] 			= {SpellName = "VelkozR"},
-		["Warwick"]			= {SpellName = "InfiniteDuress"},
-		["Xerath"] 			= {SpellName = "XerathLocusOfPower2"},
+    ["CaitlynAceintheHole"]         = {charName = "Caitlyn"		},
+    ["Crowstorm"]                   = {charName = "FiddleSticks"},
+    ["Drain"]                       = {charName = "FiddleSticks"},
+    ["GalioIdolOfDurand"]           = {charName = "Galio"		},
+    ["ReapTheWhirlwind"]            = {charName = "Janna"		},
+	["JhinR"]						= {charName = "Jhin"		},
+    ["KarthusFallenOne"]            = {charName = "Karthus"     },
+    ["KatarinaR"]                   = {charName = "Katarina"    },
+    ["LucianR"]                     = {charName = "Lucian"		},
+    ["AlZaharNetherGrasp"]          = {charName = "Malzahar"	},
+    ["MissFortuneBulletTime"]       = {charName = "MissFortune"	},
+    ["AbsoluteZero"]                = {charName = "Nunu"		},                       
+    ["PantheonRJump"]               = {charName = "Pantheon"	},
+    ["ShenStandUnited"]             = {charName = "Shen"		},
+    ["Destiny"]                     = {charName = "TwistedFate"	},
+    ["UrgotSwap2"]                  = {charName = "Urgot"		},
+    ["VarusQ"]                      = {charName = "Varus"		},
+    ["VelkozR"]                     = {charName = "Velkoz"		},
+    ["InfiniteDuress"]              = {charName = "Warwick"		},
+    ["XerathLocusOfPower2"]         = {charName = "Xerath"		},
 	}
 	
 	DelayAction(function ()
 		for _,i in pairs(GetEnemyHeroes()) do
-			if self.CSpell[GetObjectName(i)] then
-				if self.CSpell[GetObjectName(i)] then
+			for _,n in pairs(self.CSpell) do
+				if GetObjectName(i) == n.charName then
 					if not BM["AC"] then
 						BM:Menu("AC","AntiChannel")
 						Callback.Add("ProcessSpell", function(unit,spellProc) self:Check(unit,spellProc) end)
@@ -2410,7 +2413,7 @@ function AntiChannel:__init()
 end
 
 function AntiChannel:Check(unit,spellProc)
-	if GetTeam(unit) == MINION_ENEMY and self.CSpell[GetObjectName(unit)] and self.CSpell[GetObjectName(unit)].SpellName == spellProc.name and BM.AC[GetObjectName(unit)]:Value() then
+	if GetTeam(unit) == MINION_ENEMY and self.CSpell[spellProc.name] and BM.AC[GetObjectName(unit)]:Value() then
 		_G[ChampName]:AntiChannel(unit,GetDistance(myHero,unit))
 	end
 end
