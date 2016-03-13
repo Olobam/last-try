@@ -997,7 +997,7 @@ function Jinx:__init()
 	Dmg = {
 	[1] = function (unit) return CalcDamage(myHero, unit, 50 * GetCastLevel(myHero,0) - 40 + GetBonusDmg(myHero) * 1.4, 0) end,
 	[2] = function (unit) return CalcDamage(myHero, unit, 0, 55 * GetCastLevel(myHero,2) + 25 + GetBonusAP(myHero)) end, 
-	[3] = function (unit) return CalcDamage(myHero, unit, math.max(50 * GetCastLevel(myHero,3) + 125 + GetBonusDmg(myHero)) + (0.05*GetCastLevel(myHero,3)+0.2) * (GetMaxHP(unit)-GetCurrentHP(unit)), 0) end,
+	[3] = function (unit) return CalcDamage(myHero, unit, math.max(50.05 * GetCastLevel(myHero,3) + 75.2 + GetBonusDmg(myHero) * (GetMaxHP(unit) - GetCurrentHP(unit))), 0) end,
 	}
 	
 	self.RocketRange = 25 * GetCastLevel(myHero,_Q) + 600
