@@ -1267,18 +1267,26 @@ function Jinx:KS()
 	end
 end
 
+ -- _  __     _ _     _        
+ --| |/ /__ _| (_)___| |_ __ _ 
+ --| ' // _` | | / __| __/ _` |
+ --| . \ (_| | | \__ \ || (_| |
+ --|_|\_\__,_|_|_|___/\__\__,_|
+                             
+
 class 'Kalista'
 
 function Kalista:__init()
 
 
-self.eTrack = {}
-
-	DelayAction( function()
-		for _,i in pairs(GetEnemyHeroes()) do
-			self.eTrack[GetObjectName(i)]=0
+	self.eTrack = {}
+	self.soul = nil
+	
+	for _,i in pairs(GetAllyHeroes()) do
+		if GotBuff(i, "kalistacoopstrikeally") >= 1 then
+			soul = i
 		end
-	end,1)
+	end
 
 	
 	self.Spell = {
@@ -1288,9 +1296,11 @@ self.eTrack = {}
 	
 	Dmg = {
 	[0] = function (unit) return CalcDamage(myHero, unit, 60 * GetCastLevel(myHero,0) - 50 + GetBonusDmg(myHero), 0) end, 
-	[2] = function (unit) return CalcDamage(myHero, unit, (10 * GetCastLevel(myHero,2) + 10 + GetBonusDmg(myHero) * .6) + ((GetBaseDamage(myHero) + GetBonusDmg(myHero)) * 1.2) + ((self.eTrack[GetObjectName(unit)] or 0)-1) *  ({10,14,19,25,32})[GetCastLevel(myHero,2)] +  ({0.2,0.225,0.25,0.275,0.3})[GetCastLevel(myHero,2)], 0) end,
+	[2] = function (unit) return CalcDamage(myHero, unit, (10 * GetCastLevel(myHero,2) + 10 + (GetBonusDmg(myHero)+GetBaseDamage(myHero)) * .6) + ((self.eTrack[GetNetworkID(unit)] or 0)-1) * (({10,14,19,25,32})[GetCastLevel(myHero,2)] + (GetBaseDamage(myHero)+GetBaseDamage(myHero))*({0.2,0.225,0.25,0.275,0.3})[GetCastLevel(myHero,2)]), 0) end,
 	}
 	
+	self.EpicJgl = {["SRU_Baron"]=true, ["SRU_Dragon"]=true, ["TT_Spiderboss"]=true}
+	self.BigJgl = {["SRU_Baron"]=true, ["SRU_Dragon"]=true, ["SRU_Red"]=true, ["SRU_Blue"]=true, ["SRU_Krug"]=true, ["SRU_Murkwolf"]=true, ["SRU_Razorbeak"]=true, ["SRU_Gromp"]=true, ["Sru_Crab"]=true, ["TT_Spiderboss"]=true}
 	
 	BM:Menu("C", "Combo")
 	BM.C:Boolean("Q", "Use Q", true)
@@ -1306,16 +1316,17 @@ self.eTrack = {}
 	
 	BM:Menu("AE", "Auto E")
 	BM.AE:Menu("MobOpt", "Mob Option")
-	BM.AE.MobOpt:Boolean("UseJ", "Use on Jungle mobs", true)
+	BM.AE.MobOpt:Boolean("UseB", "Use on Big Mobs", true)
+	BM.AE.MobOpt:Boolean("UseE", "Use on Epic Mobs", true)
 	BM.AE.MobOpt:Boolean("UseM", "Use on Minions", true)
-	BM.AE.MobOpt:Slider("Emin", "Minions to use E >= X", 2, 1, 6, 1)
+	BM.AE:Slider("xM", "Kill X Minions", 2, 1, 7, 1)	
 	BM.AE:Boolean("UseC", "Use on Champs", true)
-	BM.AE:Slider("OK", "Over kill", 50, 0, 250, 10)
+	BM.AE:Boolean("UseL", "Use if leaves range", true)
+	BM.AE:Slider("OK", "Over kill", 10, 0, 50, 5)
 	BM.AE:Slider("D", "Delay to use E", 10, 0, 50, 5)	
 	
 	BM:Menu("AR", "Auto R")
 	BM.AR:Boolean("enable", "Enable Auto R")
-	BM.AR:Slider("myHeroHP", "myHeroHP >= X", 5, 1, 100, 10)
 	BM.AR:Slider("allyHP", "allyHP <= X", 5, 1, 100, 5)
 	
 	BM:Menu("KS", "Killsteal")
@@ -1331,18 +1342,22 @@ self.eTrack = {}
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("UpdateBuff", function(unit, buff) self:UpdateBuff(unit, buff) end)
 	Callback.Add("RemoveBuff", function(unit, buff) self:RemoveBuff(unit, buff) end)
-	
+
 end
 
 function Kalista:UpdateBuff(unit, buff) 
-	if unit ~= myHero and buff.Name:lower() == "kalistaexpungemarker" then
-		self.eTrack[GetObjectName(unit)]=buff.Count 
+	if unit ~= myHero and buff.Name:lower() == "kalistaexpungemarker" and (unit.type==Obj_AI_Hero or unit.type==Obj_AI_Minion or unit.type==Obj_AI_Camp) then
+		self.eTrack[GetNetworkID(unit)]=buff.Count 
+	elseif buff.Name:lower() == "kalistacoopstrikeally" and GetTeam(unit) == MINION_ALLY then
+		soul = unit
 	end
 end
 
 function Kalista:RemoveBuff(unit, buff) 
-	if unit ~= myHero and buff.Name:lower() == "kalistaexpungemarker" then
+	if unit ~= myHero and buff.Name:lower() == "kalistaexpungemarker" and (unit.type==Obj_AI_Hero or unit.type==Obj_AI_Minion or unit.type==Obj_AI_Camp) then
 		self.eTrack[GetObjectName(unit)]=0 
+	elseif buff.Name:lower() == "kalistacoopstrikeally" and GetTeam(unit) == MINION_ALLY then
+		soul = nil
 	end
 end
 
@@ -1352,11 +1367,8 @@ function Kalista:Tick()
 	if (_G.IOW or _G.DAC_Loaded) then
 	
 		GetReady()
-		
 		self:KS()
-		
 		self:AutoR()
-		
 		self:WallJump()
 		
 		local Mode = nil
@@ -1383,10 +1395,8 @@ function Kalista:Tick()
 end
 
 function Kalista:AutoR()
-	for _, a in pairs(GetAllyHeroes()) do
-		if GotBuff(a, "kalistacoopstrikeally") == 1 and BM.AR.enable:Value() and GetPercentHP(myHero) >= BM.AR.myHeroHP:Value() and GetPercentHP(a) <= BM.AR.allyHP:Value() and EnemiesAround(GetOrigin(ally), 1000) >= 1 then
-			CastSpell(3)
-		end
+	if soul and BM.AR.enable:Value() and GetPercentHP(soul) <= BM.AR.allyHP:Value() and EnemiesAround(GetOrigin(soul), 1000) >= 1 then
+		CastSpell(3)
 	end
 end
 
@@ -1409,7 +1419,6 @@ function Kalista:Harass(target)
 end
 
 function Kalista:JungleClear()
- self.kmo = 0
 	for _,mob in pairs(minionManager.objects) do
 		if GetTeam(mob) == MINION_JUNGLE then
 			if SReady[0] and ValidTarget(mob, self.Spell[0].range) and BM.JC.Q:Value() then
@@ -1418,18 +1427,19 @@ function Kalista:JungleClear()
 					CastSkillShot(0,Pred.castPos)
 				end
 			end
-            if Dmg[2](mob) > GetCurrentHP(mob) and ValidTarget(mob, 750) and BM.AE.MobOpt.UseM:Value() then
-                self.kmo = self.kmo + 1
-            end
-            if self.kmo > BM.AE.MobOpt.Emin:Value() and Dmg[2](mob) > GetCurrentHP(mob) and ValidTarget(mob, 750) then
-                CastSpell(2)
-            end
+            if SReady[2] and ValidTarget(mob, 750) and Dmg[2](mob) > GetCurrentHP(mob) then
+				if BM.AE.MobOpt.UseE:Value() and self.EpicJgl[GetObjectName(mob)] then
+					CastSpell(2)
+				elseif BM.AE.MobOpt.UseB:Value() and self.BigJgl[GetObjectName(mob)] then
+					CastSpell(2)
+				end
+			end
         end
     end
 end
 
 function Kalista:LaneClear()
- self.km = 0
+	self.km = 0
     for _,minion in pairs(minionManager.objects) do
         if GetTeam(minion) == MINION_ENEMY then
 			if SReady[0] and ValidTarget(minion, self.Spell[0].range) and BM.JC.Q:Value() then
@@ -1441,10 +1451,10 @@ function Kalista:LaneClear()
             if Dmg[2](minion) > GetCurrentHP(minion) and ValidTarget(minion, 750) and BM.AE.MobOpt.UseM:Value() then
                 self.km = self.km + 1
             end
-            if self.km > BM.AE.MobOpt.Emin:Value() and Dmg[2](minion) > GetCurrentHP(minion) and ValidTarget(minion, 750) then
-                CastSpell(2)
-            end
         end
+    end
+	if self.km > BM.AE.xM:Value() and Dmg[2](minion) > GetCurrentHP(minion) and ValidTarget(minion, 750) then
+        CastSpell(2)
     end
 end
 
@@ -1456,16 +1466,16 @@ function Kalista:KS()
 				CastSkillShot(0,Pred.castPos)
 			end
 		end
-		if SReady[2] and ValidTarget(target, GetCastRange(myHero,2)) and BM.AE.UseC:Value() and (GetADHP(target) + BM.AE.OK:Value()) < Dmg[2](target) and GotBuff(target, "kalistaexpungemarker") > 1 then
+		if SReady[2] and ValidTarget(target, 1200) and BM.AE.UseC:Value() and (GetADHP(target) + BM.AE.OK:Value()) < Dmg[2](target) and self.eTrack[GetNetworkID(target)] > 0 then
 			DelayAction(function()
 				CastSpell(2)
-			end,BM.AE.D:Value()/100)
+			end, BM.AE.D:Value()/1000)
 		end
 	end
 end
 
 function Kalista:WallJump()
-	if Ready(0) and BM.WJ.J:Value() and GetDistance(GetMousePos(),GetOrigin(myHero))<1500 then
+	if SReady[0] and BM.WJ.J:Value() and GetDistance(GetMousePos(),GetOrigin(myHero))<1500 then
 		local mou = GetMousePos()
 		local wallEnd = nil
 		local wallStart = nil
@@ -1484,7 +1494,7 @@ function Kalista:WallJump()
 			if wallEnd and wallStart then
 				local WS = WorldToScreen(0,wallStart)
 				local WE = WorldToScreen(0,wallEnd)
-				if Vector(wallEnd-wallStart):len() < 300 then
+				if Vector(wallEnd-wallStart):len() < 290 then
 					DrawLine(WS.x,WS.y,WE.x,WE.y,3,GoS.Green)
 					MoveToXYZ(wallStart)
 				else
@@ -1492,7 +1502,7 @@ function Kalista:WallJump()
 					DrawCircle(wallEnd,50,0,3,GoS.White)
 					DrawCircle(wallStart,50,0,3,GoS.White)
 				end
-				if GetDistance(GetOrigin(myHero),wallEnd) < 300 then
+				if GetDistance(GetOrigin(myHero),wallEnd) < 290 then
 					CastSkillShot(0,wallEnd)
 					DelayAction(function()
 						MoveToXYZ(mou)
@@ -1502,6 +1512,7 @@ function Kalista:WallJump()
 		end
 	end
 end
+
 
 
 ---------------------------------------------------------------------------------------------
