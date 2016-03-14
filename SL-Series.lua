@@ -2058,7 +2058,6 @@ end
 
 class 'HitMe'
 
-
 function HitMe:__init()
 	SLS:SubMenu("SB","|SL| Spellblock")
 	
@@ -2287,8 +2286,10 @@ function HitMe:__init()
 			[_R] = { displayname = "Riftwalk", name = "RiftWalk", objname = "RiftWalk", speed = math.huge, delay = 0.5, range = 500, width = 150, collision = false, aoe = true, type = "circular", danger = 2}
 		},
 		["Katarina"] = {
+			[_Q] = { name ="", danger = 2},
 		},
 		["Kayle"] = {
+			[_Q] = { name ="", danger = 3},
 		},
 		["Kennen"] = {
 			[_Q] = { displayname = "Thundering Shuriken", name = "KennenShurikenHurlMissile1", speed = 1700, delay = 0.180, range = 1050, width = 70, collision = true, aoe = false, type = "linear", danger = 3}
@@ -2348,7 +2349,8 @@ function HitMe:__init()
 		},
 		["Maokai"] = {
 			[_Q] = { name = "", speed = math.huge, delay = 0.25, range = 600, width = 100, collision = false, aoe = false, type = "linear", danger = 2},
-			[_E] = { name = "", speed = 1500, delay = 0.25, range = 1100, width = 175, collision = false, aoe = false, type = "circular", danger = 2}
+			[_W] = { name = "", speed = 2000, delay = .1, danger = 3},
+			[_E] = { name = "", speed = 1500, delay = 0.25, range = 1100, width = 175, collision = false, aoe = false, type = "circular", danger = 2},
 		},
 		["MissFortune"] = {
 			[_E] = { name = "MissFortuneScattershot", speed = math.huge, delay = 3.25, range = 800, width = 400, collision = false, aoe = true, type = "circular", danger = 1},
@@ -2365,10 +2367,12 @@ function HitMe:__init()
 			[_R] = { name = "NamiR", objname = "NamiRMissile", speed = 850, delay = 0.5, range = 2750, width = 260, collision = false, aoe = true, type = "linear", danger = 4}
 		},
 		["Nasus"] = {
+			[_W] = { name = "", delay = 0.2, danger = 3},
 			[_E] = { name = "", speed = math.huge, delay = 0.25, range = 450, width = 250, collision = false, aoe = true, type = "circular", danger = 1}
 		},
 		["Nautilus"] = {
-			[_Q] = { name = "NautilusAnchorDrag", objname = "NautilusAnchorDragMissile", speed = 2000, delay = 0.250, range = 1080, width = 80, collision = true, aoe = false, type = "linear", danger = 3}
+			[_Q] = { name = "NautilusAnchorDrag", objname = "NautilusAnchorDragMissile", speed = 2000, delay = 0.250, range = 1080, width = 80, collision = true, aoe = false, type = "linear", danger = 3},
+			[_R] = { name = "", speed = 1500, delay = .2, danger = 4},
 		},
 		["Nidalee"] = {
 			[_Q] = { name = "JavelinToss", objname = "JavelinToss", speed = 1300, delay = 0.25, range = 1500, width = 40, collision = true, type = "linear", danger = 3}
@@ -2377,19 +2381,21 @@ function HitMe:__init()
 			[_Q] = { name = "NocturneDuskbringer", objname = "NocturneDuskbringer", speed = 1400, delay = 0.250, range = 1125, width = 60, collision = false, aoe = false, type = "linear", danger = 2}
 		},
 		["Olaf"] = {
-			[_Q] = { name = "OlafAxeThrowCast", objname = "olafaxethrow", speed = 1600, delay = 0.25, range = 1000, width = 90, collision = false, aoe = false, type = "linear", danger = 2}
+			[_Q] = { name = "OlafAxeThrowCast", objname = "olafaxethrow", speed = 1600, delay = 0.25, range = 1000, width = 90, collision = false, aoe = false, type = "linear", danger = 2},
+			[_E] = { name = "", delay = .1, danger = 2},
 		},
 		["Orianna"] = {
 			[_Q] = { name = "OriannasQ", objname = "orianaizuna", speed = 1200, delay = 0, range = 1500, width = 80, collision = false, aoe = false, type = "linear", danger = 2},
-				[-1] = { name = "OriannaQend", speed = 1200, delay = 0, range = 1500, width = 80, collision = false, aoe = false, type = "linear", danger = 2},
-			[_W] = { name = "OrianaDissonanceCommand-", objname = "OrianaDissonanceCommand", speed = math.huge, delay = 0.25, range = 0, width = 255, collision = false, aoe = true, type = "circular", danger = 2},
-			[_R] = { name = "OrianaDetonateCommand-", objname = "OrianaDetonateCommand", speed = math.huge, delay = 0.250, range = 0, width = 410, collision = false, aoe = true, type = "circular", danger = 5}
+			[-1] = { name = "OriannaQend", speed = 1200, delay = 0, range = 1500, width = 80, collision = false, aoe = false, type = "linear", danger = 2},
+			[_W] = { name = "OrianaDissonanceCommand", objname = "OrianaDissonanceCommand", speed = math.huge, delay = 0.25, range = 0, width = 255, collision = false, aoe = true, type = "circular", danger = 2},
+			[_R] = { name = "OrianaDetonateCommand", objname = "OrianaDetonateCommand", speed = math.huge, delay = 0.250, range = 0, width = 410, collision = false, aoe = true, type = "circular", danger = 5}
 		},
 		["Pantheon"] = {
+			[_Q] = { name = "", speed = 1500, delay = .15, danger = 2},
 			[_E] = { name = "", speed = math.huge, delay = 0.250, range = 400, width = 100, collision = false, aoe = true, type = "cone", danger = 2},
 		},
 		["Quinn"] = {
-			[_Q] = { name = "QuinnQ", objname = "QuinnQ", speed = 1550, delay = 0.25, range = 1050, width = 80, collision = true, aoe = false, type = "linear", danger = 3}
+			[_Q] = { name = "QuinnQ", objname = "QuinnQ", speed = 1550, delay = 0.25, range = 1050, width = 80, collision = true, aoe = true, type = "linear", danger = 3}
 		},
 		["RekSai"] = {
 			[_Q] = { name = "reksaiqburrowed", objname = "RekSaiQBurrowedMis", speed = 1550, delay = 0.25, range = 1050, width = 180, collision = true, aoe = false, type = "linear", danger = 1}
@@ -2467,6 +2473,7 @@ function HitMe:__init()
 			[_W] = { name = "RocketJump", objname = "RocketJump", speed = 2100, delay = 0.25, range = 900, width = 125, collision = false, aoe = false, type = "circular", danger = 2}
 		},
 		["Trundle"] = {
+			[_R] = { name = "", danger = 3},
 		},
 		["Tryndamere"] = {
 			[_E] = { name = "slashCast", objname = "slashCast", speed = 1500, delay = 0.250, range = 650, width = 160, collision = false, aoe = false, type = "linear", danger = 2}
@@ -2554,77 +2561,6 @@ function HitMe:__init()
 			[_R] = { name = "ZyraBrambleZone", speed = math.huge, delay = 1, range = 1100, width = 500, collision=false, aoe = true, type = "circular", danger = 4}
 		}
 	}
-end
-
-function HitMe:Detect(unit, spellProc)
-	if Ready(self.Slot) and self.Slot > 0 and self.s[GetObjectName(unit)] and SLS.SB.uS:Value() and GetTeam(unit) == MINION_ENEMY then
-		for d,i in pairs(self.s[GetObjectName(unit)]) do
-			if (i.name and i.name:lower() == spellProc.name:lower()) or (i.name == "" and d >= 0 and GetCastName(unit,d) == spellProc.name) and i.danger <= SLS.SB.dV:Value() then
-				print("Passed: "..i.name.." from "..GetObjectName(unit))
-				i.speed = i.speed or math.huge
-				i.range = i.range or math.huge
-				i.delay = i.delay or 0
-				i.width = i.width or 100
-				i.radius = i.radius or i.width or math.huge	
-				i.collision = i.collision or false
-				i.danger = i.danger or 2
-				
-				self.fT = SLS.SB.hV:Value()
-				self.multi = SLS.SB.wM:Value()
-				
-				if i.range > GetDistance(myHero,spellProc.startPos)*1.5 then return end
-				
-				--Simple Kappa Linear
-				if i.type == "linear" or i.type == "cone" then
-					local cPred = GetPrediction(myHero,i)
-					local dT = i.delay + GetDistance(spellProc.startPos, cPred.castPos) / i.speed
-					print("Delay "..i.delay)
-					print("TravelTime "..GetDistance(spellProc.startPos, cPred.castPos) / i.speed)
-					
-					--Line-Line junction check
-					local S1 = Vector(spellProc.startPos)
-					local R1 = Vector(spellProc.endPos)
-					
-					local S2 = Vector(cPred.castPos + ((Vector(spellProc.endPos) - Vector(spellProc.startPos))*.5):perpendicular())
-					local R2 = GetOrigin(myHero)
-					
-					CollP = Vector(VectorIntersection(S1,R1,S2,R2).x,spellProc.startPos.y, VectorIntersection(S1,R1,S2,R2).y)
-					DelayAction( function()
-						local d = GetDistance(Vector(CollP),cPred.castPos)
-						print("Distance "..math.floor(d).." ".. spellProc.name)
-						print("Time "..dT*self.fT)
-						if (d<i.width*self.multi or GetDistance(myHero,CollP)<i.width*self.multi) --[[and (i.collision or not pI:mCollision(1))]] then
-							CastSpell(self.Slot)
-						end
-					end, dT*self.fT*.001)
-				
-				--Circular
-				elseif i.type == "circular" then
-					local cPred = GetCircularAOEPrediction(myHero, i)
-					local dT = i.delay + GetDistance(myHero, cPred.castPos) / i.speed
-					local R1 = Vector(spellProc.endPos)
-					
-					DelayAction( function()
-						local d = GetDistance(Vector(R1),cPred.castPos)
-						print("Distance "..math.floor(d).." ".. spellProc.name)
-						if d<i.radius*self.multi or GetDistance(myHero,spellProc.endPos)<i.radius*self.multi then
-							CastSpell(self.Slot)
-						end
-					end, dT*self.fT*.001)
-				
-				--Targeted and Trash
-				elseif spellProc.target and spellProc.target == myHero then
-					local dT = i.delay + GetDistance(myHero, spellProc.startPos) / i.speed
-					DelayAction( function()
-						print(spellProc.name.." Targeted")
-						CastSpell(self.Slot)
-					end, dT*self.fT*.001)
-				else
-					print(spellProc.name.." Error")
-				end
-			end
-		end
-	end
 end
 
 class 'AntiChannel'
