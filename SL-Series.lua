@@ -1308,7 +1308,7 @@ function Kalista:__init()
 	
 	Dmg = {
 	[0] = function (unit) return CalcDamage(myHero, unit, 60 * GetCastLevel(myHero,0) - 50 + GetBonusDmg(myHero), 0) end, 
-	[2] = function (unit) return CalcDamage(myHero, unit, (10 * GetCastLevel(myHero,2) + 10 + (GetBonusDmg(myHero)+GetBaseDamage(myHero)) * .6) + ((self.eTrack[GetNetworkID(unit)] or 0)-1) * (({10,14,19,25,32})[GetCastLevel(myHero,2)] + (GetBaseDamage(myHero)+GetBaseDamage(myHero))*({0.2,0.225,0.25,0.275,0.3})[GetCastLevel(myHero,2)]), 0) end,
+	[2] = function (unit) if not unit then return end return CalcDamage(myHero, unit, (10 * GetCastLevel(myHero,2) + 10 + (GetBonusDmg(myHero)+GetBaseDamage(myHero)) * .6) + ((self.eTrack[GetNetworkID(unit)] or 0)-1) * (({10,14,19,25,32})[GetCastLevel(myHero,2)] + (GetBaseDamage(myHero)+GetBaseDamage(myHero))*({0.2,0.225,0.25,0.275,0.3})[GetCastLevel(myHero,2)]), 0) end,
 	}
 	
 	self.EpicJgl = {["SRU_Baron"]=true, ["SRU_Dragon"]=true, ["TT_Spiderboss"]=true}
@@ -1331,6 +1331,7 @@ function Kalista:__init()
 	BM.AE.MobOpt:Boolean("UseB", "Use on Big Mobs", true)
 	BM.AE.MobOpt:Boolean("UseE", "Use on Epic Mobs", true)
 	BM.AE.MobOpt:Boolean("UseM", "Use on Minions", true)
+	BM.AE.MobOpt:Boolean("UseMode", "Use only in Laneclear mode",false)
 	BM.AE:Slider("xM", "Kill X Minions", 2, 1, 7, 1)	
 	BM.AE:Boolean("UseC", "Use on Champs", true)
 	BM.AE:Boolean("UseL", "Use if leaves range", true)
@@ -1411,61 +1412,22 @@ end
 
 function Kalista:AAReset(unit, spell)
 	local ta = spell.target
-	if unit == myHero and ta ~= nil and spell.name:lower():find("attack") and SReady[0] then
-		if IOW:Mode() == "Combo" and BM.C.Q:Value() and ValidTarget(ta, self.Spell[0].range) and SReady[0] then
+	if unit == myHero and ta ~= nil and spell.name:lower():find("attack") and SReady[0] and ValidTarget(ta, self.Spell[0].range) then
+		if ((IOW:Mode() == "Combo" and BM.C.Q:Value()) or (IOW:Mode() == "Harass" and BM.H.Q:Value()) and GetObjectType(ta) == Obj_AI_Hero) or (IOW:Mode() == "LaneClear" and ((BM.JC.Q:Value() and GetObjectType(ta)==Obj_AI_Camp) or (BM.LC.Q:Value() and GetObjectType(ta)==Obj_AI_Minion))) then
 			local Pred = GetPrediction(ta, self.Spell[0])
 			if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
 				CastSkillShot(0,Pred.castPos)
-			end
-		elseif IOW:Mode() == "Harass" and BM.H.Q:Value() and ValidTarget(ta, self.Spell[0].range) and SReady[0] then
-			local Pred = GetPrediction(ta, self.Spell[0])
-			if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-				CastSkillShot(0,Pred.castPos)
-			end
-		elseif IOW:Mode() == "LaneClear" and BM.JC.Q:Value() and GetTeam(ta) == MINION_JUNGLE then
-			if SReady[0] and ValidTarget(ta, self.Spell[0].range) then
-				local Pred = GetPrediction(ta, self.Spell[0])
-				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-					CastSkillShot(0,Pred.castPos)
-				end
-			end
-		elseif IOW:Mode() == "LaneClear" and BM.LC.Q:Value() and GetTeam(ta) == MINION_ENEMY then
-			if SReady[0] and ValidTarget(ta, self.Spell[0].range) then
-				local Pred = GetPrediction(ta, self.Spell[0])
-				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-					CastSkillShot(0,Pred.castPos)
-				end
 			end
 		end
 	end
 end
 
 function Kalista:JungleClear()
-	for _,mob in pairs(minionManager.objects) do
-		if GetTeam(mob) == MINION_JUNGLE then
-            if SReady[2] and ValidTarget(mob, 750) and Dmg[2](mob) > GetCurrentHP(mob) then
-				if BM.AE.MobOpt.UseE:Value() and self.EpicJgl[GetObjectName(mob)] then
-					CastSpell(2)
-				elseif BM.AE.MobOpt.UseB:Value() and self.BigJgl[GetObjectName(mob)] then
-					CastSpell(2)
-				end
-			end
-        end
-    end
+
 end
 
 function Kalista:LaneClear()
-	self.km = 0
-    for _,minion in pairs(minionManager.objects) do
-        if GetTeam(minion) == MINION_ENEMY then
-            if Dmg[2](minion) > GetCurrentHP(minion) and ValidTarget(minion, 750) and BM.AE.MobOpt.UseM:Value() then
-                self.km = self.km + 1
-            end
-        end
-    end
-	if self.km > BM.AE.xM:Value() and Dmg[2](minion) > GetCurrentHP(minion) and ValidTarget(minion, 750) then
-        CastSpell(2)
-    end
+
 end
 
 function Kalista:KS()
@@ -1480,6 +1442,32 @@ function Kalista:KS()
 			DelayAction(function()
 				CastSpell(2)
 			end, BM.AE.D:Value()/1000)
+		end
+	end
+	
+	if not BM.AE.MobOpt.UseMode:Value() or IOW:Mode() == "LaneClear" then
+		for _,mob in pairs(minionManager.objects) do
+			if GetTeam(mob) == MINION_JUNGLE then
+				if SReady[2] and ValidTarget(mob, 750) and Dmg[2](mob) > GetCurrentHP(mob) then
+					if BM.AE.MobOpt.UseE:Value() and self.EpicJgl[GetObjectName(mob)] then
+						CastSpell(2)
+					elseif BM.AE.MobOpt.UseB:Value() and self.BigJgl[GetObjectName(mob)] then
+						CastSpell(2)
+					end
+				end
+			end
+		end
+		
+		self.km = 0
+		for _,minion in pairs(minionManager.objects) do
+			if GetTeam(minion) == MINION_ENEMY then
+				if Dmg[2](minion) > GetCurrentHP(minion) and ValidTarget(minion, 1000) and BM.AE.MobOpt.UseM:Value() then
+					self.km = self.km + 1
+				end
+			end
+		end
+		if self.km >= BM.AE.xM:Value() then
+			CastSpell(2)
 		end
 	end
 end
