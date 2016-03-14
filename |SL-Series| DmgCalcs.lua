@@ -47,12 +47,6 @@
 	[2] = function () return 30 * GetCastLevel(myHero,2) + 35 + GetBonusAP(myHero) * .7 end, 
 	[3] = function () return 150 * GetCastLevel(myHero,3) + 100 + GetBonusAP(myHero) end,
 	}
---Kalista
-	self.Dmg = {
-	[0] = function() return 60 * GetCastLevel(myHero,0) - 50 + GetBonusDmg(myHero) end,
-	[2] = function(unit) return (10 * GetCastLevel(myHero,2) + 10 + GetBonusDmg(myHero) * .6) * eTrack[GetObjectName(unit)] end, --OnUpdateBuff(function(unit, buff) if unit ~= myHero and buff.Name:lower() == "kalistaexpungemarker" then eTrack[GetObjectName(unit)]=buff.Count end end)																							
-																																--if eTrack[GetObjectName(unit)] then calcdamage(myHero,unit,self.Dmg[2](),0)
-	}
 --Poppy
 	self.Dmg = {
 	[0] = function () return 25 * GetCastLevel(myHero,0) + 15 + GetBonusDmg(myHero) * .8 end,
