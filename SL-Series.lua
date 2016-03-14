@@ -164,7 +164,7 @@ class 'Vayne'
 
 function Vayne:__init()
 
-	self.Spell = {
+	Vayne.Spell = {
 	[2] = { delay = 0.25, speed = 2000, width = 1, range = 550 }
 	}
 	
@@ -204,7 +204,17 @@ function Vayne:__init()
 	
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("ProcessSpellComplete", function(unit, spell) self:AAReset(unit, spell) end)
+	AntiChannel()
+	DelayAction( function ()
+	if BM["AC"] then BM.AC:Boolean("E","Use E", true) end
+	end,.001)
 	
+end
+
+function Vayne:AntiChannel(unit,range)
+	if BM.AC.E:Value() and range < Vayne.Spell[2].range and SReady[2] then
+		CastTargetSpell(unit,2)
+	end
 end
 
 function Vayne:Tick()
@@ -387,8 +397,10 @@ function Blitzcrank:__init()
 	Callback.Add("Tick", function() self:Tick() end)
 	AntiChannel()
 	DelayAction( function ()
+	if BM["AC"] then
 	BM.AC:Boolean("Q","Use Q", true)
 	BM.AC:Boolean("R","Use R", true)
+	end
 	end,.001)
 end
 
@@ -610,7 +622,7 @@ function Soraka:__init()
 	Callback.Add("Tick", function() self:Tick() end)
 	AntiChannel()
 	DelayAction( function ()
-	BM.AC:Boolean("E","Use E", true)
+	if BM["AC"] then BM.AC:Boolean("E","Use E", true) end
 	end,.001)
 end
 
@@ -1342,6 +1354,7 @@ function Kalista:__init()
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("UpdateBuff", function(unit, buff) self:UpdateBuff(unit, buff) end)
 	Callback.Add("RemoveBuff", function(unit, buff) self:RemoveBuff(unit, buff) end)
+	Callback.Add("ProcessSpellComplete", function(unit, spell) self:AAReset(unit, spell) end)
 
 end
 
@@ -1381,13 +1394,9 @@ function Kalista:Tick()
 			target = GetCurrentTarget()
 		end
 		
-		if Mode == "Combo" then
-			self:Combo(target)
-		elseif Mode == "LaneClear" then
+		if Mode == "LaneClear" then
 			self:LaneClear()
 			self:JungleClear()
-		elseif Mode == "Harass" then
-			self:Harass(target)
 		else
 			return
 		end
@@ -1400,20 +1409,33 @@ function Kalista:AutoR()
 	end
 end
 
-function Kalista:Combo(target)
-	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() then
-		local Pred = GetPrediction(target, self.Spell[0])
-		if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-			CastSkillShot(0,Pred.castPos)
-		end
-	end
-end
-
-function Kalista:Harass(target)
-	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.H.Q:Value() then
-		local Pred = GetPrediction(target, self.Spell[0])
-		if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-			CastSkillShot(0,Pred.castPos)
+function Kalista:AAReset(unit, spell)
+	local ta = spell.target
+	if unit == myHero and ta ~= nil and spell.name:lower():find("attack") and SReady[0] then
+		if IOW:Mode() == "Combo" and BM.C.Q:Value() and ValidTarget(ta, self.Spell[0].range) and SReady[0] then
+			local Pred = GetPrediction(ta, self.Spell[0])
+			if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+				CastSkillShot(0,Pred.castPos)
+			end
+		elseif IOW:Mode() == "Harass" and BM.H.Q:Value() and ValidTarget(ta, self.Spell[0].range) and SReady[0] then
+			local Pred = GetPrediction(ta, self.Spell[0])
+			if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+				CastSkillShot(0,Pred.castPos)
+			end
+		elseif IOW:Mode() == "LaneClear" and BM.JC.Q:Value() and GetTeam(ta) == MINION_JUNGLE then
+			if SReady[0] and ValidTarget(ta, self.Spell[0].range) then
+				local Pred = GetPrediction(ta, self.Spell[0])
+				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+					CastSkillShot(0,Pred.castPos)
+				end
+			end
+		elseif IOW:Mode() == "LaneClear" and BM.LC.Q:Value() and GetTeam(ta) == MINION_ENEMY then
+			if SReady[0] and ValidTarget(ta, self.Spell[0].range) then
+				local Pred = GetPrediction(ta, self.Spell[0])
+				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+					CastSkillShot(0,Pred.castPos)
+				end
+			end
 		end
 	end
 end
@@ -1421,12 +1443,6 @@ end
 function Kalista:JungleClear()
 	for _,mob in pairs(minionManager.objects) do
 		if GetTeam(mob) == MINION_JUNGLE then
-			if SReady[0] and ValidTarget(mob, self.Spell[0].range) and BM.JC.Q:Value() then
-				local Pred = GetPrediction(mob, self.Spell[0])
-				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-					CastSkillShot(0,Pred.castPos)
-				end
-			end
             if SReady[2] and ValidTarget(mob, 750) and Dmg[2](mob) > GetCurrentHP(mob) then
 				if BM.AE.MobOpt.UseE:Value() and self.EpicJgl[GetObjectName(mob)] then
 					CastSpell(2)
@@ -1442,12 +1458,6 @@ function Kalista:LaneClear()
 	self.km = 0
     for _,minion in pairs(minionManager.objects) do
         if GetTeam(minion) == MINION_ENEMY then
-			if SReady[0] and ValidTarget(minion, self.Spell[0].range) and BM.JC.Q:Value() then
-				local Pred = GetPrediction(minion, self.Spell[0])
-				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-					CastSkillShot(0,Pred.castPos)
-				end
-			end
             if Dmg[2](minion) > GetCurrentHP(minion) and ValidTarget(minion, 750) and BM.AE.MobOpt.UseM:Value() then
                 self.km = self.km + 1
             end
