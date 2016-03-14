@@ -1,4 +1,4 @@
-local SLSeries = 0.02
+local SLSeries = 0.03
 local AutoUpdater = true
 
 require 'Inspired'
@@ -2561,6 +2561,77 @@ function HitMe:__init()
 			[_R] = { name = "ZyraBrambleZone", speed = math.huge, delay = 1, range = 1100, width = 500, collision=false, aoe = true, type = "circular", danger = 4}
 		}
 	}
+end
+
+function HitMe:Detect(unit, spellProc)
+	if Ready(self.Slot) and self.Slot > 0 and self.s[GetObjectName(unit)] and SLS.SB.uS:Value() and GetTeam(unit) == MINION_ENEMY then
+		for d,i in pairs(self.s[GetObjectName(unit)]) do
+			if (i.name and i.name:lower() == spellProc.name:lower()) or (i.name == "" and d >= 0 and GetCastName(unit,d) == spellProc.name) and i.danger <= SLS.SB.dV:Value() then
+				print("Passed: "..i.name.." from "..GetObjectName(unit))
+				i.speed = i.speed or math.huge
+				i.range = i.range or math.huge
+				i.delay = i.delay or 0
+				i.width = i.width or 100
+				i.radius = i.radius or i.width or math.huge	
+				i.collision = i.collision or false
+				i.danger = i.danger or 2
+				
+				self.fT = SLS.SB.hV:Value()
+				self.multi = SLS.SB.wM:Value()
+				
+				if i.range > GetDistance(myHero,spellProc.startPos)*1.5 then return end
+				
+				--Simple Kappa Linear
+				if i.type == "linear" or i.type == "cone" then
+					local cPred = GetPrediction(myHero,i)
+					local dT = i.delay + GetDistance(spellProc.startPos, cPred.castPos) / i.speed
+					print("Delay "..i.delay)
+					print("TravelTime "..GetDistance(spellProc.startPos, cPred.castPos) / i.speed)
+					
+					--Line-Line junction check
+					local S1 = Vector(spellProc.startPos)
+					local R1 = Vector(spellProc.endPos)
+					
+					local S2 = Vector(cPred.castPos + ((Vector(spellProc.endPos) - Vector(spellProc.startPos))*.5):perpendicular())
+					local R2 = GetOrigin(myHero)
+					
+					CollP = Vector(VectorIntersection(S1,R1,S2,R2).x,spellProc.startPos.y, VectorIntersection(S1,R1,S2,R2).y)
+					DelayAction( function()
+						local d = GetDistance(Vector(CollP),cPred.castPos)
+						print("Distance "..math.floor(d).." ".. spellProc.name)
+						print("Time "..dT*self.fT)
+						if (d<i.width*self.multi or GetDistance(myHero,CollP)<i.width*self.multi) --[[and (i.collision or not pI:mCollision(1))]] then
+							CastSpell(self.Slot)
+						end
+					end, dT*self.fT*.001)
+				
+				--Circular
+				elseif i.type == "circular" then
+					local cPred = GetCircularAOEPrediction(myHero, i)
+					local dT = i.delay + GetDistance(myHero, cPred.castPos) / i.speed
+					local R1 = Vector(spellProc.endPos)
+					
+					DelayAction( function()
+						local d = GetDistance(Vector(R1),cPred.castPos)
+						print("Distance "..math.floor(d).." ".. spellProc.name)
+						if d<i.radius*self.multi or GetDistance(myHero,spellProc.endPos)<i.radius*self.multi then
+							CastSpell(self.Slot)
+						end
+					end, dT*self.fT*.001)
+				
+				--Targeted and Trash
+				elseif spellProc.target and spellProc.target == myHero then
+					local dT = i.delay + GetDistance(myHero, spellProc.startPos) / i.speed
+					DelayAction( function()
+						print(spellProc.name.." Targeted")
+						CastSpell(self.Slot)
+					end, dT*self.fT*.001)
+				else
+					print(spellProc.name.." Error")
+				end
+			end
+		end
+	end
 end
 
 class 'AntiChannel'
