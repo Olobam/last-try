@@ -1,4 +1,4 @@
-local SLSeries = 0.01
+local SLSeries = 0.02
 local AutoUpdater = true
 
 require 'Inspired'
