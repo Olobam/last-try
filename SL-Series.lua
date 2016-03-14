@@ -1302,7 +1302,8 @@ function Kalista:__init()
 
 	
 	self.Spell = {
-	[0] = { delay = 0.25, speed = 2000, width = 50, range = GetCastRange(myHero,_Q) }
+	[0] = { delay = 0.25, speed = 2000, width = 50, range = 1200},
+	[-1] = { delay = .3, speed = math.huge, width = 1, range = 1500}
 	}
 	
 	
@@ -1334,6 +1335,7 @@ function Kalista:__init()
 	BM.AE.MobOpt:Boolean("UseMode", "Use only in Laneclear mode",false)
 	BM.AE:Slider("xM", "Kill X Minions", 2, 1, 7, 1)	
 	BM.AE:Boolean("UseC", "Use on Champs", true)
+	BM.AE:Boolean("UseBD", "Use before death", true)
 	BM.AE:Boolean("UseL", "Use if leaves range", true)
 	BM.AE:Slider("OK", "Over kill", 10, 0, 50, 5)
 	BM.AE:Slider("D", "Delay to use E", 10, 0, 50, 5)	
@@ -1413,7 +1415,7 @@ end
 function Kalista:AAReset(unit, spell)
 	local ta = spell.target
 	if unit == myHero and ta ~= nil and spell.name:lower():find("attack") and SReady[0] and ValidTarget(ta, self.Spell[0].range) then
-		if ((IOW:Mode() == "Combo" and BM.C.Q:Value()) or (IOW:Mode() == "Harass" and BM.H.Q:Value()) and GetObjectType(ta) == Obj_AI_Hero) or (IOW:Mode() == "LaneClear" and ((BM.JC.Q:Value() and GetObjectType(ta)==Obj_AI_Camp) or (BM.LC.Q:Value() and GetObjectType(ta)==Obj_AI_Minion))) then
+		if ((IOW:Mode() == "Combo" and BM.C.Q:Value()) or (IOW:Mode() == "Harass" and BM.H.Q:Value()) and GetObjectType(ta) == Obj_AI_Hero) or (IOW:Mode() == "LaneClear" and ((BM.JC.Q:Value() and (GetObjectType(ta)==Obj_AI_Camp or GetObjectType(ta)==Obj_AI_Minion)) or (BM.LC.Q:Value() and GetObjectType(ta)==Obj_AI_Minion))) then
 			local Pred = GetPrediction(ta, self.Spell[0])
 			if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
 				CastSkillShot(0,Pred.castPos)
@@ -1443,6 +1445,12 @@ function Kalista:KS()
 				CastSpell(2)
 			end, BM.AE.D:Value()/1000)
 		end
+		if SReady[2] and ValidTarget(target, 1200) and BM.AE.UseL:Value() and self.eTrack[GetNetworkID(target)] then
+			local Pred = GetPrediction(target,self.Spell[-1])
+			if GetDistance(Pred.castPos,GetOrigin(myHero))>1200 then
+				CastSpell(2)
+			end
+		end
 	end
 	
 	if not BM.AE.MobOpt.UseMode:Value() or IOW:Mode() == "LaneClear" then
@@ -1469,6 +1477,9 @@ function Kalista:KS()
 		if self.km >= BM.AE.xM:Value() then
 			CastSpell(2)
 		end
+	end
+	if BM.AE.UseBD:Value() and GetPercentHP(myHero)<=2 and SReady[2] then
+		CastSpell(2)
 	end
 end
 
