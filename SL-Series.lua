@@ -1,4 +1,4 @@
-local SLSeries = 0.03
+local SLSeries = 0.04
 local AutoUpdater = true
 
 require 'Inspired'
@@ -88,7 +88,10 @@ Callback.Add("Load", function()
 		if SLS.Loader.U.LS:Value() then
 			Summoners()
 		end
-	end
+		if SLSChamps[ChampName] and SLS.Loader.U.LDraw:Value() then
+			Drawings()
+		end
+ 	end
 end)    
 
 
@@ -120,6 +123,8 @@ function Init:__init()
 	L.U:Info("0.6.", "")
 	L.U:Boolean("LS", "Load Summoners", true)
 	L.U:Info("0.6xc", "")
+	L.U:Boolean("LDraw", "Load Drawings", true)
+	L.U:Info("0.6yc", "")
 	L.U:Info("0.7.", "You will have to press 2f6")
 	L.U:Info("0.8.", "to apply the changes")
 	end
@@ -1009,7 +1014,7 @@ function Jinx:__init()
 	Dmg = {
 	[1] = function (unit) return CalcDamage(myHero, unit, 50 * GetCastLevel(myHero,0) - 40 + GetBonusDmg(myHero) * 1.4, 0) end,
 	[2] = function (unit) return CalcDamage(myHero, unit, 0, 55 * GetCastLevel(myHero,2) + 25 + GetBonusAP(myHero)) end, 
-	[3] = function (unit) return CalcDamage(myHero, unit, math.max(50.05 * GetCastLevel(myHero,3) + 75.2 + GetBonusDmg(myHero) * (GetMaxHP(unit) - GetCurrentHP(unit))), 0) end,
+	[3] = function (unit) return CalcDamage(myHero, unit, math.max(50.05 * GetCastLevel(myHero,3) + 75.2 + GetBonusDmg(myHero) * (GetMaxHP(unit) - GetCurrentHP(unit)) / (5 * GetCastLevel(myHero,3) + 20)), 0) end,
 	}
 	
 	self.RocketRange = 25 * GetCastLevel(myHero,_Q) + 600
@@ -2000,6 +2005,74 @@ function DmgDraw:Draw()
 		end
 	end
 end
+
+class 'Drawings'
+
+function Drawings:__init()
+	SLS:SubMenu("D", "|SL| Drawings")
+	SLS.D:ColorPick("CP", "Circle color", {255,102,102,102})
+	SLS.D:DropDown("DQM", "Draw Quality", 1, {"High", "Medium", "Low"})
+	SLS.D:Boolean("DQ", "Draw Q", false)
+	SLS.D:Boolean("DW", "Draw W", false)
+	SLS.D:Boolean("DE", "Draw E", false)
+	SLS.D:Boolean("DR", "Draw R", false)
+	
+	Callback.Add("Draw", function() self:Draw() end)
+	Callback.Add("Tick", function() self:Tick() end)
+end
+
+function Drawings:Tick()
+	if myHero.dead then return end
+	
+	if (_G.IOW or _G.DAC_Loaded) then
+	
+		GetReady()
+	end	
+end
+
+function Drawings:Draw()
+	if SLS.D.DQM:Value() == 1 then
+		if SReady[0] and SLS.D.DQ:Value() then 
+			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,0), 1, 1, SLS.D.CP:Value())
+		end
+		if SReady[1] and SLS.D.DrawW:Value() then 
+			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,1), 1, 1, SLS.D.CP:Value()) 
+		end
+		if SReady[2] and SLS.D.DrawE:Value() then 
+			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,2), 1, 1, SLS.D.CP:Value()) 
+		end
+		if SReady[3] and SLS.D.DrawR:Value() then 
+			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,3), 1, 1, SLS.D.CP:Value()) 
+		end	
+	elseif SLS.D.DQM:Value() == 2 then
+		if SReady[0] and SLS.D.DQ:Value() then 
+			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,0), 1, 25, SLS.D.CP:Value())
+		end
+		if SReady[1] and SLS.D.DrawW:Value() then 
+			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,1), 1, 25, SLS.D.CP:Value()) 
+		end
+		if SReady[2] and SLS.D.DrawE:Value() then 
+			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,2), 1, 25, SLS.D.CP:Value()) 
+		end
+		if SReady[3] and SLS.D.DrawR:Value() then 
+			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,3), 1, 25, SLS.D.CP:Value()) 
+		end	
+	elseif SLS.D.DQM:Value() == 3 then
+		if SReady[0] and SLS.D.DQ:Value() then 
+			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,0), 1, 50, SLS.D.CP:Value())
+		end
+		if SReady[1] and SLS.D.DrawW:Value() then 
+			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,1), 1, 50, SLS.D.CP:Value()) 
+		end
+		if SReady[2] and SLS.D.DrawE:Value() then 
+			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,2), 1, 50, SLS.D.CP:Value()) 
+		end
+		if SReady[3] and SLS.D.DrawR:Value() then 
+			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,3), 1, 50, SLS.D.CP:Value()) 
+		end
+	end
+end
+
 
 --Updater
 class 'Update'
