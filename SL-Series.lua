@@ -975,26 +975,32 @@ function Aatrox:Stat(unit, buff)
 	end
 end
 
+--      _ _            
+--     | (_)_ __ __  __
+--  _  | | | '_ \\ \/ /
+-- | |_| | | | | |>  < 
+--  \___/|_|_| |_/_/\_\
+                     
+
 class 'Jinx'
 
 function Jinx:__init()
 
 
 	self.Spell = {
-	[1] = { delay = 0.6, speed = 3000, width = 55, range = GetCastRange(myHero,_W)},
-	[2] = { delay = 0.5, speed = 887, width = 120, range = GetCastRange(myHero,_E)},
-	[3] = { delay = 0.6, speed = 1700, width = 140, range = GetCastRange(myHero,_R)}
+	[1] = { delay = 0.6, speed = 3000, width = 55, range = 1500},
+	[2] = { delay = 1, speed = 887, width = 120, range = 900},
+	[3] = { delay = 0.6, speed = 1700, width = 140, range = math.huge}
 	}
 	
 	
 	Dmg = {
-	[1] = function (unit) return CalcDamage(myHero, unit, 50 * GetCastLevel(myHero,0) - 40 + GetBonusDmg(myHero) * 1.4, 0) end,
+	[1] = function (unit) return CalcDamage(myHero, unit, 50 * GetCastLevel(myHero,0) - 40 + (GetBonusDmg(myHero)+GetBaseDamage(myHero)) * 1.4, 0) end,
 	[2] = function (unit) return CalcDamage(myHero, unit, 0, 55 * GetCastLevel(myHero,2) + 25 + GetBonusAP(myHero)) end, 
-	[3] = function (unit) return CalcDamage(myHero, unit, math.max(50.05 * GetCastLevel(myHero,3) + 75.2 + GetBonusDmg(myHero) * (GetMaxHP(unit) - GetCurrentHP(unit)) / (5 * GetCastLevel(myHero,3) + 20)), 0) end,
+	[3] = function (unit) 
+	local dmg = 150 + GetCastLevel(myHero,3)*GetBonusDmg(myHero)+(GetMaxHP(unit)-GetCurrentHP(unit))*(.20+GetCastLevel(myHero,3)*.5)
+	return CalcDamage(myHero,unit, math.min(math.max(dmg*.1,dmg*GetDistance(GetOrigin(myHero),GetOrigin(unit))/1650),dmg), 0) end
 	}
-	
-	self.RocketRange = 25 * GetCastLevel(myHero,_Q) + 600
-	
 	
 	BM:Menu("C", "Combo")
 	BM.C:Menu("Q", "Q")
@@ -1059,6 +1065,8 @@ end
 function Jinx:Tick()
 	if myHero.dead then return end
 	
+	self.RocketRange = 25 * GetCastLevel(myHero,_Q) + 600
+	
 	if (_G.IOW or _G.DAC_Loaded) then
 	
 		GetReady()
@@ -1115,9 +1123,9 @@ function Jinx:Combo(target)
 		end		
 	end
 	
-	if SReady[1] and ValidTarget(target, self.Spell[1].range) and BM.C.W:Value() then
+	if SReady[1] and ValidTarget(target, self.Spell[1].range) and BM.C.W:Value() and GetDistance(myHero,target)>100 then
 		local Pred = GetPrediction(target, self.Spell[1])
-		if Pred.hitChance >= BM.p.hW:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[1].range then
+		if Pred.hitChance >= BM.p.hW:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[1].range and not Pred:mCollision(1) then
 			CastSkillShot(1,Pred.castPos)
 		end
 	end
@@ -1156,9 +1164,9 @@ function Jinx:Harass(target)
 		end		
 	end
 	
-	if SReady[1] and ValidTarget(target, self.Spell[1].range) and BM.H.W:Value() then
+	if SReady[1] and ValidTarget(target, self.Spell[1].range) and BM.H.W:Value() and GetDistance(myHero,target)>100 then
 		local Pred = GetPrediction(target, self.Spell[1])
-		if Pred.hitChance >= BM.p.hW:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[1].range then
+		if Pred.hitChance >= BM.p.hW:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[1].range and not Pred:mCollision(1) then
 			CastSkillShot(1,Pred.castPos)
 		end
 	end
@@ -1191,7 +1199,7 @@ function Jinx:LaneClear()
 			
 			if SReady[1] and ValidTarget(minion, self.Spell[1].range) and BM.LC.W:Value() then
 				local Pred = GetPrediction(minion, self.Spell[1])
-				if Pred.hitChance >= BM.p.hW:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[1].range then
+				if Pred.hitChance >= BM.p.hW:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[1].range and not Pred:mCollision(1) then
 					CastSkillShot(1,Pred.castPos)
 				end
 			end
@@ -1218,7 +1226,7 @@ function Jinx:JungleClear()
 			
 			if SReady[1] and ValidTarget(mob, self.Spell[1].range) and BM.LC.W:Value() then
 				local Pred = GetPrediction(mob, self.Spell[1])
-				if Pred.hitChance >= BM.p.hW:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[1].range then
+				if Pred.hitChance >= BM.p.hW:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[1].range and not Pred:mCollision(1) then
 					CastSkillShot(1,Pred.castPos)
 				end
 			end
@@ -1241,7 +1249,7 @@ function Jinx:KS()
 	for _,unit in pairs(GetEnemyHeroes()) do
 		if GetADHP(unit) < Dmg[1](unit) and SReady[1] and ValidTarget(unit, self.Spell[1].range) and BM.KS.W:Value() then
 			local Pred = GetPrediction(unit, self.Spell[1])
-			if Pred.hitChance >= BM.p.hW:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[1].range then
+			if Pred.hitChance >= BM.p.hW:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[1].range and not Pred:mCollision(1) then
 				CastSkillShot(1,Pred.castPos)
 			end
 		end
@@ -1253,7 +1261,7 @@ function Jinx:KS()
 		end
 		if GetADHP(unit) < Dmg[3](unit) and SReady[3] and ValidTarget(unit, BM.KS.mDTT:Value()) and BM.KS.R:Value() and GetDistance(unit) >= BM.KS.DTT:Value() then
 			local Pred = GetPrediction(unit, self.Spell[3])
-			if Pred.hitChance >= BM.p.hR:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[3].range then
+			if Pred.hitChance >= BM.p.hR:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[3].range and not Pred:hCollision(1) then
 				CastSkillShot(3,Pred.castPos)
 			end
 		end
