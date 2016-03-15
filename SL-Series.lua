@@ -1,4 +1,4 @@
-local SLSeries = 0.05
+local SLSeries = 0.01
 local AutoUpdater = true
 
 require 'Inspired'
@@ -2035,39 +2035,39 @@ function Drawings:Draw()
 		if SReady[0] and SLS.Dr.DQ:Value() then 
 			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,0), 1, 1, SLS.Dr.CP:Value())
 		end
-		if SReady[1] and SLS.Dr.DrawW:Value() then 
+		if SReady[1] and SLS.Dr.DW:Value() then 
 			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,1), 1, 1, SLS.Dr.CP:Value()) 
 		end
-		if SReady[2] and SLS.Dr.DrawE:Value() then 
+		if SReady[2] and SLS.Dr.DE:Value() then 
 			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,2), 1, 1, SLS.Dr.CP:Value()) 
 		end
-		if SReady[3] and SLS.D.DrawR:Value() then 
+		if SReady[3] and SLS.D.DR:Value() then 
 			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,3), 1, 1, SLS.Dr.CP:Value()) 
 		end	
 	elseif SLS.Dr.DQM:Value() == 2 then
 		if SReady[0] and SLS.Dr.DQ:Value() then 
 			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,0), 1, 25, SLS.Dr.CP:Value())
 		end
-		if SReady[1] and SLS.Dr.DrawW:Value() then 
+		if SReady[1] and SLS.Dr.DW:Value() then 
 			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,1), 1, 25, SLS.Dr.CP:Value()) 
 		end
-		if SReady[2] and SLS.Dr.DrawE:Value() then 
+		if SReady[2] and SLS.Dr.DE:Value() then 
 			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,2), 1, 25, SLS.Dr.CP:Value()) 
 		end
-		if SReady[3] and SLS.Dr.DrawR:Value() then 
+		if SReady[3] and SLS.Dr.DR:Value() then 
 			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,3), 1, 25, SLS.Dr.CP:Value()) 
 		end	
 	elseif SLS.Dr.DQM:Value() == 3 then
 		if SReady[0] and SLS.Dr.DQ:Value() then 
 			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,0), 1, 50, SLS.Dr.CP:Value())
 		end
-		if SReady[1] and SLS.Dr.DrawW:Value() then 
+		if SReady[1] and SLS.Dr.DW:Value() then 
 			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,1), 1, 50, SLS.Dr.CP:Value()) 
 		end
-		if SReady[2] and SLS.Dr.DrawE:Value() then 
+		if SReady[2] and SLS.Dr.DE:Value() then 
 			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,2), 1, 50, SLS.Dr.CP:Value()) 
 		end
-		if SReady[3] and SLS.Dr.DrawR:Value() then 
+		if SReady[3] and SLS.Dr.DR:Value() then 
 			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,3), 1, 50, SLS.Dr.CP:Value()) 
 		end
 	end
