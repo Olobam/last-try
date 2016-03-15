@@ -1,4 +1,4 @@
-local SLSeries = 0.02
+local SLSeries = 0.01
 local AutoUpdater = true
 
 require 'Inspired'
@@ -170,7 +170,10 @@ class 'Vayne'
 function Vayne:__init()
 
 	Vayne.Spell = {
-	[2] = { delay = 0.25, speed = 2000, width = 1, range = 550 }
+	[0] = { range = 300 },
+	[1] = { range = 0 },
+	[2] = { delay = 0.25, speed = 2000, width = 1, range = 550 },
+	[3] = { range = 0 }
 	}
 	
 	Dmg = {
@@ -355,6 +358,9 @@ function Blitzcrank:__init()
 
 	Blitzcrank.Spell = {
 	[0] = { delay = 0.25, speed = 1800, width = 70, range = 900 },
+	[1] = { range = 0 },
+	[2] = { range = 0 },
+	[3] = { range = 650 }
 	}
 	
 	Dmg = {
@@ -548,6 +554,7 @@ function Soraka:__init()
 
 	Soraka.Spell = {
 	[0] = { delay = 0.250, speed = math.huge, width = 235, range = 800 },
+	[1] = { range = 550 },
 	[2] = { delay = 1.75, speed = math.huge, width = 310, range = 900 }
 	}
 	
@@ -773,9 +780,11 @@ class "Aatrox"
 function Aatrox:__init()
 	
 	--OpenPred
-	self.Spell = { 
+	Aatrox.Spell = { 
 	[0] = { delay = 0.2, range = 650, speed = 1500, radius = 113 },
-	[2] = { delay = 0.1, range = 1000, speed = 1000, width = 150 }
+	[1] = { range = 0 },
+	[2] = { delay = 0.1, range = 1000, speed = 1000, width = 150 },
+	[3] = { range = 550 }
 	}
 	
 	--SpellDmg
@@ -865,7 +874,7 @@ function Aatrox:Tick()
 end
 
 function Aatrox:Toggle(target)
-	if SReady[1] and BM.C.W:Value() and (not BM.C.W.WE:Value() or ValidTarget(target,750)) then
+	if SReady[1] and BM.C.W:Value() and (not BM.C.WE:Value() or ValidTarget(target,750)) then
 		if GetPercentHP(myHero) < BM.C.WT:Value()+1 and self.W == "dmg" then
 			CastSpell(1)
 		elseif GetPercentHP(myHero) > BM.C.WT:Value() and self.W == "heal" then
@@ -1290,9 +1299,12 @@ function Kalista:__init()
 	end
 
 	
-	self.Spell = {
+	Kalista.Spell = {
+	[-1] = { delay = .3, speed = math.huge, width = 1, range = 1500},
 	[0] = { delay = 0.25, speed = 2000, width = 50, range = 1200},
-	[-1] = { delay = .3, speed = math.huge, width = 1, range = 1500}
+	[1] = { range = 5000 },
+	[2] = { range = 1200 },
+	[3] = { range = 1200 }
 	}
 	
 	
@@ -1823,8 +1835,8 @@ class 'Summoners'
 
 function Summoners:__init()
 
-    local Ignite = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerdot") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonerdot") and SUMMONER_2 or nil))
-	local Heal = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerheal") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonerheal") and SUMMONER_2 or nil))
+	Ignite = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerdot") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonerdot") and SUMMONER_2 or nil))
+	Heal = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerheal") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonerheal") and SUMMONER_2 or nil))
 	
 	SLS:SubMenu("Sum", "|SL| Summoners")
 	if Ignite then
@@ -1875,11 +1887,11 @@ function Summoners:Ignite()
 end
 
 function Summoners:Heal()
-		if IsReady(Heal) and SLS.Sum.Heal.healme:Value() and GetPercentHP(myHero) < SLS.Sum.Heal.myHP:Value() and EnemiesAround(GetOrigin(myHero), 675) > 1 then
+		if IsReady(Heal) and SLS.Sum.Heal.healme:Value() and GetPercentHP(myHero) <= SLS.Sum.Heal.myHP:Value() and EnemiesAround(GetOrigin(myHero), 675) > 1 then
 			CastSpell(Heal)
 		end
 	for _,a in pairs(GetAllyHeroes()) do
-		if IsReady(Heal) and SLS.Sum.Heal.healally:Value() and GetPercentHP(a) < SLS.Sum.Heal.allyHP:Value() and EnemiesAround(GetOrigin(myHero), 675) > 1 and GetDistance(myHero,a) < 675 then
+		if a and IsReady(Heal) and SLS.Sum.Heal.healally:Value() and GetPercentHP(a) <= SLS.Sum.Heal.allyHP:Value() and EnemiesAround(GetOrigin(myHero), 675) > 1 and GetDistance(myHero,a) < 675 then
 			CastSpell(Heal)
 		end
 	end
@@ -1993,66 +2005,41 @@ end
 class 'Drawings'
 
 function Drawings:__init()
-	SLS:SubMenu("Dr", "|SL| Drawings")
-	SLS.Dr:ColorPick("CP", "Circle color", {255,102,102,102})
-	SLS.Dr:DropDown("DQM", "Draw Quality", 1, {"High", "Medium", "Low"})
-	SLS.Dr:Boolean("DQ", "Draw Q", false)
-	SLS.Dr:Boolean("DW", "Draw W", false)
-	SLS.Dr:Boolean("DE", "Draw E", false)
-	SLS.Dr:Boolean("DR", "Draw R", false)
+	if not SLSChamps[myHero.charName] then return end
 	
-	Callback.Add("Draw", function() self:Draw() end)
-	Callback.Add("Tick", function() self:Tick() end)
+		self.SNames={"Q","W","E","R"}
+		self.Check={"false","false","false","false"}
+		
+		SLS:SubMenu("Dr", "|SL| Drawings")
+		SLS.Dr:Boolean("UD", "Use Drawings", false)
+		SLS.Dr:ColorPick("CP", "Circle color", {255,102,102,102})
+		SLS.Dr:DropDown("DQM", "Draw Quality", 1, {"High", "Medium", "Low"})
+		SLS.Dr:Slider("DWi", "Circle witdth", 1, 1, 5, 1)
+		
+		for i=0,3 do
+			if _G[ChampName].Spell[i] and _G[ChampName].Spell[i].range < 3000 then
+				SLS.Dr:Boolean("D"..self.SNames[i+1], "Draw "..self.SNames[i+1], true)
+			end
+		end
+			
+		Callback.Add("Tick", function() self:Tick() end)
+		Callback.Add("Draw", function() self:Draw() end)
 end
 
 function Drawings:Tick()
-	if myHero.dead then return end
-	
-	if (_G.IOW or _G.DAC_Loaded) then
-	
-		GetReady()
-	end	
+	for l=0,3 do 
+		if _G[ChampName].Spell and _G[ChampName].Spell[l] and SReady[l] and SLS.Dr["D"..self.SNames[l+1]] then 
+			self.Check[l] = true
+		else 
+			self.Check[l] = false
+		end
+	end
 end
 
 function Drawings:Draw()
-	if SLS.Dr.DQM:Value() == 1 then
-		if SReady[0] and SLS.Dr.DQ:Value() then 
-			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,0), 1, 1, SLS.Dr.CP:Value())
-		end
-		if SReady[1] and SLS.Dr.DW:Value() then 
-			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,1), 1, 1, SLS.Dr.CP:Value()) 
-		end
-		if SReady[2] and SLS.Dr.DE:Value() then 
-			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,2), 1, 1, SLS.Dr.CP:Value()) 
-		end
-		if SReady[3] and SLS.D.DR:Value() then 
-			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,3), 1, 1, SLS.Dr.CP:Value()) 
-		end	
-	elseif SLS.Dr.DQM:Value() == 2 then
-		if SReady[0] and SLS.Dr.DQ:Value() then 
-			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,0), 1, 25, SLS.Dr.CP:Value())
-		end
-		if SReady[1] and SLS.Dr.DW:Value() then 
-			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,1), 1, 25, SLS.Dr.CP:Value()) 
-		end
-		if SReady[2] and SLS.Dr.DE:Value() then 
-			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,2), 1, 25, SLS.Dr.CP:Value()) 
-		end
-		if SReady[3] and SLS.Dr.DR:Value() then 
-			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,3), 1, 25, SLS.Dr.CP:Value()) 
-		end	
-	elseif SLS.Dr.DQM:Value() == 3 then
-		if SReady[0] and SLS.Dr.DQ:Value() then 
-			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,0), 1, 50, SLS.Dr.CP:Value())
-		end
-		if SReady[1] and SLS.Dr.DW:Value() then 
-			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,1), 1, 50, SLS.Dr.CP:Value()) 
-		end
-		if SReady[2] and SLS.Dr.DE:Value() then 
-			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,2), 1, 50, SLS.Dr.CP:Value()) 
-		end
-		if SReady[3] and SLS.Dr.DR:Value() then 
-			DrawCircle(GetOrigin(myHero), GetCastRange(myHero,3), 1, 50, SLS.Dr.CP:Value()) 
+	for l=0,3 do
+		if self.Check[l] then
+			DrawCircle(GetOrigin(myHero), _G[ChampName].Spell[l].range, SLS.Dr.DWi:Value(), (SLS.Dr.DQM:Value()-1)*25+1, SLS.Dr.CP:Value())
 		end
 	end
 end
