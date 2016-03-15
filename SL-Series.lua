@@ -1,4 +1,4 @@
-local SLSeries = 0.01
+local SLSeries = 0.02
 local AutoUpdater = true
 
 require 'Inspired'
@@ -339,6 +339,7 @@ function Vayne:KS()
 	end
 end
 
+
 --[[
   ____  _ _ _                           _    
  | __ )| (_) |_ _______ _ __ __ _ _ __ | | __
@@ -367,34 +368,25 @@ function Blitzcrank:__init()
 	BM.C:Boolean("W", "Use W", true)
 	BM.C:Boolean("E", "Use E", true)
 	BM.C:Boolean("R", "Use R", true)
-	BM.C:Slider("RHP", "my HP to use R <= X ", 80, 1, 100, 5)
+	BM.C:Slider("EAR", "R hit enemies >= x ", 2, 1, 5, 1)
 	
 	BM:Menu("H", "Harass")
 	BM.H:Boolean("Q", "Use Q", true)
-	BM.H:Boolean("W", "Use W", false)
 	BM.H:Boolean("E", "Use E", true)
-	BM.H:Boolean("R", "Use R", false)
-	BM.H:Slider("RHP", "my HP to use R <= X ", 80, 1, 100, 5)
-	
-	BM:Menu("KS", "Killsteal")
-	BM.KS:Boolean("Enable", "Enable Killsteal", true)
-	BM.KS:Boolean("Q", "Use Q", true)
-	BM.KS:Boolean("E", "Use E", true)
-	BM.KS:Boolean("R", "Use R", true)
 	
 	BM:Menu("LC", "LaneClear")
-	BM.LC:Boolean("Q", "Use Q", false)
-	BM.LC:Boolean("W", "Use W", true)
+	BM.LC:Boolean("Q", "Use Q", true)
 	BM.LC:Boolean("E", "Use E", true)
 	BM.LC:Boolean("R", "Use R", true)
-	BM.LC:Slider("RHP", "my HP to use R <= X ", 80, 1, 100, 5)
 	
 	BM:Menu("JC", "JungleClear")
 	BM.JC:Boolean("Q", "Use Q", true)
-	BM.JC:Boolean("W", "Use W", true)
 	BM.JC:Boolean("E", "Use E", true)
 	BM.JC:Boolean("R", "Use R", true)
-	BM.JC:Slider("RHP", "my HP to use R <= X ", 80, 1, 100, 5)
+	
+	BM:Menu("KS", "Killsteal")
+	BM.KS:Boolean("Q", "Use Q", true)
+	BM.KS:Boolean("R", "Use R", true)
 	
 	BM:Menu("p", "Prediction")
 	BM.p:Slider("hQ", "HitChance Q", 20, 0, 100, 1)
@@ -459,14 +451,13 @@ function Blitzcrank:Combo(target)
 				CastSkillShot(0,Pred.castPos)
 			end
 		end
-		if SReady[1] and ValidTarget(target, 1000) and BM.C.W:Value() and GetDistance(myHero,target) <= 650 then
+		if SReady[1] and ValidTarget(target, 1000) and BM.C.W:Value() and GetDistance(myHero,target) <= 850 and SReady[0] then
 			CastSpell(1)
 		end
 		if SReady[2] and ValidTarget(target, 250) and BM.C.E:Value() then
 			CastSpell(2)
-			AttackUnit(target)
 		end
-		if SReady[3] and ValidTarget(target, 600) and GetPercentHP(myHero) <= BM.C.RHP:Value() and BM.C.R:Value() then
+		if SReady[3] and ValidTarget(target, GetCastRange(myHero,3)) and EnemiesAround(GetOrigin(myHero), GetCastRange(myHero,3)) >= BM.C.EAR:Value() and BM.C.R:Value() then
 			CastSpell(3)
 		end
 end
@@ -478,16 +469,9 @@ function Blitzcrank:Harass(target)
 				CastSkillShot(0,Pred.castPos)
 			end
 		end
-		if SReady[1] and ValidTarget(target, 1000) and BM.H.W:Value() and GetDistance(myHero,target) <= 650 then
-			CastSpell(1)
-		end
 		if SReady[2] and ValidTarget(target, 300) and BM.H.E:Value() then
 			CastSpell(2)
-			AttackUnit(target)
 		end 
-		if SReady[3] and ValidTarget(target, 600) and GetPercentHP(myHero) <= BM.H.RHP:Value() and BM.H.R:Value() then
-			CastSpell(3)
-		end
 end
 
 function Blitzcrank:LaneClear()
@@ -495,18 +479,14 @@ function Blitzcrank:LaneClear()
 		if GetTeam(minion) == MINION_ENEMY then
 			if SReady[0] and ValidTarget(minion, self.Spell[0].range) and BM.LC.Q:Value() then
 			local Pred = GetPrediction(minion, self.Spell[0])
-				if Pred.hitChance >= BM.p.hQ:Value()/100 and not Pred:mCollision(1) and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
 					CastSkillShot(0,Pred.castPos)
 				end
 			end
-			if SReady[1] and ValidTarget(minion, 1000) and BM.LC.W:Value() and GetDistance(myHero,minion) <= 650 then
-				CastSpell(1)
-			end
 			if SReady[2] and ValidTarget(minion, 300) and BM.LC.E:Value() then
 				CastSpell(2)
-				AttackUnit(minion)
 			end 
-			if SReady[3] and ValidTarget(minion, 600) and GetPercentHP(myHero) <= BM.LC.RHP:Value() and BM.LC.R:Value() then
+			if SReady[3] and ValidTarget(minion, 600) and BM.LC.R:Value() then
 				CastSpell(3)
 			end
 		end
@@ -518,18 +498,14 @@ function Blitzcrank:JungleClear()
 		if GetTeam(mob) == MINION_ENEMY then
 			if SReady[0] and ValidTarget(mob, self.Spell[0].range) and BM.JC.Q:Value() then
 			local Pred = GetPrediction(mob, self.Spell[0])
-				if Pred.hitChance >= BM.p.hQ:Value()/100 and not Pred:mCollision(1) and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
 					CastSkillShot(0,Pred.castPos)
 				end
 			end
-			if SReady[1] and ValidTarget(mob, 1000) and BM.JC.W:Value() and GetDistance(myHero,mob) <= 650 then
-				CastSpell(1)
-			end
 			if SReady[2] and ValidTarget(mob, 300) and BM.JC.E:Value() then
 				CastSpell(2)
-				AttackUnit(mob)
 			end 
-			if SReady[3] and ValidTarget(mob, 600) and GetPercentHP(myHero) <= BM.JC.RHP:Value() and BM.JC.R:Value() then
+			if SReady[3] and ValidTarget(mob, 600) and BM.JC.R:Value() then
 				CastSpell(3)
 			end
 		end
