@@ -63,6 +63,9 @@ Callback.Add("Load", function()
 	Init()
 	if SLSChamps[ChampName] and SLS.Loader.LC:Value() then
 		_G[ChampName]() 
+		if SLS.Loader.U.LDraw:Value() then
+			Drawings()
+		end
 		PrintChat("<font color=\"#fd8b12\"><b>[SL-Series] - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> Loaded! </b></font>")
 	elseif not SLSChamps[ChampName] then  
 		PrintChat("<font color=\"#fd8b12\"><b>[SL-Series] - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> is not Supported </b></font>")
@@ -87,9 +90,6 @@ Callback.Add("Load", function()
 		end
 		if SLS.Loader.U.LS:Value() then
 			Summoners()
-		end
-		if SLSChamps[ChampName] and SLS.Loader.U.LDraw:Value() then
-			Drawings()
 		end
  	end
 end)    
