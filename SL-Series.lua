@@ -275,28 +275,37 @@ function Vayne:AAReset(unit, spell)
 	local ta = spell.target
 	if unit == myHero and ta ~= nil and spell.name:lower():find("attack") and SReady[0] then
 	  local QPos = Vector(ta) - (Vector(ta) - Vector(myHero)):perpendicular():normalized() * 350
+	  local QPos2 = Vector(Vector(myHero) - Vector(ta)) + Vector(myHero):normalized() * 75
 		if IOW:Mode() == "Combo" and BM.C.Q:Value() and ValidTarget(ta, 800) then
-			if BM.C.QL:Value() == 1 then
+			if BM.C.QL:Value() == 1 and GetDistance(myHero,ta) > 250 then
 				CastSkillShot(0, QPos)
+			elseif BM.C.QL:Value() == 1 and GetDistance(myHero,ta) < 250 then
+				CastSkillShot(0, QPos2)
 			elseif BM.C.QL:Value() == 2 then
 				CastSkillShot(0, GetMousePos())
 			end
 		elseif IOW:Mode() == "Harass" and BM.H.Q:Value() and ValidTarget(ta, 800) then
-			if BM.H.QL:Value() == 1 then
+			if BM.H.QL:Value() == 1 and GetDistance(myHero,ta) > 250 then
 				CastSkillShot(0, QPos)
+			elseif BM.H.QL:Value() == 1 and GetDistance(myHero,ta) < 250 then
+				CastSkillShot(0, QPos2)
 			elseif BM.H.QL:Value() == 2 then
 				CastSkillShot(0, GetMousePos())
 			end
 		elseif IOW:Mode() == "LaneClear" and BM.JC.Q:Value() and GetTeam(ta) == MINION_JUNGLE then
-			if BM.JC.QL:Value() == 1 then
+			if BM.JC.QL:Value() == 1 and GetDistance(myHero,ta) > 250 then
 				CastSkillShot(0, QPos)
+			elseif BM.JC.QL:Value() == 1 and GetDistance(myHero,ta) < 250 then
+				CastSkillShot(0, QPos2)
 			elseif BM.JC.QL:Value() == 2 then
 				CastSkillShot(0, GetMousePos())
 			end
 		elseif IOW:Mode() == "LaneClear" and BM.LC.Q:Value() and GetTeam(ta) == MINION_ENEMY then
-			if BM.JC.QL:Value() == 1 then
+			if BM.LC.QL:Value() == 1 and GetDistance(myHero,ta) > 250 then
 				CastSkillShot(0, QPos)
-			elseif BM.JC.QL:Value() == 2 then
+			elseif BM.LC.QL:Value() == 1 and GetDistance(myHero,ta) < 250 then
+				CastSkillShot(0, QPos2)
+			elseif BM.LC.QL:Value() == 2 then
 				CastSkillShot(0, GetMousePos())
 			end
 		end
