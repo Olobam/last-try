@@ -2005,41 +2005,38 @@ end
 class 'Drawings'
 
 function Drawings:__init()
-	if not SLSChamps[myHero.charName] then return end
-	
-		self.SNames={"Q","W","E","R"}
-		self.Check={"false","false","false","false"}
-		
-		SLS:SubMenu("Dr", "|SL| Drawings")
-		SLS.Dr:Boolean("UD", "Use Drawings", false)
-		SLS.Dr:ColorPick("CP", "Circle color", {255,102,102,102})
-		SLS.Dr:DropDown("DQM", "Draw Quality", 1, {"High", "Medium", "Low"})
-		SLS.Dr:Slider("DWi", "Circle witdth", 1, 1, 5, 1)
-		
-		for i=0,3 do
-			if _G[ChampName].Spell[i] and _G[ChampName].Spell[i].range < 3000 then
-				SLS.Dr:Boolean("D"..self.SNames[i+1], "Draw "..self.SNames[i+1], true)
-			end
+	if not SLSChamps[ChampName] then return end
+	self.SNames={"Q","W","E","R"}
+	self.Check={false,false,false,false}
+	SLS:SubMenu("Dr", "|SL| Drawings")
+	SLS.Dr:Boolean("UD", "Use Drawings", false)
+	SLS.Dr:ColorPick("CP", "Circle color", {255,102,102,102})
+	SLS.Dr:DropDown("DQM", "Draw Quality", 1, {"High", "Medium", "Low"})
+	SLS.Dr:Slider("DWi", "Circle witdth", 1, 1, 5, 1)
+	for i=0,3 do
+		if _G[ChampName].Spell and _G[ChampName].Spell[i] and _G[ChampName].Spell[i].range < 3000 then
+			SLS.Dr:Boolean("D"..self.SNames[i+1], "Draw "..self.SNames[i+1], true)
 		end
-			
-		Callback.Add("Tick", function() self:Tick() end)
-		Callback.Add("Draw", function() self:Draw() end)
+	end
+	Callback.Add("Tick", function() self:CheckS() end)
+	Callback.Add("Draw", function() self:Draw() end)
 end
 
-function Drawings:Tick()
+function Drawings:CheckS()
 	for l=0,3 do 
-		if _G[ChampName].Spell and _G[ChampName].Spell[l] and SReady[l] and SLS.Dr["D"..self.SNames[l+1]] then 
-			self.Check[l] = true
+		if SLS.Dr.UD:Value() and _G[ChampName].Spell and _G[ChampName].Spell[l] and SReady[l] and SLS.Dr["D"..self.SNames[l+1]]:Value() then 
+			self.Check[l+1] = true
 		else 
-			self.Check[l] = false
+			self.Check[l+1] = false
 		end
 	end
 end
 
 function Drawings:Draw()
+	local org = GetOrigin(myHero)
 	for l=0,3 do
-		if self.Check[l] then
-			DrawCircle(GetOrigin(myHero), _G[ChampName].Spell[l].range, SLS.Dr.DWi:Value(), (SLS.Dr.DQM:Value()-1)*25+1, SLS.Dr.CP:Value())
+		if self.Check[l+1] then
+			DrawCircle(org, _G[ChampName].Spell[l].range, SLS.Dr.DWi:Value(), (SLS.Dr.DQM:Value()-1)*25+1, SLS.Dr.CP:Value())
 		end
 	end
 end
