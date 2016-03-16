@@ -2314,7 +2314,7 @@ function Drawings:__init()
 	SLS.Dr:DropDown("DQM", "Draw Quality", 1, {"High", "Medium", "Low"})
 	SLS.Dr:Slider("DWi", "Circle witdth", 1, 1, 5, 1)
 	for i=0,3 do
-		if _G[ChampName].Spell and _G[ChampName].Spell[i] and _G[ChampName].Spell[i].range < 3000 then
+		if _G[ChampName].Spell and _G[ChampName].Spell[i] and _G[ChampName].Spell[i].range < 3000 and _G[ChampName].Spell[i].range > 200 then
 			SLS.Dr:Boolean("D"..self.SNames[i+1], "Draw "..self.SNames[i+1], true)
 		end
 	end
@@ -2336,7 +2336,7 @@ function Drawings:Draw()
 	local org = GetOrigin(myHero)
 	for l=0,3 do
 		if self.Check[l+1] then
-			DrawCircle(org, _G[ChampName].Spell[l].range, SLS.Dr.DWi:Value(), (SLS.Dr.DQM:Value()-1)*25+1, SLS.Dr.CP:Value())
+			DrawCircle(org, _G[ChampName].Spell[l].range, SLS.Dr.DWi:Value(), (SLS.Dr.DQM:Value()-1)*5+1, SLS.Dr.CP:Value())
 		end
 	end
 end
