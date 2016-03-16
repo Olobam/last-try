@@ -287,19 +287,24 @@ function Vayne:AAReset(unit, spell)
 	if unit == myHero and ta ~= nil and spell.name:lower():find("attack") and SReady[0] then
 	  local QPos = Vector(ta) - (Vector(ta) - Vector(myHero)):perpendicular():normalized() * 350
 	  local QPos2 = Vector(Vector(myHero) - Vector(ta)) + Vector(myHero):normalized() * 75
-		if IOW:Mode() == "Combo" and BM.C.Q:Value() and ValidTarget(ta, 800) then
+	  local QPos3 = Vector(ta) + Vector(ta):normalized()
+		if IOW:Mode() == "Combo" and BM.C.Q:Value() and ValidTarget(ta, 825) then
 			if BM.C.QL:Value() == 1 and GetDistance(myHero,ta) > 250 then
 				CastSkillShot(0, QPos)
 			elseif BM.C.QL:Value() == 1 and GetDistance(myHero,ta) < 250 then
 				CastSkillShot(0, QPos2)
+			elseif BM.C.QL:Value() == 1 and GetDistance(myHero,ta) > 650 then
+				CastSkillShot(0, QPos3)
 			elseif BM.C.QL:Value() == 2 then
 				CastSkillShot(0, GetMousePos())
 			end
-		elseif IOW:Mode() == "Harass" and BM.H.Q:Value() and ValidTarget(ta, 800) then
+		elseif IOW:Mode() == "Harass" and BM.H.Q:Value() and ValidTarget(ta, 825) then
 			if BM.H.QL:Value() == 1 and GetDistance(myHero,ta) > 250 then
 				CastSkillShot(0, QPos)
 			elseif BM.H.QL:Value() == 1 and GetDistance(myHero,ta) < 250 then
 				CastSkillShot(0, QPos2)
+			elseif BM.H.QL:Value() == 1 and GetDistance(myHero,ta) > 650 then
+				CastSkillShot(0, QPos3)
 			elseif BM.H.QL:Value() == 2 then
 				CastSkillShot(0, GetMousePos())
 			end
@@ -308,6 +313,8 @@ function Vayne:AAReset(unit, spell)
 				CastSkillShot(0, QPos)
 			elseif BM.JC.QL:Value() == 1 and GetDistance(myHero,ta) < 250 then
 				CastSkillShot(0, QPos2)
+			elseif BM.JC.QL:Value() == 1 and GetDistance(myHero,ta) > 650 then
+				CastSkillShot(0, QPos3)
 			elseif BM.JC.QL:Value() == 2 then
 				CastSkillShot(0, GetMousePos())
 			end
@@ -316,6 +323,8 @@ function Vayne:AAReset(unit, spell)
 				CastSkillShot(0, QPos)
 			elseif BM.LC.QL:Value() == 1 and GetDistance(myHero,ta) < 250 then
 				CastSkillShot(0, QPos2)
+			elseif BM.LC.QL:Value() == 1 and GetDistance(myHero,ta) > 650 then
+				CastSkillShot(0, QPos3)
 			elseif BM.LC.QL:Value() == 2 then
 				CastSkillShot(0, GetMousePos())
 			end
