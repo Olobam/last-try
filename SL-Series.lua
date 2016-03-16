@@ -1,4 +1,5 @@
 local SLSeries = 0.01
+local SLPatchnew, SLPatchold = 6.5, 6.4
 local AutoUpdater = true
 
 require 'Inspired'
@@ -58,16 +59,6 @@ local function GetReady()
 	end
 end
 
-local function WallBetween(p1, p2, distance) --p1 and p2 are Vectors3d
-
-	local Check = p1 + (Vector(p2) - p1):normalized()*distance/2
-	local Checkdistance = p1 +(Vector(p2) - p1):normalized()*distance
-	
-	if MapPosition:inWall(Check) and not MapPosition:inWall(Checkdistance) then
-		return true
-	end
-end
-
 -- Load
 Callback.Add("Load", function()	
 	Update()
@@ -77,10 +68,10 @@ Callback.Add("Load", function()
 		if SLS.Loader.U.LDraw:Value() then
 			Drawings()
 		end
-		PrintChat("<font color=\"#fd8b12\"><b>[SL-Series] - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> Loaded! </b></font>")
+		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> Loaded! </b></font>")
 	elseif not SLSChamps[ChampName] then  
-		PrintChat("<font color=\"#fd8b12\"><b>[SL-Series] - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> is not Supported </b></font>")
-		PrintChat("<font color=\"#fd8b12\"><b>[SL-Series] - <font color=\"#F2EE00\">Utility Loaded </b></font>")
+		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> is not Supported </b></font>")
+		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#F2EE00\">Utility Loaded </b></font>")
 	end
 	if SLS.Loader.LU:Value() then
 	
@@ -142,7 +133,7 @@ function Init:__init()
 	L:Info("0.6", "")
 	L:Info("0.7", "You will have to press 2f6")
 	L:Info("0.8", "to apply the changes")
-
+	
 	if L.LC:Value() then
 		SLS:Menu(ChampName, "|SL| "..ChampName) 
 		BM = SLS[ChampName] 
