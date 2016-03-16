@@ -1668,9 +1668,6 @@ function Kindred:Tick()
 				CastSkillShot(0, GetMousePos())
 			end
 		end
-		if GotBuff(myHero, "") >= 1 then
-			PrintChat("lol")
-		end
 	end
 end
 
