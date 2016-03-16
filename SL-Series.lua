@@ -1559,19 +1559,17 @@ function Kindred:__init()
 	[0] = {range = 500, dash = 340, mana = 35},
 	[1] = {range = 800, duration = 8, mana = 40},
 	[2] = {range = 500, mana = 70, mana = 70},
-	[3] = {range1 = 400, range2 = 500, mana = 100},
+	[3] = {range = 400, range2 = 500, mana = 100},
 	}
 	Dmg = 
 	{
 	[0] = function(Unit) return CalcDamage(myHero, Unit, 30+30*GetCastLevel(myHero, 0)+(GetBaseDamage(myHero) + GetBonusDmg(myHero))*0.20) end,
 	[1] = function(Unit) return (CalcDamage(myHero, Unit, 20+5*GetCastLevel(myHero, 1)+(GetBaseDamage(myHero) + GetBonusDmg(myHero))*0.40))*WolfAA end,
-	[2] = function(Unit) for i, mob in pairs(minionManager.objects) do
-								if Unit == mob then
-									return CalcDamage(myHero, Unit, math.max(300,30+30*GetCastLevel(myHero, 2)+(GetBaseDamage(myHero) + GetBonusDmg(myHero))*0.20+GetMaxHP(Unit)*0.05))
-								else 
-									return CalcDamage(myHero, Unit, 30+30*GetCastLevel(myHero, 2)+(GetBaseDamage(myHero) + GetBonusDmg(myHero))*0.20+GetMaxHP(Unit)*0.05)
-								end
-							end
+	[2] = function(Unit) 	if GetTeam(Unit) == MINION_ENEMY or GetTeam(Unit) == MINION_JUNGLE then
+					return CalcDamage(myHero, Unit, math.max(300,30+30*GetCastLevel(myHero, 2)+(GetBaseDamage(myHero) + GetBonusDmg(myHero))*0.20+GetMaxHP(Unit)*0.05))
+				else 
+					return CalcDamage(myHero, Unit, 30+30*GetCastLevel(myHero, 2)+(GetBaseDamage(myHero) + GetBonusDmg(myHero))*0.20+GetMaxHP(Unit)*0.05)
+				end
 		  end,
 	}
 	BaseAS = GetBaseAttackSpeed(myHero)
@@ -1664,7 +1662,7 @@ function Kindred:Tick()
 			end
 		end
 		if BM.Misc.WP:Value() then
-			if WallBetween(GetOrigin(myHero), GetMousePos(),  self.Spells[0].dash) and SReady[0] then
+			if self:WallBetween(GetOrigin(myHero), GetMousePos(),  self.Spells[0].dash) and SReady[0] then
 				CastSkillShot(0, GetMousePos())
 			end
 		end
@@ -1729,7 +1727,7 @@ end
 function Kindred:AutoR()
 	if BM.ROptions.R:Value() and not Recalling and not IsDead(myHero) and SReady[3] then
 		for i, allies in pairs(GetAllyHeroes()) do
-			if GetCurrentHP(allies) <= 20 and BM.ROptions[GetObjectName(allies)]:Value() and not IsDead(allies) and GetDistance(allies) <= self.Spells[3].range1 then
+			if GetCurrentHP(allies) <= 20 and BM.ROptions[GetObjectName(allies)]:Value() and not IsDead(allies) and GetDistance(allies) <= self.Spells[3].range then
 				CastTargetSpell(allies, 3)
 			elseif GetCurrentHP(allies) <= 20 and BM.ROptions[GetObjectName(allies)]:Value() and not IsDead(allies) and GetDistance(allies) <= self.Spells[3].range2 then
 				CastTargetSpell(myHero, 3)
@@ -1822,6 +1820,16 @@ function Kindred:TotalHp(range, pos)
 			end
 		end
 	return hp
+end
+
+function Kindred:WallBetween(p1, p2, distance) --p1 and p2 are Vectors3d
+
+	local Check = p1 + (Vector(p2) - p1):normalized()*distance/2
+	local Checkdistance = p1 +(Vector(p2) - p1):normalized()*distance
+	
+	if MapPosition:inWall(Check) and not MapPosition:inWall(Checkdistance) then
+		return true
+	end
 end
 
 
