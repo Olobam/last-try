@@ -2217,7 +2217,7 @@ end
 
 function Summoners:Ignite()
   for _,k in pairs(GetEnemyHeroes()) do
-	if SLS.Sum.ign:Value() and IsReady(Ignite) then
+	if SLS.Sum.ign.enable:Value() and IsReady(Ignite) then
   		if 20*GetLevel(myHero)+50 > GetCurrentHP(k)+GetHPRegen(k)*3 and ValidTarget(k, 600) then
 			CastTargetSpell(k, Ignite)
 		end
