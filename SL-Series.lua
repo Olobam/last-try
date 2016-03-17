@@ -2176,6 +2176,10 @@ function Summoners:__init()
 
 	Ignite = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerdot") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonerdot") and SUMMONER_2 or nil))
 	Heal = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerheal") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonerheal") and SUMMONER_2 or nil))
+	Snowball = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonersnowball") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonersnowball") and SUMMONER_2 or nil))
+	Barrier = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerbarrier") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonerbarrier") and SUMMONER_2 or nil))
+	
+	Snowballd = { delay = 0.25, range = 1600, speed = 1200, width = 50 }
 	
 	SLS:SubMenu("Sum", "|SL| Summoners")
 	if Ignite then
@@ -2189,6 +2193,17 @@ function Summoners:__init()
 	SLS.Sum.Heal:Slider("allyHP", "Ally HP to heal him", 8, 1, 100, 2)
 	SLS.Sum.Heal:Slider("myHP", "my HP to heal myself", 8, 1, 100, 2)
 	end
+	if Snowball then
+	SLS.Sum:Menu("SB", "Snowball")
+	SLS.Sum.SB:Boolean("enable", "Enable Snowball", false)
+	SLS.Sum.SB:Slider("h", "HitChance", 45, 0, 100, 1)
+	end
+	if Barrier then
+	SLS.Sum:Menu("Barrier", "Barrier")
+	SLS.Sum.Barrier:Boolean("enable","Use Barrier", true)
+	SLS.Sum.Barrier:Slider("myHP", "my HP to use Barrier", 8, 1, 100, 2)
+	end
+
 	
 	Callback.Add("Tick", function() self:Tick() end)
 end
@@ -2212,6 +2227,10 @@ function Summoners:Tick()
 		
 		if Heal then self:Heal() end
 		
+		if Snowball then self:Snowball() end
+		
+		if Barrier then self:Barrier() end
+		
 	end
 end
 
@@ -2233,6 +2252,21 @@ function Summoners:Heal()
 		if a and IsReady(Heal) and SLS.Sum.Heal.healally:Value() and GetPercentHP(a) <= SLS.Sum.Heal.allyHP:Value() and EnemiesAround(GetOrigin(myHero), 675) > 1 and GetDistance(myHero,a) < 675 then
 			CastSpell(Heal)
 		end
+	end
+end
+
+function Summoners:Snowball()
+	for _,unit in pairs(GetEnemyHeroes()) do
+		local Pred = GetPrediction(unit, Snowballd)
+		if IsReady(Snowball) and SLS.Sum.SB.enable:Value() and Pred and Pred.hitChance >= SLS.Sum.SB.h:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < Snowballd.range then
+			CastSkillShot(Snowball,Pred.castPos)
+		end
+	end
+end
+
+function Summoners:Barrier()
+	if IsReady(Barrier) and SLS.Sum.Barrier.enable:Value() and GetPercentHP(myHero) <= SLS.Sum.Barrier.myHP:Value() and EnemiesAround(GetOrigin(myHero), 675) > 1 then
+		CastSpell(Barrier)
 	end
 end
 
