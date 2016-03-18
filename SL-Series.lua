@@ -1734,7 +1734,7 @@ function Kindred:AutoR()
 				CastTargetSpell(myHero, 3)
 			end
 		end
-		if GetPercentHP(myHero) <= 20 and BM.ROptions.RU:Vaalue() and EnemiesAround(myHero, 1500)then
+		if GetPercentHP(myHero) <= 20 and BM.ROptions.RU:Value() and EnemiesAround(myHero, 1500)then
 			CastTargetSpell(myHero, 3)
 		end
 	end
@@ -1793,6 +1793,7 @@ function Kindred:PassiveDmg(unit)
 		else
 			return CalcDamage(myHero, unit, GetCurrentHP(unit)*(PassiveDmg/100))
 		end
+	else return 0
 	end
 end
 
