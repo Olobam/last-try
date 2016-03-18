@@ -145,6 +145,10 @@ function Init:__init()
 			BM.M:Menu("GC", "GapCloser")
 		end
 	end
+	if L.U.LI:Value() then
+		SLS:Menu("Items", "|SL| Items") 
+		M = SLS["Items"]
+	end
 	
 	if MapPositionGOS[ChampName] == true and FileExist(COMMON_PATH .. "MapPositionGOS.lua") then
 		require 'MapPositionGOS'
@@ -1543,6 +1547,7 @@ function Kalista:WallJump()
 	end
 end
 
+
 class "Kindred"
 
 function Kindred:__init()
@@ -1984,135 +1989,269 @@ class 'Items'
 
 function Items:__init()
 
-	SLS:SubMenu("I", "|SL| Items")
-	SLS.I:Boolean("uI", "Use Items", true)
-	SLS.I:Boolean("uAD", "Use AD Items", true)
-	SLS.I:Boolean("uAA", "Use AA Reset Items", true)
-	SLS.I:Boolean("uAP", "Use AP Items", true)
-	SLS.I:Boolean("uTA", "Use Tank Items", true)
-	SLS.I:Boolean("uDE", "Use Defensive Items (self)", true)
-	SLS.I:Slider("uDEP", "Use Defensive a % HP (self)", 20, 5, 90, 5)
-	SLS.I:Boolean("uADE", "Use Defensive Items (allies)", true)
-	SLS.I:Slider("uADEP", "Use Defensive a % HP (allies)", 20, 5, 90, 5)
-	SLS.I:Boolean("uCIS", "Use Cleanse Items (self)", true)
-	SLS.I:Boolean("uCIA", "Use Cleanse Items (allies)", true)
-	
-	
-	self.AD = {3144,3153,3142}
-	self.AA = {3077,3074,3748}
-	self.AP = {3146,3092,3290}
-	self.DE = {3040,3048}
-	self.ADE = {3401,3222,3190}
-	self.CC = {3139,3140,3137}
-	self.TA = {3143,3800}
-	self.Banner = 3060
-	--self.HG = soon
+
 	self.CCType = { 5, 8, 11, 21, 22, 24 }
 	
-	Callback.Add("Tick", function() self:Use() end)
-	Callback.Add("ProcessSpellAttack", function(Object,spellProc) self:AAReset(Object,spellProc) end)
+	
+	
+	M:Menu("OI", "Offensive Items -->")
+	M.OI:Menu("Cut", "Cutlass")
+	M.OI.Cut:Boolean("Cutlass", "Use Cutlass", true) 
+	M.OI.Cut:Slider("myHeroHPCutlass", "myHeroHP to use Cutlass <= X ", 70, 1, 100, 5) 
+	M.OI.Cut:Slider("enemyHPCutlass", "EnemyHP to use Cutlass <= X ", 70, 1, 100, 5) 
+	M.OI.Cut:Boolean("CutlassCombo", "Use Cutlass in Combo", true) 
+	M.OI.Cut:Boolean("CutlassHarass", "Use Cutlass in Harras", true)
+	
+	M.OI:Menu("Bot", "Botrk")
+	M.OI.Bot:Boolean("Botrk", "Use Botrk", true) 
+	M.OI.Bot:Slider("myHeroHPBotrk", "myHeroHP to use Botrk <= X ", 70, 1, 100, 5) 
+	M.OI.Bot:Slider("enemyHPBotrk", "EnemyHP to use Botrk <= X ", 70, 1, 100, 5)
+	M.OI.Bot:Boolean("BotrkCombo", "Use Botrk in Combo", true) 
+	M.OI.Bot:Boolean("BotrkHarass", "Use Botrk in Harras", true) 
+	
+	M.OI:Menu("GB", "GunBlade")
+	M.OI.GB:Boolean("GunBlade", "Use GunBlade", true) 
+	M.OI.GB:Slider("myHeroHPGunBlade", "myHeroHP to use GunBlade <= X ", 70, 1, 100, 5) 
+	M.OI.GB:Slider("enemyHPGunBlade", "EnemyHP to use GunBlade <= X ", 70, 1, 100, 5) 
+	M.OI.GB:Boolean("GunBladeCombo", "Use GunBlade in Combo", true) 
+	M.OI.GB:Boolean("GunBladeHarass", "Use GunBlade in Harras", true) 
+	
+	M.OI:Menu("Tia", "Tiamat")
+	M.OI.Tia:Boolean("Tiamat", "Use Tiamat", true) 
+	M.OI.Tia:Slider("myHeroHPTiamat", "myHeroHP to use Tiamat <= X ", 70, 1, 100, 5) 
+	M.OI.Tia:Slider("enemyHPTiamat", "EnemyHP to use Tiamat <= X ", 70, 1, 100, 5) 
+	M.OI.Tia:Boolean("TiamatCombo", "Use Tiamat in Combo", true) 
+	M.OI.Tia:Boolean("TimatHarass", "Use Tiamat in Harass", true) 
+	M.OI.Tia:Boolean("TiamatJungleClear", "Use Tiamat in JungleCLear", true)
+	M.OI.Tia:Boolean("TimatLaneClear", "Use Tiamat in LaneClear", true)
+	
+	M.OI:Menu("RHyd", "RavenousHydra")
+	M.OI.RHyd:Boolean("RavenousHydra", "Use RavenousHydra", true) 
+	M.OI.RHyd:Slider("myHeroHPRavenousHydra", "myHeroHP to use RavenousHydra <= X ", 70, 1, 100, 5) 
+	M.OI.RHyd:Slider("enemyHPRavenousHydra", "EnemyHP to use RavenousHydra <= X ", 70, 1, 100, 5) 
+	M.OI.RHyd:Boolean("RavenousHydraCombo", "Use RavenousHydra in Combo", true) 
+	M.OI.RHyd:Boolean("RavenousHydraHarass", "Use RavenousHydra in Harass", true) 
+	M.OI.RHyd:Boolean("RavenousHydraJungleClear", "Use RavenousHydra in JungleCLear", true) 
+	M.OI.RHyd:Boolean("RavenousHydraLaneClear", "Use RavenousHydra in LaneClear", true)
+	
+	M.OI:Menu("THyd", "TitanicHydra")
+	M.OI.THyd:Boolean("TitanicHydra", "Use TitanicHydra", true) 
+	M.OI.THyd:Slider("myHeroHPTitanicHydra", "myHeroHP to use TitanicHydra <= X ", 70, 1, 100, 5)
+	M.OI.THyd:Slider("enemyHPTitanicHydra", "EnemyHP to use TitanicHydra <= X ", 70, 1, 100, 5) 
+	M.OI.THyd:Boolean("TitanicHydraCombo", "Use TitanicHydra in Combo", true) 
+	M.OI.THyd:Boolean("TitanicHydraHarass", "Use TitanicHydra in Harass", true) 
+	M.OI.THyd:Boolean("TitanicHydraJungleClear", "Use TitanicHydra in JungleCLear", true) 
+	M.OI.THyd:Boolean("TitanicHydraLaneClear", "Use TitanicHydra in LaneClear", true)
+	
+	
+	M.OI:Menu("Yo", "Youmus")
+	M.OI.Yo:Boolean("Youmus", "Use Youmus", true) 
+	M.OI.Yo:Slider("myHeroHPYoumus", "myHeroHP to use Youmus <= X ", 70, 1, 100, 5) 
+	M.OI.Yo:Slider("enemyHPYoumus", "EnemyHP to use Youmus <= X ", 70, 1, 100, 5) 
+	M.OI.Yo:Slider("YoumusRange", "Enemy Range", 1000, 500, 1500, 10) 
+	M.OI.Yo:Boolean("YoumusCombo", "Use Youmus in Combo", true) 
+	M.OI.Yo:Boolean("YoumusHarass", "Use Youmus in Harras", true)
+	
+	M:Menu("DI", "Defensive Items -->")
+	M.DI:Menu("QS", "QSS")
+	M.DI.QS:Boolean("QSS", "Use QSS", true)
+	
+	M.DI:Menu("Sci", "Scimital")
+	M.DI.Sci:Boolean("Scimital", "Use Scimital", true)
+	
+	M.DI:Menu("Mik", "Mikaels")
+	M.DI.Mik:Boolean("Mikaels", "Use Mikaels", true) 
+	M.DI.Mik:Boolean("OnMyself", "Use on Myself", true) 
+	M.DI.Mik:Boolean("OnAlly", "Use On Ally", true)
+	M.DI.Mik:Info("^.-:", "")
+	
+	for _,i in pairs(GetAllyHeroes()) do
+		M.DI.Mik:Boolean("Mika"..GetObjectName(i), "Qss "..GetObjectName(i),true)
+	end
+	
+	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("UpdateBuff", function(unit, buff) self:UpdateBuff(unit, buff) end)
-	Callback.Add("RemoveBuff" ,function(unit, buff) self:RemoveBuff(unit, buff) end)
-	
+	Callback.Add("RemoveBuff", function(unit, buff) self:RemoveBuff(unit, buff) end)
+
 end
 
+function Items:Tick()
+	if myHero.dead then return end
+	
+	if (_G.IOW or _G.DAC_Loaded) then
+	
+		self:AntiCCx()
+		
+		local Mode = nil
+		local unit = nil
+		if _G.DAC_Loaded then 
+			Mode = DAC:Mode()
+			unit = DAC:GetTarget() 
+		elseif _G.IOW then
+			Mode = IOW:Mode()
+			unit = GetCurrentTarget()
+		end
+		
+		if Mode == "Combo" then
+			self:UseCombo(unit)
+		elseif Mode == "Harass" then
+			self:UseHarass(unit)
+		elseif Mode == "LaneClear" then
+			self:UseLaneClear()
+			self:UseJungleClear()
+		else
+			return
+		end
+	end
+end	
 
-function Items:Use()
-
-	if not SLS.I.uI then return end
-	
-	local target = nil
-	if _G.DAC_Loaded then
-		target = DAC:GetTarget() 
-	elseif _G.IOW then
-		target = GetCurrentTarget()
-	else
-		return
-	end
-	
-	if ValidTarget(target,550) and SLS.I.uAD:Value() then
-		for i = 1,#self.AD do
-			local l = GetItemSlot(myHero,self.AD[i])
-			if l>0 and CanUseSpell(myHero,l) == READY then
-				CastTargetSpell(target,l)
-			end
+function Items:AntiCCx()
+	if GetItemSlot(myHero,3140) > 0 then
+		if CC and M.DI.QS.QSS:Value() and IsReady(GetItemSlot(myHero,3140)) then
+			CastSpell(GetItemSlot(myHero,3140))
 		end
 	end
-	
-	if ValidTarget(target,500) and SLS.I.uTA:Value() then
-		for i = 1,#self.TA do
-			local l = GetItemSlot(myHero,self.TA[i])
-			if l>0 and CanUseSpell(myHero,l) == READY then
-				CastSpell(target,l)
-			end
+	if GetItemSlot(myHero,3139) > 0 then
+		if CC and M.DI.Sci.Scimital:Value() and IsReady(GetItemSlot(myHero,3139)) then
+			CastSpell(GetItemSlot(myHero,3139))
 		end
 	end
-	
-	if ValidTarget(target,700) and SLS.I.uAP:Value() then
-		for i = 1,#self.AP do
-			local l = GetItemSlot(myHero,self.AP[i])
-			if l>0 and CanUseSpell(myHero,l) == READY then
-				CastTargetSpell(target,l)
-			end
+	if GetItemSlot(myHero,3222) > 0 then
+		if CC and M.DI.Mik.Mikaels:Value() and IsReady(GetItemSlot(myHero,3222)) and M.DI.Mik.OnMyself:Value() then
+			CastTargetSpell(myHero, GetItemSlot(myHero,3222))
 		end
 	end
-	
-	if GetPercentHP(myHero) < SLS.I.uDEP:Value() and SLS.I.uDE:Value() and EnemiesAround(myHero,800) > 0 then
-		for i = 1,#self.DE do
-			local l = GetItemSlot(myHero,self.DE[i])
-			if l>0 and CanUseSpell(myHero,l) == READY then
-				CastSpell(l)
+	if GetItemSlot(myHero,3222) > 0 then
+		for _, ally in pairs(GetAllyHeroes()) do
+			if aCC and M.DI.Mik.Mikaels:Value() and IsReady(GetItemSlot(myHero,3222)) and M.DI.Mik.OnAlly:Value() and GetDistance(myHero,ally) <= 550 and M.DI.Mik["Mika"..GetObjectName(ally)]:Value() then
+				CastTargetSpell(ally, GetItemSlot(myHero,3222))
 			end
-		end
-	end
-	
-	if SLS.I.uDEP:Value() then
-		for _,n in pairs(GetAllyHeroes()) do
-			if GetPercentHP(n) <= SLS.I.uADEP:Value() and EnemiesAround(n,800) > 0 then 
-				for i = 1,#self.ADE do
-					local l = GetItemSlot(myHero,self.ADE[i])
-					if l>0 and CanUseSpell(myHero,l) == READY then
-						CastSpell(l)
-					end
-				end
-			end
-		end
-	end
-	
-	if GetPercentHP(myHero) < SLS.I.uDEP:Value() and CC and SLS.I.uDE:Value() and EnemiesAround(myHero,800) > 0 then
-		for i = 1,#self.CC do
-			local l = GetItemSlot(myHero,self.CC[i])
-			if l>0 and CanUseSpell(myHero,l) == READY and CC then
-				CastSpell(l)
-			end
-		end
-	end
-	
-    for _,n in pairs(GetAllyHeroes()) do
-	    if GetPercentHP(n) <= SLS.I.uADEP:Value() and GetDistance(n,myHero) < 550 and aCC and SLS.I.uDE:Value() and EnemiesAround(n,800) > 0 then
-			local l = GetItemSlot(myHero,3222)
-			if l>0 and CanUseSpell(myHero,l) == READY and aCC then
-				CastTargetSpell(n,l)
-			end
-	    end
-    end		
-end
-
-function Items:AAReset(Object,spellProc)
-	local ta = spellProc.target
-	if SLS.I.uAA:Value() and Object == myHero and GetObjectType(ta) == Obj_AI_Hero and GetTeam(ta) == MINION_ENEMY then
-		for i = 1,#self.AA do
-			local l = GetItemSlot(myHero,self.AA[i])
-			if l>0 and CanUseSpell(myHero,l) == READY then
-				CastSpell(l)
-			end 
 		end
 	end
 end
 
+function Items:UseCombo(unit)
+	if GetItemSlot(myHero,3144) > 0 then
+		if IsReady(GetItemSlot(myHero,3144)) and GetPercentHP(myHero) <= M.OI.Cut.myHeroHPCutlass:Value() and M.OI.Cut.Cutlass:Value() and GetPercentHP(unit) <= M.OI.Cut.enemyHPCutlass:Value() and ValidTarget(unit, 600) and M.OI.Cut.CutlassCombo:Value() then
+			CastTargetSpell(unit, GetItemSlot(myHero,3144))
+		end
+	end
+	if GetItemSlot(myHero,3153) > 0 then 
+		if IsReady(GetItemSlot(myHero,3153)) and GetPercentHP(myHero) <= M.OI.Bot.myHeroHPBotrk:Value() and M.OI.Bot.Botrk:Value() and GetPercentHP(unit) <= M.OI.Bot.enemyHPBotrk:Value() and ValidTarget(unit, 600) and M.OI.Bot.BotrkCombo:Value() then
+			CastTargetSpell(unit, GetItemSlot(myHero,3153))
+		end
+	end
+	if GetItemSlot(myHero,3146) > 0 then
+		if IsReady(GetItemSlot(myHero,3146)) and GetPercentHP(myHero) <= M.OI.GB.myHeroHPGunBlade:Value() and M.OI.GB.GunBlade:Value() and GetPercentHP(unit) <= M.OI.GB.enemyHPGunBlade:Value() and ValidTarget(unit, 600) and M.OI.GB.GunBladeCombo:Value() then
+			CastTargetSpell(unit, GetItemSlot(myHero,3146))
+		end
+	end
+	if GetItemSlot(myHero,3077) > 0 then
+		if IsReady(GetItemSlot(myHero,3077)) and GetPercentHP(myHero) <= M.OI.Tia.myHeroHPTiamat:Value() and M.OI.Tia.Tiamat:Value() and GetPercentHP(unit) <= M.OI.Tia.enemyHPTiamat:Value() and ValidTarget(unit, 300) and M.OI.Tia.TiamatCombo:Value() then
+			CastSpell(GetItemSlot(myHero,3077))
+		end
+	end
+	if GetItemSlot(myHero,3074) > 0 then 
+		if IsReady(GetItemSlot(myHero,3074)) and GetPercentHP(myHero) <= M.OI.RHyd.myHeroHPRavenousHydra:Value() and M.OI.RHyd.RavenousHydra:Value() and GetPercentHP(unit) <= M.OI.RHyd.enemyHPRavenousHydra:Value() and ValidTarget(unit, 300) and M.OI.RHyd.RavenousHydraCombo:Value() then
+			CastSpell(GetItemSlot(myHero,3074))
+		end
+	end
+	if GetItemSlot(myHero,3748) > 0 then 
+		if IsReady(GetItemSlot(myHero,3748)) and GetPercentHP(myHero) <= M.OI.THyd.myHeroHPTitanicHydra:Value() and M.OI.THyd.TitanicHydra:Value() and GetPercentHP(unit) <= M.OI.THyd.enemyHPTitanicHydra:Value() and ValidTarget(unit, 300) and M.OI.THyd.TitanicHydraCombo:Value() then
+			CastSpell(GetItemSlot(myHero,3748))
+		end
+	end
+	if GetItemSlot(myHero,3142) > 0 then 
+		if IsReady(GetItemSlot(myHero,3142)) and GetPercentHP(myHero) <= M.OI.Yo.myHeroHPYoumus:Value() and M.OI.Yo.Youmus:Value() and GetPercentHP(unit) <= M.OI.Yo.enemyHPYoumus:Value() and GetDistance(unit) <= M.OI.Yo.YoumusRange:Value() and ValidTarget(unit, 1501) and M.OI.Yo.YoumusCombo:Value() then
+			CastSpell(GetItemSlot(myHero,3142))
+		end
+	end
+end	
 
+function Items:UseHarass(unit)
+	if GetItemSlot(myHero,3144) > 0 then 
+		if IsReady(GetItemSlot(myHero,3144)) and GetPercentHP(myHero) <= M.OI.Cut.myHeroHPCutlass:Value() and M.OI.Cut.Cutlass:Value() and GetPercentHP(unit) <= M.OI.Cut.enemyHPCutlass:Value() and ValidTarget(unit, 600) and M.OI.Cut.CutlassHarass:Value() then
+			CastTargetSpell(unit, GetItemSlot(myHero,3144))
+		end
+	end
+	if GetItemSlot(myHero,3153) > 0 then 
+		if IsReady(GetItemSlot(myHero,3153)) and GetPercentHP(myHero) <= M.OI.Bot.myHeroHPBotrk:Value() and M.OI.Bot.Botrk:Value() and GetPercentHP(unit) <= M.OI.Bot.enemyHPBotrk:Value() and ValidTarget(unit, 600) and M.OI.Bot.BotrkHarass:Value() then
+			CastTargetSpell(unit, GetItemSlot(myHero,3153))
+		end
+	end
+	if GetItemSlot(myHero,3146) > 0 then 
+		if IsReady(GetItemSlot(myHero,3146)) and GetPercentHP(myHero) <= M.OI.GB.myHeroHPGunBlade:Value() and M.OI.GB.GunBlade:Value() and GetPercentHP(unit) <= M.OI.GB.enemyHPGunBlade:Value() and ValidTarget(unit, 600) and M.OI.GB.GunBladeHarassValue() then
+			CastTargetSpell(unit, GetItemSlot(myHero,3146))
+		end
+	end
+	if GetItemSlot(myHero,3077) > 0 then 
+		if IsReady(GetItemSlot(myHero,3077)) and GetPercentHP(myHero) <= M.OI.Tia.myHeroHPTiamat:Value() and M.OI.Tia.Tiamat:Value() and GetPercentHP(unit) <= M.OI.Tia.enemyHPTiamat:Value() and ValidTarget(unit, 300) and M.OI.Tia.TiamatHarass:Value() then
+			CastSpell(GetItemSlot(myHero,3077))
+		end
+	end
+	if GetItemSlot(myHero,3074) > 0 then 
+		if IsReady(GetItemSlot(myHero,3074)) and GetPercentHP(myHero) <= M.OI.RHyd.myHeroHPRavenousHydra:Value() and M.OI.RHyd.RavenousHydra:Value() and GetPercentHP(unit) <= M.OI.RHyd.enemyHPRavenousHydra:Value() and ValidTarget(unit, 300) and M.OI.RHyd.RavenousHydraHarass:Value() then
+			CastSpell(GetItemSlot(myHero,3074))
+		end
+	end
+	if GetItemSlot(myHero,3748) > 0 then 
+		if IsReady(GetItemSlot(myHero,3748)) and GetPercentHP(myHero) <= M.OI.THyd.myHeroHPTitanicHydra:Value() and M.OI.THyd.TitanicHydra:Value() and GetPercentHP(unit) <= M.OI.THyd.enemyHPTitanicHydra:Value() and ValidTarget(unit, 300) and M.OI.THyd.TitanicHydraHarass:Value() then
+			CastSpell(GetItemSlot(myHero,3748))
+		end
+	end
+	if GetItemSlot(myHero,3142) > 0 then 
+		if IsReady(GetItemSlot(myHero,3142)) and GetPercentHP(myHero) <= M.OI.Yo.myHeroHPYoumus:Value() and M.OI.Yo.Youmus:Value() and GetPercentHP(unit) <= M.OI.Yo.enemyHPYoumus:Value() and GetDistance(unit) <= M.OI.Yo.YoumusRange:Value() and ValidTarget(unit, 1501) and M.OI.Yo.YoumusHarass:Value() then
+			CastSpell(GetItemSlot(myHero,3142))
+		end
+	end
+end	
+
+function Items:UseLaneClear()
+  for _,minion in pairs(GetEnemyHeroes()) do
+   if GetTeam(minion) == MINION_ENEMY then
+	if GetItemSlot(myHero,3077) > 0 then 
+		if IsReady(GetItemSlot(myHero,3077)) and GetPercentHP(myHero) <= M.OI.Tia.myHeroHPTiamat:Value() and M.OI.Tia.Tiamat:Value() and GetPercentHP(minion) <= M.OI.Tia.enemyHPTiamat:Value() and ValidTarget(minion, 300) and M.OI.Tia.TiamatLaneClear:Value() then
+			CastSpell(GetItemSlot(myHero,3077))
+		end
+	end
+	if GetItemSlot(myHero,3074) > 0 then 
+		if IsReady(GetItemSlot(myHero,3074)) and GetPercentHP(myHero) <= M.OI.RHyd.myHeroHPRavenousHydra:Value() and M.OI.RHyd.RavenousHydra:Value() and GetPercentHP(minion) <= M.OI.RHyd.enemyHPRavenousHydra:Value() and ValidTarget(minion, 300) and M.OI.RHyd.RavenousHydraLaneClear:Value() then
+			CastSpell(GetItemSlot(myHero,3074))
+		end
+	end
+	if GetItemSlot(myHero,3748) > 0 then 
+		if IsReady(GetItemSlot(myHero,3748)) and GetPercentHP(myHero) <= M.OI.THyd.myHeroHPTitanicHydra:Value() and M.OI.THyd.TitanicHydra:Value() and GetPercentHP(minion) <= M.OI.THyd.enemyHPTitanicHydra:Value() and ValidTarget(minion, 300) and M.OI.THyd.TitanicHydraLaneClear:Value() then
+			CastSpell(GetItemSlot(myHero,3748))
+		end
+	end
+   end
+  end
+end
+
+function Items:UseJungleClear()
+  for _,mob in pairs(GetEnemyHeroes()) do
+   if GetTeam(mob) == MINION_JUNGLE then
+	if GetItemSlot(myHero,3077) > 0 then 
+		if IsReady(GetItemSlot(myHero,3077)) and GetPercentHP(myHero) <= M.OI.Tia.myHeroHPTiamat:Value() and M.OI.Tia.Tiamat:Value() and GetPercentHP(mob) <= M.OI.Tia.enemyHPTiamat:Value() and ValidTarget(mob, 300) and M.OI.Tia.TiamatJungleClear:Value() then
+			CastSpell(GetItemSlot(myHero,3077))
+		end
+	end
+	if GetItemSlot(myHero,3074) > 0  then
+		if IsReady(GetItemSlot(myHero,3074)) and GetPercentHP(myHero) <= M.OI.RHyd.myHeroHPRavenousHydra:Value() and M.OI.RHyd.RavenousHydra:Value() and GetPercentHP(mob) <= M.OI.RHyd.enemyHPRavenousHydra:Value() and ValidTarget(mob, 300) and M.OI.RHyd.RavenousHydraJungleClear:Value() then
+			CastSpell(GetItemSlot(myHero,3074))
+		end
+	end
+	if GetItemSlot(myHero,3748) > 0 then 
+		if IsReady(GetItemSlot(myHero,3748)) and GetPercentHP(myHero) <= M.OI.THyd.myHeroHPTitanicHydra:Value() and M.OI.THyd.TitanicHydra:Value() and GetPercentHP(mob) <= M.OI.THyd.enemyHPTitanicHydra:Value() and ValidTarget(mob, 300) and M.OI.THyd.TitanicHydraJungleClear:Value() then
+			CastSpell(GetItemSlot(myHero,3748))
+		end
+	end
+   end
+  end
+end
+		
 function Items:UpdateBuff(unit, buff)
-	if unit == myHero and SLS.I.uCIS:Value() then
+	if unit == myHero then
 		for i = 1, #self.CCType do
 			if buff.Type == self.CCType[i] then
 				CC = true
@@ -2123,25 +2262,23 @@ function Items:UpdateBuff(unit, buff)
 			end
 		end
 	end
-	if SLS.I.uCIA:Value() then
-		for _, ally in pairs(GetAllyHeroes()) do
-			if unit == ally then
-				for i = 1, #self.CCType do
-					if buff.Type == self.CCType[i] then
-						aCC = true
-					elseif buff.Name == "zedultexecute" then
-						aCC = true
-					elseif buff.Name == "summonerexhaust" then
-						aCC = true
-					end
+	for _, ally in pairs(GetAllyHeroes()) do
+		if unit == ally then
+			for i = 1, #self.CCType do
+				if buff.Type == self.CCType[i] then
+					aCC = true
+				elseif buff.Name == "zedultexecute" then
+					aCC = true
+				elseif buff.Name == "summonerexhaust" then
+					aCC = true
 				end
 			end
 		end
 	end
 end
-
+	
 function Items:RemoveBuff(unit, buff)
-	if unit == myHero and SLS.I.uCIS:Value() then
+	if unit == myHero then
 		for i = 1, #self.CCType do
 			if buff.Type == self.CCType[i] then
 				CC = false
@@ -2152,17 +2289,15 @@ function Items:RemoveBuff(unit, buff)
 			end
 		end
 	end
-	if SLS.I.uCIA:Value() then
-		for _, ally in pairs(GetAllyHeroes()) do
-			if unit == ally then
-				for i = 1, #self.CCType do
-					if buff.Type == self.CCType[i] then
-						aCC = false
-					elseif buff.Name == "zedultexecute" then
-						aCC = false
-					elseif buff.Name == "summonerexhaust" then
-						aCC = false
-					end
+	for _, ally in pairs(GetAllyHeroes()) do
+		if unit == ally then
+			for i = 1, #self.CCType do
+				if buff.Type == self.CCType[i] then
+					aCC = false
+				elseif buff.Name == "zedultexecute" then
+					aCC = false
+				elseif buff.Name == "summonerexhaust" then
+					aCC = false
 				end
 			end
 		end
