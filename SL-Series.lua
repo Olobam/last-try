@@ -1728,13 +1728,13 @@ end
 function Kindred:AutoR()
 	if BM.ROptions.R:Value() and not self.Recalling and not IsDead(myHero) and SReady[3] then
 		for i, allies in pairs(GetAllyHeroes()) do
-			if GetPercentHP(allies) <= 100 and BM.ROptions["Pleb"..GetObjectName(allies)] and not IsDead(allies) and GetDistance(allies) <= self.Spells[3].range and EnemiesAround(allies, 1500) then
+			if GetPercentHP(allies) <= 20 and BM.ROptions["Pleb"..GetObjectName(allies)] and not IsDead(allies) and GetDistance(allies) <= self.Spells[3].range and EnemiesAround(allies, 1500) >= BM.ROptions.EA:Value() then
 				CastTargetSpell(allies, 3)
-			elseif GetPercentHP(allies) <= 100 and BM.ROptions["Pleb"..GetObjectName(allies)] and not IsDead(allies) and GetDistance(allies) <= self.Spells[3].range2 and EnemiesAround(allies, 1500) then
+			elseif GetPercentHP(allies) <= 20 and BM.ROptions["Pleb"..GetObjectName(allies)] and not IsDead(allies) and GetDistance(allies) <= self.Spells[3].range2 and EnemiesAround(allies, 1500) >= BM.ROptions.EA:Value() then
 				CastTargetSpell(myHero, 3)
 			end
 		end
-		if GetPercentHP(myHero) <= 100 and BM.ROptions.RU:Value() and EnemiesAround(myHero, 1500)then
+		if GetPercentHP(myHero) <= 20 and BM.ROptions.RU:Value() and EnemiesAround(myHero, 1500) >= BM.ROptions.EA:Value() then
 			CastTargetSpell(myHero, 3)
 		end
 	end
