@@ -102,7 +102,7 @@ class 'Init'
 function Init:__init()
 	local AntiGapCloser = {}
 	local GapCloser = {}
-	local MapPositionGOS = {["Vayne"] = true, ["Poppy"] = true, ["Kalista"] = true,}
+	local MapPositionGOS = {["Vayne"] = true, ["Poppy"] = true, ["Kalista"] = true, ["Kindred"] = true,}
 
 	SLS = MenuConfig("SL-Series", "SL-Series")
 	SLS:Menu("Loader", "|SL| Loader")
