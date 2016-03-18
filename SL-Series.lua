@@ -2532,7 +2532,7 @@ function Drawings:Draw()
 	local org = GetOrigin(myHero)
 	for l=0,3 do
 		if self.Check[l+1] then
-			DrawCircle(org, _G[ChampName].Spell[l].range, SLS.Dr.DWi:Value(), (SLS.Dr.DQM:Value()-1)*5+1, SLS.Dr.CP:Value())
+			DrawCircle(org, _G[ChampName].Spell[l].range, SLS.Dr.DWi:Value(), SLS.Dr.DQM:Value(), SLS.Dr.CP:Value())
 		end
 	end
 end
