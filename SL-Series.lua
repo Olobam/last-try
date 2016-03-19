@@ -1082,7 +1082,7 @@ function Velkoz:Tick()
 	--	self:KS()
 		
 		local Mode = nil
-		local target = target = GetCurrentTarget()
+		local target = GetCurrentTarget()
 		if _G.DAC_Loaded then 
 			Mode = DAC:Mode()
 		elseif _G.IOW then
