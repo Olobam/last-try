@@ -3354,7 +3354,7 @@ function HitMe:__init()
 			[_E] = { name = "VeigarEvenHorizon", speed = math.huge, delay = 0.75, range = 725, width = 275, collision = false, aoe = false, type = "circular"},
 			[_R] = { danger = 5}
 		},
-		["Velkoz"] = {
+		["VelKoz"] = {
 			[_Q] = { name = "VelKozQ", objname = "VelkozQMissile", speed = 1300, delay = 0.25, range = 1100, width = 50, collision = true, aoe = false, type = "linear", danger = 3},
 			[-1] = { name = "VelkozQSplit", objname = "VelkozQMissileSplit", speed = 2100, delay = 0.25, range = 1100, width = 55, collision = true, aoe = false, type = "linear", danger = 3},
 			[_W] = { name = "VelKozW", objname = "VelkozWMissile", speed = 1700, delay = 0.064, range = 1050, width = 80, collision = false, aoe = false, type = "linear", danger = 2},
@@ -3434,7 +3434,7 @@ function HitMe:Detect(unit, spellProc)
 				
 				--Simple Kappa Linear
 				if i.type == "linear" or i.type == "cone" then
-					local cPred = GetPrediction(myHero,i)
+					local cPred = GetPrediction(myHero,i,GetOrigin(i))
 					local dT = i.delay + GetDistance(spellProc.startPos, cPred.castPos) / i.speed
 					print("Delay "..i.delay)
 					print("TravelTime "..GetDistance(spellProc.startPos, cPred.castPos) / i.speed)
