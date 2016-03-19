@@ -1082,13 +1082,11 @@ function Velkoz:Tick()
 	--	self:KS()
 		
 		local Mode = nil
-		local target = nil
+		local target = target = GetCurrentTarget()
 		if _G.DAC_Loaded then 
 			Mode = DAC:Mode()
-			target = DAC:GetTarget() 
 		elseif _G.IOW then
 			Mode = IOW:Mode()
-			target = GetCurrentTarget()
 		end
 		
 		if Mode == "Combo" then
