@@ -242,13 +242,11 @@ function Vayne:Tick()
 		self:KS()
 		
 		local Mode = nil
-		local target = nil
+		local target = GetCurrentTarget()
 		if _G.DAC_Loaded then 
 			Mode = DAC:Mode()
-			target = DAC:GetTarget() 
 		elseif _G.IOW then
 			Mode = IOW:Mode()
-			target = GetCurrentTarget()
 		end
 
 	    if Mode == "Combo" then
@@ -442,13 +440,11 @@ function Blitzcrank:Tick()
 		self:KS()
 		
 		local Mode = nil
-		local target = nil
+		local target = GetCurrentTarget()
 		if _G.DAC_Loaded then 
 			Mode = DAC:Mode()
-			target = DAC:GetTarget() 
 		elseif _G.IOW then
 			Mode = IOW:Mode()
-			target = GetCurrentTarget()
 		end
 
 	    if Mode == "Combo" then
@@ -659,13 +655,11 @@ function Soraka:Tick()
 		self:AutoR()
 		
 		local Mode = nil
-		local target = nil
+		local target = GetCurrentTarget()
 		if _G.DAC_Loaded then 
 			Mode = DAC:Mode()
-			target = DAC:GetTarget() 
 		elseif _G.IOW then
 			Mode = IOW:Mode()
-			target = GetCurrentTarget()
 		end
 
 	    if Mode == "Combo" then
@@ -872,13 +866,11 @@ function Aatrox:Tick()
 		self:KS()
 		
 		local Mode = nil
-		local target = nil
+		local target = GetCurrentTarget()
 		if _G.DAC_Loaded then 
 			Mode = DAC:Mode()
-			target = DAC:GetTarget() 
 		elseif _G.IOW then
 			Mode = IOW:Mode()
-			target = GetCurrentTarget()
 		end
 		
 		self:Toggle(target)
@@ -1321,13 +1313,11 @@ function Jinx:Tick()
 		self:KS()
 		
 		local Mode = nil
-		local target = nil
+		local target = GetCurrentTarget()
 		if _G.DAC_Loaded then 
 			Mode = DAC:Mode()
-			target = DAC:GetTarget() 
 		elseif _G.IOW then
 			Mode = IOW:Mode()
-			target = GetCurrentTarget()
 		end
 		
 		if Mode == "Combo" then
@@ -1627,13 +1617,11 @@ function Kalista:Tick()
 		self:WallJump()
 		
 		local Mode = nil
-		local target = nil
+		local target = GetCurrentTarget()
 		if _G.DAC_Loaded then 
 			Mode = DAC:Mode()
-			target = DAC:GetTarget() 
 		elseif _G.IOW then
 			Mode = IOW:Mode()
-			target = GetCurrentTarget()
 		end
 		
 		if Mode == "LaneClear" then
@@ -1847,6 +1835,7 @@ function Kindred:Tick()
 		if (_G.IOW or _G.DAC_Loaded) then
 	
 			GetReady()
+			
 			self.target = GetCurrentTarget()
 			if _G.DAC_Loaded then 
 				self.Mode = DAC:Mode()
@@ -1859,7 +1848,7 @@ function Kindred:Tick()
 		elseif self.Mode == "LaneClear" then
 			self:LaneClear()
 		end
-
+	
 		self:AutoR()
 		if BM.Misc.FQ:Value() then
 			if SReady[0] and Ready(Flash) and BM.Combo.Q:Value() then  
