@@ -1855,13 +1855,11 @@ function Kindred:Tick()
 		if (_G.IOW or _G.DAC_Loaded) then
 	
 			GetReady()
-		
+			self.target = GetCurrentTarget()
 			if _G.DAC_Loaded then 
 				self.Mode = DAC:Mode()
-				self.target = DAC:GetTarget() 
 			elseif _G.IOW then
 				self.Mode = IOW:Mode()
-				self.target = GetCurrentTarget()
 			end
 		end
 		if self.Mode == "Combo" then
