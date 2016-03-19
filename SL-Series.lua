@@ -1034,11 +1034,12 @@ function Velkoz:__init()
 	BM.a:Slider("v", "QChecks", 4, 1, 8, 1)
 	BM.a:Boolean("D","Developer Debug",true)
 
+	self.ccTrack = {}
 	DelayAction(function ()
 		for _,i in pairs(GetEnemyHeroes()) do 
-			self.ccTrack[GetObjectName(i)] 
+			self.ccTrack[GetObjectName(i)] = false
 		end
-	end,.001)
+	end, .001)
 	
 	self.DegreeTable={22.5,-22.5,45,-45, 15, -15, 30, -30}
 	self.rCast = false
@@ -3257,7 +3258,7 @@ function HitMe:__init()
 			[_E] = { name = "VeigarEvenHorizon", speed = math.huge, delay = 0.75, range = 725, width = 275, collision = false, aoe = false, type = "circular"},
 			[_R] = { danger = 5}
 		},
-		["VelKoz"] = {
+		["Velkoz"] = {
 			[_Q] = { name = "VelKozQ", objname = "VelkozQMissile", speed = 1300, delay = 0.25, range = 1100, width = 50, collision = true, aoe = false, type = "linear", danger = 3},
 			[-1] = { name = "VelkozQSplit", objname = "VelkozQMissileSplit", speed = 2100, delay = 0.25, range = 1100, width = 55, collision = true, aoe = false, type = "linear", danger = 3},
 			[_W] = { name = "VelKozW", objname = "VelkozWMissile", speed = 1700, delay = 0.064, range = 1050, width = 80, collision = false, aoe = false, type = "linear", danger = 2},
