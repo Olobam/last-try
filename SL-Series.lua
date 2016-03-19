@@ -18,6 +18,7 @@ local SLSChamps = {
 	-- ["Swain"] = true,
 	-- ["Thresh"] = true,
 	["Kalista"] = true,
+	["Velkoz"] = true,
 	-- ["Poppy"] = true,
 	-- ["Nami"] = true,
 	-- ["Corki"] = true,
