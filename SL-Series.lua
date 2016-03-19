@@ -1836,13 +1836,6 @@ BM.QOptions:Boolean("QL", "AA reset LaneClear", true)
 BM.QOptions:Boolean("QJ", "AA reset JunglerClear", true)
 BM.QOptions:Boolean("C", "Cancel animation?", false)
 
---[[BM:Menu("Draw", "Draw")
-BM.Draw:DropDown("S", "Select skin", 1, {"Classic", "ShadowFire", "Off"})
-BM.Draw:Boolean("Q", "Draw Q", true)
-BM.Draw:Boolean("W", "Draw W", true)
-BM.Draw:Boolean("E", "Draw E", true)
-BM.Draw:Boolean("R", "Draw R", true)
-BM.Draw:Slider("HQ", "Circles Quality", 4, 1, 8)]]
 	DelayAction(function()
 		for i, allies in pairs(GetAllyHeroes()) do
 			BM.ROptions:Boolean("Pleb"..GetObjectName(allies), "Use R on "..GetObjectName(allies), true)
@@ -2185,6 +2178,9 @@ function SkinChanger:Change()
 	if SLS.S.uS:Value() and SLS.S.sV:Value() ~= cSkin then
 		HeroSkinChanger(myHero,SLS.S.sV:Value()) 
 		cSkin = SLS.S.sV:Value()
+	elseif not SLS.S.uS:Value() and cSkin ~= 0 then
+		HeroSkinChanger(myHero,0)
+		cSkin = 0 
 	end
 end
 
