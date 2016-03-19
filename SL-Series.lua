@@ -2050,6 +2050,8 @@ self.lastspell = 0
 	SLS.Hum:Boolean("Draw1", "Draw blocked spells", true)
 	SLS.Hum:Boolean("enable", "Use Movement Limiter", true)
 	SLS.Hum:Boolean("enable1", "Use SpellCast Limiter", true)
+	SLS.Hum:Slider("Horizontal", "Horizontal (Drawings)", 0, 0, GetResolution().x, 10)
+	SLS.Hum:Slider("Vertical", "Vertical (Drawings)", 0, 0, GetResolution().y, 10)
 	SLS.Hum:Info("as-.,", "if your champ stutters you will")
 	SLS.Hum:Info("sa-.,", "have to turn off spellcast limiter")
 	SLS.Hum:Menu("ML", "Movement Limiter")
@@ -2122,10 +2124,10 @@ end
 
 function Humanizer:Draw()
 	if SLS.Hum.Draw:Value() then
-  		DrawText("Blocked Movements : "..tostring(self.bCount),25,50,60,ARGB(255,159,242,12))
+  		DrawText("Blocked Movements : "..tostring(self.bCount),25,SLS.Hum.Horizontal:Value(),SLS.Hum.Vertical:Value(),ARGB(255,159,242,12))
 	end
 	if SLS.Hum.Draw1:Value() then
-  		DrawText("Blocked Spells : "..tostring(self.bCount1),25,50,40,ARGB(255,159,242,12))
+  		DrawText("Blocked Spells : "..tostring(self.bCount1),25,SLS.Hum.Horizontal:Value(),SLS.Hum.Vertical:Value()+20,ARGB(255,159,242,12))
 	end
 end
 
