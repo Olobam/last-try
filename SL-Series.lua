@@ -1837,6 +1837,8 @@ self.lastspell = 0
 	SLS.Hum:Boolean("Draw1", "Draw blocked spells", true)
 	SLS.Hum:Boolean("enable", "Use Movement Limiter", true)
 	SLS.Hum:Boolean("enable1", "Use SpellCast Limiter", true)
+	SLS.Hum:Info("as-.,", "if your champ stutters you will")
+	SLS.Hum:Info("sa-.,", "have to turn off spellcast limiter")
 	SLS.Hum:Menu("ML", "Movement Limiter")
 	SLS.Hum.ML:Slider("lhit", "Max. Movements in Last Hit", 6, 1, 20, 1)
 	SLS.Hum.ML:Slider("lclear", "Max. Movements in Lane Clear", 6, 1, 20, 1)
