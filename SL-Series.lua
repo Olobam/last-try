@@ -1035,11 +1035,11 @@ function Velkoz:__init()
 	BM.a:Boolean("D","Developer Debug",true)
 
 	self.ccTrack = {}
-	DelayAction(function ()
-		for _,i in pairs(GetEnemyHeroes()) do 
-			self.ccTrack[GetObjectName(i)] = false
-		end
-	end, .001)
+  	DelayAction(function ()
+  		for _,i in pairs(GetEnemyHeroes()) do 
+ 			self.ccTrack[GetObjectName(i)] = false
+  		end
+ 	end, .001)
 	
 	self.DegreeTable={22.5,-22.5,45,-45, 15, -15, 30, -30}
 	self.rCast = false
@@ -2173,7 +2173,7 @@ class 'SkinChanger'
 function SkinChanger:__init()
 
 	SLS:SubMenu("S", "|SL| Skin")
-	SLS.S:Boolean("uS", "Use Skin", false)
+	SLS.S:Boolean("uS", "Use Skin", true)
 	SLS.S:Slider("sV", "Skin Number", 0, 0, 15, 1)
 	
 	local cSkin = 0
@@ -2201,53 +2201,54 @@ function Items:__init()
 	
 	
 	M:Menu("OI", "Offensive Items -->")
+	
 	M.OI:Menu("Cut", "Cutlass")
 	M.OI.Cut:Boolean("Cutlass", "Use Cutlass", true) 
 	M.OI.Cut:Slider("myHeroHPCutlass", "myHeroHP to use Cutlass <= X ", 70, 1, 100, 5) 
 	M.OI.Cut:Slider("enemyHPCutlass", "EnemyHP to use Cutlass <= X ", 70, 1, 100, 5) 
-	M.OI.Cut:Boolean("CutlassCombo", "Use Cutlass in Combo", true) 
-	M.OI.Cut:Boolean("CutlassHarass", "Use Cutlass in Harras", true)
+	M.OI.Cut:Boolean("CutlassCombo", "Use in Combo", true) 
+	M.OI.Cut:Boolean("CutlassHarass", "Use in Harras", true)
 	
 	M.OI:Menu("Bot", "Botrk")
 	M.OI.Bot:Boolean("Botrk", "Use Botrk", true) 
 	M.OI.Bot:Slider("myHeroHPBotrk", "myHeroHP to use Botrk <= X ", 70, 1, 100, 5) 
 	M.OI.Bot:Slider("enemyHPBotrk", "EnemyHP to use Botrk <= X ", 70, 1, 100, 5)
-	M.OI.Bot:Boolean("BotrkCombo", "Use Botrk in Combo", true) 
-	M.OI.Bot:Boolean("BotrkHarass", "Use Botrk in Harras", true) 
+	M.OI.Bot:Boolean("BotrkCombo", "Use in Combo", true) 
+	M.OI.Bot:Boolean("BotrkHarass", "Use in Harras", true) 
 	
 	M.OI:Menu("GB", "GunBlade")
 	M.OI.GB:Boolean("GunBlade", "Use GunBlade", true) 
 	M.OI.GB:Slider("myHeroHPGunBlade", "myHeroHP to use GunBlade <= X ", 70, 1, 100, 5) 
 	M.OI.GB:Slider("enemyHPGunBlade", "EnemyHP to use GunBlade <= X ", 70, 1, 100, 5) 
-	M.OI.GB:Boolean("GunBladeCombo", "Use GunBlade in Combo", true) 
-	M.OI.GB:Boolean("GunBladeHarass", "Use GunBlade in Harras", true) 
+	M.OI.GB:Boolean("GunBladeCombo", "Use in Combo", true) 
+	M.OI.GB:Boolean("GunBladeHarass", "Use in Harras", true) 
 	
 	M.OI:Menu("Tia", "Tiamat")
 	M.OI.Tia:Boolean("Tiamat", "Use Tiamat", true) 
 	M.OI.Tia:Slider("myHeroHPTiamat", "myHeroHP to use Tiamat <= X ", 70, 1, 100, 5) 
 	M.OI.Tia:Slider("enemyHPTiamat", "EnemyHP to use Tiamat <= X ", 70, 1, 100, 5) 
-	M.OI.Tia:Boolean("TiamatCombo", "Use Tiamat in Combo", true) 
-	M.OI.Tia:Boolean("TimatHarass", "Use Tiamat in Harass", true) 
-	M.OI.Tia:Boolean("TiamatJungleClear", "Use Tiamat in JungleCLear", true)
-	M.OI.Tia:Boolean("TimatLaneClear", "Use Tiamat in LaneClear", true)
+	M.OI.Tia:Boolean("TiamatCombo", "Use in Combo", true) 
+	M.OI.Tia:Boolean("TimatHarass", "Use in Harass", true) 
+	M.OI.Tia:Boolean("TiamatJungleClear", "Use in JungleCLear", true)
+	M.OI.Tia:Boolean("TimatLaneClear", "Use in LaneClear", true)
 	
 	M.OI:Menu("RHyd", "RavenousHydra")
 	M.OI.RHyd:Boolean("RavenousHydra", "Use RavenousHydra", true) 
 	M.OI.RHyd:Slider("myHeroHPRavenousHydra", "myHeroHP to use RavenousHydra <= X ", 70, 1, 100, 5) 
 	M.OI.RHyd:Slider("enemyHPRavenousHydra", "EnemyHP to use RavenousHydra <= X ", 70, 1, 100, 5) 
-	M.OI.RHyd:Boolean("RavenousHydraCombo", "Use RavenousHydra in Combo", true) 
-	M.OI.RHyd:Boolean("RavenousHydraHarass", "Use RavenousHydra in Harass", true) 
-	M.OI.RHyd:Boolean("RavenousHydraJungleClear", "Use RavenousHydra in JungleCLear", true) 
-	M.OI.RHyd:Boolean("RavenousHydraLaneClear", "Use RavenousHydra in LaneClear", true)
+	M.OI.RHyd:Boolean("RavenousHydraCombo", "Use in Combo", true) 
+	M.OI.RHyd:Boolean("RavenousHydraHarass", "Use in Harass", true) 
+	M.OI.RHyd:Boolean("RavenousHydraJungleClear", "Use in JungleCLear", true) 
+	M.OI.RHyd:Boolean("RavenousHydraLaneClear", "Use in LaneClear", true)
 	
 	M.OI:Menu("THyd", "TitanicHydra")
 	M.OI.THyd:Boolean("TitanicHydra", "Use TitanicHydra", true) 
 	M.OI.THyd:Slider("myHeroHPTitanicHydra", "myHeroHP to use TitanicHydra <= X ", 70, 1, 100, 5)
 	M.OI.THyd:Slider("enemyHPTitanicHydra", "EnemyHP to use TitanicHydra <= X ", 70, 1, 100, 5) 
-	M.OI.THyd:Boolean("TitanicHydraCombo", "Use TitanicHydra in Combo", true) 
-	M.OI.THyd:Boolean("TitanicHydraHarass", "Use TitanicHydra in Harass", true) 
-	M.OI.THyd:Boolean("TitanicHydraJungleClear", "Use TitanicHydra in JungleCLear", true) 
-	M.OI.THyd:Boolean("TitanicHydraLaneClear", "Use TitanicHydra in LaneClear", true)
+	M.OI.THyd:Boolean("TitanicHydraCombo", "Use in Combo", true) 
+	M.OI.THyd:Boolean("TitanicHydraHarass", "Use in Harass", true) 
+	M.OI.THyd:Boolean("TitanicHydraJungleClear", "Use in JungleCLear", true) 
+	M.OI.THyd:Boolean("TitanicHydraLaneClear", "Use in LaneClear", true)
 	
 	
 	M.OI:Menu("Yo", "Youmus")
@@ -2255,15 +2256,16 @@ function Items:__init()
 	M.OI.Yo:Slider("myHeroHPYoumus", "myHeroHP to use Youmus <= X ", 70, 1, 100, 5) 
 	M.OI.Yo:Slider("enemyHPYoumus", "EnemyHP to use Youmus <= X ", 70, 1, 100, 5) 
 	M.OI.Yo:Slider("YoumusRange", "Enemy Range", 1000, 500, 1500, 10) 
-	M.OI.Yo:Boolean("YoumusCombo", "Use Youmus in Combo", true) 
-	M.OI.Yo:Boolean("YoumusHarass", "Use Youmus in Harras", true)
+	M.OI.Yo:Boolean("YoumusCombo", "Use in Combo", true) 
+	M.OI.Yo:Boolean("YoumusHarass", "Use in Harras", true)
 	
 	M:Menu("DI", "Defensive Items -->")
+	
 	M.DI:Menu("QS", "QSS")
 	M.DI.QS:Boolean("QSS", "Use QSS", true)
 	
-	M.DI:Menu("Sci", "Scimital")
-	M.DI.Sci:Boolean("Scimital", "Use Scimital", true)
+	M.DI:Menu("Sci", "Scimitar")
+	M.DI.Sci:Boolean("Scimitar", "Use Scimitar", true)
 	
 	M.DI:Menu("Mik", "Mikaels")
 	M.DI.Mik:Boolean("Mikaels", "Use Mikaels", true) 
@@ -2274,6 +2276,36 @@ function Items:__init()
 	for _,i in pairs(GetAllyHeroes()) do
 		M.DI.Mik:Boolean("Mika"..GetObjectName(i), "Qss "..GetObjectName(i),true)
 	end
+	
+	M.DI:Menu("Rand", "Randuins Omen")
+	M.DI.Rand:Boolean("Randuins", "Use Randuins Omen", true)
+	M.DI.Rand:Slider("myHeroHP", "my HP to use Randuins <= X ", 70, 1, 100, 5) 
+	M.DI.Rand:Slider("unit", "Enemies Around", 2, 1, 5, 1)
+	M.DI.Rand:Boolean("Combo", "Use in Combo", true) 
+	M.DI.Rand:Boolean("Harass", "Use in Harras", true)
+	
+	M.DI:Menu("FotM", "Face of the Mountain")
+	M.DI.FotM:Boolean("FotM", "Use Face of the Mountain", true)
+	M.DI.FotM:Slider("myHeroHP", "my HP to use Face of the mountain <= X ", 70, 1, 100, 5) 
+	M.DI.FotM:Slider("allyHP", "allyHP to use Face of the mountain <= X ", 5, 1, 100, 5) 
+	M.DI.FotM:Boolean("Combo", "Use in Combo", true) 
+	M.DI.FotM:Boolean("Harass", "Use in Harras", true)	
+	M.DI.FotM:Info("^.1.-:", "")
+	
+	for _,i in pairs(GetAllyHeroes()) do
+		M.DI.FotM:Boolean("FoT"..GetObjectName(i), "Use On "..GetObjectName(i),true)
+	end
+	
+	M.DI:Menu("HealthP", "Health Potion")
+	M.DI.HealthP:Boolean("HealthPotion", "Use Health Potion", true)
+
+	M.DI:Menu("LotS", "Locket of the Solari")
+	M.DI.LotS:Boolean("LotS", "Use Locket of the Solari", true)
+	M.DI.LotS:Slider("myHeroHP", "my HP to use Face of the mountain <= X ", 70, 1, 100, 5) 
+	M.DI.LotS:Slider("unit", "Enemies Around", 2, 1, 5, 1)
+	M.DI.LotS:Slider("ally", "Allies Around", 2, 1, 5, 1)
+	M.DI.LotS:Boolean("Combo", "Use in Combo", true) 
+	M.DI.LotS:Boolean("Harass", "Use in Harras", true)	
 	
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("UpdateBuff", function(unit, buff) self:UpdateBuff(unit, buff) end)
@@ -2287,6 +2319,7 @@ function Items:Tick()
 	if (_G.IOW or _G.DAC_Loaded) then
 	
 		self:AntiCCx()
+		self:HealthPotion()
 		
 		local Mode = nil
 		local unit = nil
@@ -2300,8 +2333,10 @@ function Items:Tick()
 		
 		if Mode == "Combo" then
 			self:UseCombo(unit)
+			self:FotMC()
 		elseif Mode == "Harass" then
 			self:UseHarass(unit)
+			self:FotMH()
 		elseif Mode == "LaneClear" then
 			self:UseLaneClear()
 			self:UseJungleClear()
@@ -2311,6 +2346,36 @@ function Items:Tick()
 	end
 end	
 
+function Items:FotMC()
+ for _,ally in pairs(GetAllyHeroes()) do
+	if GetItemSlot(myHero,3401) > 0 then
+		if IsReady(GetItemSlot(myHero,3401)) and M.DI.FotM.FotM:Value() and M.DI.FotM.Combo:Value() and GetPercentHP(ally) <= M.DI.FotM.allyHP:Value() and M.DI.FotM["FoT"..GetObjectName(ally)]:Value() then
+			CastTargetSpell(ally, GetItemSlot(myHero,3401))
+		end
+	end
+ end
+end
+
+function Items:FotMH()
+ for _,ally in pairs(GetAllyHeroes()) do
+	if GetItemSlot(myHero,3401) > 0 then
+		if IsReady(GetItemSlot(myHero,3401)) and GetPercentHP(ally) <= M.DI.FotM.allyHP:Value() and M.DI.FotM.FotM:Value() and M.DI.FotM.Harass:Value() and M.DI.FotM["FoT"..GetObjectName(ally)]:Value() then
+			CastTargetSpell(ally, GetItemSlot(myHero,3401))
+		end
+	end
+ end
+end
+
+function Items:HealthPotion()
+ for _,unit in pairs(GetEnemyHeroes()) do
+	if GetItemSlot(myHero,2003) > 0 and ValidTarget(unit, 4500) then
+		if IsReady(GetItemSlot(myHero,2003)) and GetPercentHP(myHero) <= M.DI.Rand.myHeroHP:Value() and M.DI.Rand.Randuins:Value() then
+			CastSpell(GetItemSlot(myHero,2003))
+		end
+	end
+ end
+end
+
 function Items:AntiCCx()
 	if GetItemSlot(myHero,3140) > 0 then
 		if CC and M.DI.QS.QSS:Value() and IsReady(GetItemSlot(myHero,3140)) then
@@ -2318,7 +2383,7 @@ function Items:AntiCCx()
 		end
 	end
 	if GetItemSlot(myHero,3139) > 0 then
-		if CC and M.DI.Sci.Scimital:Value() and IsReady(GetItemSlot(myHero,3139)) then
+		if CC and M.DI.Sci.Scimitar:Value() and IsReady(GetItemSlot(myHero,3139)) then
 			CastSpell(GetItemSlot(myHero,3139))
 		end
 	end
@@ -2372,6 +2437,21 @@ function Items:UseCombo(unit)
 			CastSpell(GetItemSlot(myHero,3142))
 		end
 	end
+	if GetItemSlot(myHero,3143) > 0 then
+		if IsReady(GetItemSlot(myHero,3143)) and GetPercentHP(myHero) <= M.DI.Rand.myHeroHP:Value() and M.DI.Rand.Randuins:Value() and EnemiesAround(GetOrigin(myHero), 500) >= M.DI.Rand.unit:Value() and M.DI.Rand.Combo:Value() then
+			CastSpell(GetItemSlot(myHero,3143))
+		end
+	end
+	if GetItemSlot(myHero,3401) > 0 then
+		if IsReady(GetItemSlot(myHero,3401)) and GetPercentHP(myHero) <= M.DI.FotM.myHeroHP:Value() and M.DI.FotM.FotM:Value() and M.DI.FotM.Combo:Value() then
+			CastTargetSpell(myHero, GetItemSlot(myHero,3401))
+		end
+	end
+	if GetItemSlot(myHero,3190) > 0 then
+		if IsReady(GetItemSlot(myHero,3190)) and GetPercentHP(myHero) <= M.DI.LotS.myHeroHP:Value() and M.DI.LotS.LotS:Value() and EnemiesAround(GetOrigin(myHero), 500) >= M.DI.LotS.unit:Value() and M.DI.LotS.Combo:Value() and AlliesAround(GetOrigin(myHero), 500) >= M.DI.LotS.ally:Value() then
+			CastSpell(GetItemSlot(myHero,3190))
+		end
+	end
 end	
 
 function Items:UseHarass(unit)
@@ -2408,6 +2488,22 @@ function Items:UseHarass(unit)
 	if GetItemSlot(myHero,3142) > 0 then 
 		if IsReady(GetItemSlot(myHero,3142)) and GetPercentHP(myHero) <= M.OI.Yo.myHeroHPYoumus:Value() and M.OI.Yo.Youmus:Value() and GetPercentHP(unit) <= M.OI.Yo.enemyHPYoumus:Value() and GetDistance(unit) <= M.OI.Yo.YoumusRange:Value() and ValidTarget(unit, 1501) and M.OI.Yo.YoumusHarass:Value() then
 			CastSpell(GetItemSlot(myHero,3142))
+		end
+	end
+	if GetItemSlot(myHero,3143) > 0 then
+		if IsReady(GetItemSlot(myHero,3143)) and GetPercentHP(myHero) <= M.DI.Rand.myHeroHP:Value() and M.DI.Rand.Randuins:Value() and EnemiesAround(GetOrigin(myHero), 500) >= M.DI.Rand.unit:Value() and M.DI.Rand.Harass:Value() then
+			CastSpell(GetItemSlot(myHero,3143))
+		end
+	end
+
+	if GetItemSlot(myHero,3401) > 0 then
+		if IsReady(GetItemSlot(myHero,3401)) and GetPercentHP(myHero) <= M.DI.FotM.myHeroHP:Value() and M.DI.FotM.FotM:Value() and M.DI.FotM.Harass:Value() then
+			CastTargetSpell(myHero, GetItemSlot(myHero,3401))
+		end
+	end
+	if GetItemSlot(myHero,3190) > 0 then
+		if IsReady(GetItemSlot(myHero,3190)) and GetPercentHP(myHero) <= M.DI.LotS.myHeroHP:Value() and M.DI.LotS.LotS:Value() and EnemiesAround(GetOrigin(myHero), 500) >= M.DI.LotS.unit:Value() and M.DI.LotS.Harass:Value() and AlliesAround(GetOrigin(myHero), 500) >= M.DI.LotS.ally:Value() then
+			CastSpell(GetItemSlot(myHero,3190))
 		end
 	end
 end	
