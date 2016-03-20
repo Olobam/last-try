@@ -1,4 +1,4 @@
-local SLSeries = 0.06
+local SLSeries = 0.07
 local SLPatchnew, SLPatchold = 6.5, 6.4
 local AutoUpdater = true
 
@@ -94,6 +94,9 @@ Callback.Add("Load", function()
 		if SLS.Loader.U.LS:Value() then
 			Summoners()
 		end
+		if SLS.Loader.U.LRLI:Value() then 
+			Reallifeinfo()
+		end
  	end
 end)    
 
@@ -127,6 +130,8 @@ function Init:__init()
 	L.U:Boolean("LS", "Load Summoners", true)
 	L.U:Info("0.6xc", "")
 	L.U:Boolean("LDraw", "Load Drawings", true)
+	L.U:Info("0.6xc", "")
+	L.U:Boolean("LRLI", "Load Real life info", true)
 	L.U:Info("0.6yc", "")
 	L.U:Info("0.7.", "You will have to press 2f6")
 	L.U:Info("0.8.", "to apply the changes")
@@ -2106,6 +2111,48 @@ function Humanizer:Draw()
 	end
 end
 
+class 'Reallifeinfo'
+
+function Reallifeinfo:__init()
+	SLS:Menu("Date", "|SL| Real life info")
+	SLS.Date:Menu("DDA", "Draw Date")
+	SLS.Date.DDA:Boolean("DrawDate", "Draw Current Date", true)
+	SLS.Date.DDA:Slider("Horizontal", "Horizontal (Drawings)", 1760, 0, GetResolution().x, 10)
+	SLS.Date.DDA:Slider("Vertical", "Vertical (Drawings)", 60, 0, GetResolution().y, 10)
+	SLS.Date.DDA:ColorPick("ColorPick", "Color Pick - Date", {255,226,255,18})
+	SLS.Date:Menu("DD", "Draw Day")
+	SLS.Date.DD:Boolean("DrawDay", "Draw Current Day", true)
+	SLS.Date.DD:Slider("Horizontal", "Horizontal (Drawings)", 1760, 0, GetResolution().x, 10)
+	SLS.Date.DD:Slider("Vertical", "Vertical (Drawings)", 80, 0, GetResolution().y, 10)
+	SLS.Date.DD:ColorPick("ColorPick", "Color Pick - Day", {255,226,255,18})
+	SLS.Date:Menu("DM", "Draw Month")
+	SLS.Date.DM:Boolean("DrawMonth", "Draw Current Month", true)
+	SLS.Date.DM:Slider("Horizontal", "Horizontal (Drawings)", 1760, 0, GetResolution().x, 10)
+	SLS.Date.DM:Slider("Vertical", "Vertical (Drawings)", 100, 0, GetResolution().y, 10)
+	SLS.Date.DM:ColorPick("ColorPick", "Color Pick - Month", {255,226,255,18})
+	SLS.Date:Menu("DY", "Draw Year")
+	SLS.Date.DY:Boolean("DrawYear", "Draw Current Year", true)
+	SLS.Date.DY:Slider("Horizontal", "Horizontal (Drawings)", 1760, 0, GetResolution().x, 10)
+	SLS.Date.DY:Slider("Vertical", "Vertical (Drawings)", 120, 0, GetResolution().y, 10)
+	SLS.Date.DY:ColorPick("ColorPick", "Color Pick - Year", {255,226,255,18})
+	
+	Callback.Add("Draw", function() self:EnableDraw() end)
+end
+
+function Reallifeinfo:EnableDraw()
+	if SLS.Date.DD.DrawDay:Value() then
+		DrawText("Current Day     : "..os.date("%A"), 15, SLS.Date.DD.Horizontal:Value(), SLS.Date.DD.Vertical:Value(), SLS.Date.DD.ColorPick:Value())
+	end
+	if SLS.Date.DDA.DrawDate:Value() then
+		DrawText("Current Date    : "..os.date("%x", os.time()), 15, SLS.Date.DDA.Horizontal:Value(), SLS.Date.DDA.Vertical:Value(), SLS.Date.DDA.ColorPick:Value())
+	end
+	if SLS.Date.DM.DrawMonth:Value() then
+		DrawText("Current Month : "..os.date("%B"), 15, SLS.Date.DM.Horizontal:Value(), SLS.Date.DM.Vertical:Value(), SLS.Date.DM.ColorPick:Value())
+	end
+	if SLS.Date.DY.DrawYear:Value() then
+		DrawText("Current Year   : "..os.date("%Y"), 15, SLS.Date.DY.Horizontal:Value(), SLS.Date.DY.Vertical:Value(), SLS.Date.DY.ColorPick:Value())
+	end
+end
 
 --AutoLevel
 class 'AutoLevel'
