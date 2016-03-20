@@ -1,4 +1,4 @@
-local SLSeries = 0.05
+local SLSeries = 0.06
 local SLPatchnew, SLPatchold = 6.5, 6.4
 local AutoUpdater = true
 
@@ -599,9 +599,11 @@ function Soraka:__init()
 	BM.AW:Slider("allyHP", "AllyHP <= X", 85, 1, 100, 10)
 	BM.AW:Slider("ATRR", "Ally To Enemy Range", 1500, 500, 3000, 10)	
 	
-	for _,i in pairs(GetAllyHeroes()) do
-		BM.AW:Boolean("h"..GetObjectName(i), "Heal "..GetObjectName(i))
-	end
+	DelayAction(function()
+		for _,i in pairs(GetAllyHeroes()) do
+			BM.AW:Boolean("h"..GetObjectName(i), "Heal "..GetObjectName(i))
+		end
+	end, 0.1)
 
 	BM:Menu("AR", "Auto R")
 	BM.AR:Boolean("Enable", "Enable Auto R", true)
@@ -798,7 +800,6 @@ class "Aatrox"
 
 function Aatrox:__init()
 	
-	--OpenPred
 	Aatrox.Spell = { 
 	[0] = { delay = 0.2, range = 650, speed = 1500, radius = 113 },
 	[1] = { range = 0 },
@@ -806,15 +807,13 @@ function Aatrox:__init()
 	[3] = { range = 550 }
 	}
 	
-	--SpellDmg
 	Dmg = {
 	[0] = function (unit) return CalcDamage(myHero, unit, 35 + GetCastLevel(myHero,0)*45 + GetBonusDmg(myHero)*.6, 0) end,
 	[1] = function (unit) return CalcDamage(myHero, unit, 25 + GetCastLevel(myHero,1)*35 + GetBonusDmg(myHero), 0) end,
 	[2] = function (unit) return CalcDamage(myHero, unit, 0, 40 + GetCastLevel(myHero,2)*35 + GetBonusDmg(myHero)*.6 + GetBonusAP(myHero)*.6) end,
 	[3] = function (unit) return CalcDamage(myHero, unit, 0, 100 + GetCastLevel(myHero,3)*100 + GetBonusAP(myHero)) end,
 	}
-	
-	--Menu
+
 	BM:Menu("C", "Combo")
 	BM.C:Boolean("Q", "Use Q", true)
 	BM.C:Boolean("W", "Use W", true)
@@ -844,12 +843,9 @@ function Aatrox:__init()
 	BM.p:Slider("hQ", "HitChance Q", 20, 0, 100, 1)
 	BM.p:Slider("hE", "HitChance E", 20, 0, 100, 1)
 
-	--Callbacks
 	Callback.Add("Tick", function() self:Tick() end)
-	--Callback.Add("Draw", function self:Draw() end)
 	Callback.Add("UpdateBuff", function(unit,buff) self:Stat(unit,buff) end)
 	
-	--Var
 	if GotBuff(myHero, "aatroxwpower") == 1 then
 		self.W = "dmg"
 	else
@@ -880,8 +876,8 @@ function Aatrox:Tick()
 		elseif Mode == "LaneClear" then
 			self:LaneClear()
 			self:JungleClear()
-		elseif Mode == "LastHit" then
-		--	self:LastHit()
+		-- elseif Mode == "LastHit" then
+			-- self:LastHit()
 		elseif Mode == "Harass" then
 			self:Harass(target)
 		else
@@ -1529,12 +1525,11 @@ function Kalista:__init()
 	
 	Kalista.Spell = {
 	[-1] = { delay = .3, speed = math.huge, width = 1, range = 1500},
-	[0] = { delay = 0.25, speed = 2000, width = 50, range = 1200},
+	[0] = { delay = 0.25, speed = 2000, width = 50, range = 1150},
 	[1] = { range = 5000 },
-	[2] = { range = 1200 },
-	[3] = { range = 1200 }
+	[2] = { range = 1000 },
+	[3] = { range = 1500 }
 	}
-	
 	
 	Dmg = {
 	[0] = function (unit) return CalcDamage(myHero, unit, 60 * GetCastLevel(myHero,0) - 50 + GetBonusDmg(myHero), 0) end, 
@@ -1667,14 +1662,14 @@ function Kalista:KS()
 				CastSkillShot(0,Pred.castPos)
 			end
 		end
-		if SReady[2] and ValidTarget(target, 1200) and BM.AE.UseC:Value() and (GetADHP(target) + BM.AE.OK:Value()) < Dmg[2](target) and self.eTrack[GetNetworkID(target)] > 0 then
+		if SReady[2] and ValidTarget(target, 1000) and BM.AE.UseC:Value() and (GetADHP(target) + BM.AE.OK:Value()) < Dmg[2](target) and self.eTrack[GetNetworkID(target)] > 0 then
 			DelayAction(function()
 				CastSpell(2)
-			end, BM.AE.D:Value()/1000)
+			end, BM.AE.D:Value()/100)
 		end
-		if SReady[2] and ValidTarget(target, 1200) and BM.AE.UseL:Value() and self.eTrack[GetNetworkID(target)] then
+		if SReady[2] and ValidTarget(target, 1100) and BM.AE.UseL:Value() and self.eTrack[GetNetworkID(target)] then
 			local Pred = GetPrediction(target,self.Spell[-1])
-			if GetDistance(Pred.castPos,GetOrigin(myHero))>1200 then
+			if GetDistance(Pred.castPos,GetOrigin(myHero))>999 then
 				CastSpell(2)
 			end
 		end
@@ -1789,39 +1784,39 @@ function Kindred:__init()
 	self.Mode = nil
 	self.target = nil
 
-BM:Menu("Combo", "Combo")
-BM.Combo:Boolean("Q", "Use Q", true)
-BM.Combo:Boolean("W", "Use W", true)
-BM.Combo:Boolean("E", "Use E", true)
-BM.Combo:Boolean("QE", "Gapcloser", true)
+	BM:Menu("Combo", "Combo")
+	BM.Combo:Boolean("Q", "Use Q", true)
+	BM.Combo:Boolean("W", "Use W", true)
+	BM.Combo:Boolean("E", "Use E", true)
+	BM.Combo:Boolean("QE", "Gapcloser", true)
 
-BM:Menu("JunglerClear", "JunglerClear")
-BM.JunglerClear:Boolean("Q", "Use Q", true)
-BM.JunglerClear:Boolean("W", "Use W", true)
-BM.JunglerClear:Boolean("E", "Use E", true)
-BM.JunglerClear:Slider("MM", "Mana manager", 50, 1, 100)
+	BM:Menu("JunglerClear", "JunglerClear")
+	BM.JunglerClear:Boolean("Q", "Use Q", true)
+	BM.JunglerClear:Boolean("W", "Use W", true)
+	BM.JunglerClear:Boolean("E", "Use E", true)
+	BM.JunglerClear:Slider("MM", "Mana manager", 50, 1, 100)
 
-BM:Menu("LaneClear", "LaneClear")
-BM.LaneClear:Boolean("Q", "Use Q", true)
-BM.LaneClear:Boolean("W", "Use W", true)
-BM.LaneClear:Boolean("E", "Use E", true)
-BM.LaneClear:Slider("MM", "Mana manager", 50, 1, 100)
+	BM:Menu("LaneClear", "LaneClear")
+	BM.LaneClear:Boolean("Q", "Use Q", true)
+	BM.LaneClear:Boolean("W", "Use W", true)
+	BM.LaneClear:Boolean("E", "Use E", true)
+	BM.LaneClear:Slider("MM", "Mana manager", 50, 1, 100)
 
-BM:Menu("Misc", "Misc")
-BM.Misc:Boolean("B", "Buy Farsight", true)
-BM.Misc:KeyBinding("FQ", "Flash-Q", string.byte("T"))
-BM.Misc:Key("WP", "Jumps", string.byte("G"))
+	BM:Menu("Misc", "Misc")
+	BM.Misc:Boolean("B", "Buy Farsight", true)
+	BM.Misc:KeyBinding("FQ", "Flash-Q", string.byte("T"))
+	BM.Misc:Key("WP", "Jumps", string.byte("G"))
 
-BM:Menu("ROptions", "R Options")
-BM.ROptions:Boolean("R", "Use R?", true)
-BM.ROptions:Slider("EA", "Enemies around", 3, 1, 5)
-BM.ROptions:Boolean("RU", "Use R on urself", true)
+	BM:Menu("ROptions", "R Options")
+	BM.ROptions:Boolean("R", "Use R?", true)
+	BM.ROptions:Slider("EA", "Enemies around", 3, 1, 5)
+	BM.ROptions:Boolean("RU", "Use R on urself", true)
 
-BM:Menu("QOptions", "Q Options")
-BM.QOptions:Boolean("QC", "AA reset Combo", true)
-BM.QOptions:Boolean("QL", "AA reset LaneClear", true)
-BM.QOptions:Boolean("QJ", "AA reset JunglerClear", true)
-BM.QOptions:Boolean("C", "Cancel animation?", false)
+	BM:Menu("QOptions", "Q Options")
+	BM.QOptions:Boolean("QC", "AA reset Combo", true)
+	BM.QOptions:Boolean("QL", "AA reset LaneClear", true)
+	BM.QOptions:Boolean("QJ", "AA reset JunglerClear", true)
+	BM.QOptions:Boolean("C", "Cancel animation?", false)
 
 	DelayAction(function()
 		for i, allies in pairs(GetAllyHeroes()) do
@@ -1835,7 +1830,6 @@ function Kindred:Tick()
 		if (_G.IOW or _G.DAC_Loaded) then
 	
 			GetReady()
-			
 			self.target = GetCurrentTarget()
 			if _G.DAC_Loaded then 
 				self.Mode = DAC:Mode()
@@ -1848,7 +1842,7 @@ function Kindred:Tick()
 		elseif self.Mode == "LaneClear" then
 			self:LaneClear()
 		end
-	
+
 		self:AutoR()
 		if BM.Misc.FQ:Value() then
 			if SReady[0] and Ready(Flash) and BM.Combo.Q:Value() then  
@@ -2042,11 +2036,11 @@ self.lastspell = 0
 	SLS.Hum.ML:Slider("combo", "Max. Movements in Combo", 8, 1, 20, 1)
 	SLS.Hum.ML:Slider("perm", "Persistant Max. Movements", 7, 1, 20, 1)
 	SLS.Hum:Menu("SPC", "SpellCast Limiter")
-	SLS.Hum.SPC:Slider("blhit", "Max. Spells in LastHit", 4, 1, 8, 1)
-	SLS.Hum.SPC:Slider("blclear", "Max. Spells in LaneClear", 4, 1, 8, 1)
-	SLS.Hum.SPC:Slider("bharass", "Max. Spells in Harass", 4, 1, 8, 1)
-	SLS.Hum.SPC:Slider("bcombo", "Max. Spells in Combo", 4, 1, 8, 1)
-	SLS.Hum.SPC:Slider("bperm", "Persistant Max. Spells", 4, 1, 8, 1)
+	SLS.Hum.SPC:Slider("blhit", "Max. Spells in LastHit", 1, 1, 8, 1)
+	SLS.Hum.SPC:Slider("blclear", "Max. Spells in LaneClear", 1, 1, 8, 1)
+	SLS.Hum.SPC:Slider("bharass", "Max. Spells in Harass", 2, 1, 8, 1)
+	SLS.Hum.SPC:Slider("bcombo", "Max. Spells in Combo", 3, 1, 8, 1)
+	SLS.Hum.SPC:Slider("bperm", "Persistant Max. Spells", 2, 1, 8, 1)
 	
  Callback.Add("IssueOrder", function(order) self:IssueOrder(order) end)
  Callback.Add("SpellCast", function(spell) self:SpellCast(spell) end)
@@ -2257,9 +2251,11 @@ function Items:__init()
 	M.DI.Mik:Boolean("OnAlly", "Use On Ally", true)
 	M.DI.Mik:Info("^.-:", "")
 	
-	for _,i in pairs(GetAllyHeroes()) do
-		M.DI.Mik:Boolean("Mika"..GetObjectName(i), "Qss "..GetObjectName(i),true)
-	end
+	DelayAction(function()
+		for _,i in pairs(GetAllyHeroes()) do
+			M.DI.Mik:Boolean("Mika"..GetObjectName(i), "Qss "..GetObjectName(i),true)
+		end
+	end, 0.1)
 	
 	M.DI:Menu("Rand", "Randuins Omen")
 	M.DI.Rand:Boolean("Randuins", "Use Randuins Omen", true)
@@ -2276,12 +2272,15 @@ function Items:__init()
 	M.DI.FotM:Boolean("Harass", "Use in Harras", true)	
 	M.DI.FotM:Info("^.1.-:", "")
 	
-	for _,i in pairs(GetAllyHeroes()) do
-		M.DI.FotM:Boolean("FoT"..GetObjectName(i), "Use On "..GetObjectName(i),true)
-	end
+	DelayAction(function()
+		for _,i in pairs(GetAllyHeroes()) do
+			M.DI.FotM:Boolean("FoT"..GetObjectName(i), "Use On "..GetObjectName(i),true)
+		end
+	end, 0.1)
 	
 	M.DI:Menu("HealthP", "Health Potion")
 	M.DI.HealthP:Boolean("HealthPotion", "Use Health Potion", true)
+	M.DI.HealthP:Slider("myHeroHP", "my HP to use Health Potion <= X ", 35, 1, 100, 5) 
 
 	M.DI:Menu("LotS", "Locket of the Solari")
 	M.DI.LotS:Boolean("LotS", "Use Locket of the Solari", true)
@@ -2306,13 +2305,11 @@ function Items:Tick()
 		self:HealthPotion()
 		
 		local Mode = nil
-		local unit = nil
+		local unit = GetCurrentTarget()
 		if _G.DAC_Loaded then 
 			Mode = DAC:Mode()
-			unit = DAC:GetTarget() 
 		elseif _G.IOW then
 			Mode = IOW:Mode()
-			unit = GetCurrentTarget()
 		end
 		
 		if Mode == "Combo" then
@@ -2353,7 +2350,7 @@ end
 function Items:HealthPotion()
  for _,unit in pairs(GetEnemyHeroes()) do
 	if GetItemSlot(myHero,2003) > 0 and ValidTarget(unit, 4500) then
-		if IsReady(GetItemSlot(myHero,2003)) and GetPercentHP(myHero) <= M.DI.Rand.myHeroHP:Value() and M.DI.Rand.Randuins:Value() then
+		if IsReady(GetItemSlot(myHero,2003)) and GetPercentHP(myHero) <= M.DI.HealthP.myHeroHP:Value() and M.DI.HealthP.HealthPotion:Value() then
 			CastSpell(GetItemSlot(myHero,2003))
 		end
 	end
