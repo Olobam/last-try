@@ -608,7 +608,7 @@ function Soraka:__init()
 		for _,i in pairs(GetAllyHeroes()) do
 			BM.AW:Boolean("h"..GetObjectName(i), "Heal "..GetObjectName(i))
 		end
-	end, 0.1)
+	end, .001)
 
 	BM:Menu("AR", "Auto R")
 	BM.AR:Boolean("Enable", "Enable Auto R", true)
@@ -1670,7 +1670,7 @@ function Kalista:KS()
 		if SReady[2] and ValidTarget(target, 1000) and BM.AE.UseC:Value() and (GetADHP(target) + BM.AE.OK:Value()) < Dmg[2](target) and self.eTrack[GetNetworkID(target)] > 0 then
 			DelayAction(function()
 				CastSpell(2)
-			end, BM.AE.D:Value()/100)
+			end, BM.AE.D:Value()*.01)
 		end
 		if SReady[2] and ValidTarget(target, 1100) and BM.AE.UseL:Value() and self.eTrack[GetNetworkID(target)] then
 			local Pred = GetPrediction(target,self.Spell[-1])
@@ -1742,7 +1742,7 @@ function Kalista:WallJump()
 					CastSkillShot(0,wallEnd)
 					DelayAction(function()
 						MoveToXYZ(mou)
-					end, 0.001)
+					end, .001)
 				end
 			end
 		end
@@ -1827,7 +1827,7 @@ function Kindred:__init()
 		for i, allies in pairs(GetAllyHeroes()) do
 			BM.ROptions:Boolean("Pleb"..GetObjectName(allies), "Use R on "..GetObjectName(allies), true)
 		end
-	end, 0.1)
+	end, 0.001)
 end
 
 function Kindred:Tick()
@@ -1957,7 +1957,7 @@ end
 
 function Kindred:OnProc(unit, spell)
 	if unit == myHero and spell.name == "KindredQ" and BM.QOptions.C:Value() then
-		DelayAction(function() CastEmote(EMOTE_DANCE) end, 0.1)
+		DelayAction(function() CastEmote(EMOTE_DANCE) end, .001)
 	end
 end
 
@@ -2180,7 +2180,7 @@ end
 function AutoLevel:Do()
 	if SLS.AL.aL:Value() and GetLevelPoints(myHero) >= 1 and GetLevel(myHero) >= SLS.AL.sL:Value() then
 		if SLS.AL.hL:Value() then
-			DelayAction(function() LevelSpell(self.lTable[SLS.AL.aLS:Value()][GetLevel(myHero)-GetLevelPoints(myHero)+1]) end, math.random(1,3000))
+			DelayAction(function() LevelSpell(self.lTable[SLS.AL.aLS:Value()][GetLevel(myHero)-GetLevelPoints(myHero)+1]) end, math.random(500,750))
 		else
 			LevelSpell(self.lTable[SLS.AL.aLS:Value()][GetLevel(myHero)-GetLevelPoints(myHero)+1])
 		end
@@ -2302,7 +2302,7 @@ function Items:__init()
 		for _,i in pairs(GetAllyHeroes()) do
 			M.DI.Mik:Boolean("Mika"..GetObjectName(i), "Qss "..GetObjectName(i),true)
 		end
-	end, 0.1)
+	end, .001)
 	
 	M.DI:Menu("Rand", "Randuins Omen")
 	M.DI.Rand:Boolean("Randuins", "Use Randuins Omen", true)
@@ -2323,7 +2323,7 @@ function Items:__init()
 		for _,i in pairs(GetAllyHeroes()) do
 			M.DI.FotM:Boolean("FoT"..GetObjectName(i), "Use On "..GetObjectName(i),true)
 		end
-	end, 0.1)
+	end, .001)
 	
 	M.DI:Menu("HealthP", "Health Potion")
 	M.DI.HealthP:Boolean("HealthPotion", "Use Health Potion", true)
@@ -2780,7 +2780,7 @@ function DmgDraw:__init()
 		end
 		Callback.Add("Tick", function() self:Set() end)
 		Callback.Add("Draw", function() self:Draw() end)
-	end, 0.001)
+	end, .001)
 end
 
 function DmgDraw:Set()
@@ -3449,7 +3449,7 @@ self.s = {
           end
         end
 	Callback.Add("ProcessSpell", function(unit, spellProc) self:Detect(unit, spellProc) end)
-    end, 0.001)
+    end, .001)
  
     self.multi = 2
     self.fT = .75
