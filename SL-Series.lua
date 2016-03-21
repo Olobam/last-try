@@ -1085,7 +1085,7 @@ end
 
 
 function Velkoz:Tick()
-	if myHero.dead then return end
+	if myHero.dead then or self.rCast return end
 	
 	GetReady()
 	
@@ -1220,8 +1220,12 @@ function Velkoz:UpdateBuff(unit,buffProc)
 		self.ccTrack[GetObjectName(unit)] = true
 		self.rTime = buffProc.ExpireTime
 	elseif unit == myHero and buffProc.Name:lower() == "VelkozR" then
-		IOW.movementEnabled = false
-		IOW.attacksEnabled = false
+		if 	_G.DAC_Loaded then 
+			DAC:OrbwalkerEnabled(false) 
+		else
+			IOW.movementEnabled = false
+			IOW.attacksEnabled = false
+		end
 		self.rCast = true
 	end
 end
@@ -1230,8 +1234,12 @@ function Velkoz:RemoveBuff(unit,buffProc)
 	if unit ~= myHero and (buffProc.Type == 29 or buffProc.Type == 11 or buffProc.Type == 24 or buffProc.Type == 30) then 
 		self.ccTrack[GetObjectName(unit)] = false
 	elseif unit == myHero and buffProc.Name:lower() == "VelkozR" then
-		IOW.movementEnabled = true
-		IOW.attacksEnabled = true
+		if 	_G.DAC_Loaded then 
+			DAC:OrbwalkerEnabled(true) 
+		else
+			IOW.movementEnabled = true
+			IOW.attacksEnabled = true
+		end
 		self.rCast = false
 	end
 end
