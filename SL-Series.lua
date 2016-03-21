@@ -415,6 +415,7 @@ function Blitzcrank:__init()
 	BM.JC:Boolean("R", "Use R", true)
 	
 	BM:Menu("KS", "Killsteal")
+	BM.KS:Boolean("Enable","Enable KS", true)
 	BM.KS:Boolean("Q", "Use Q", true)
 	BM.KS:Boolean("R", "Use R", true)
 	
