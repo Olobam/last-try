@@ -1779,7 +1779,6 @@ function Nasus:__init()
 	BM.c:Boolean("Q", "Use Q", true)
 	BM.c:Boolean("QP", "Use HP Pred for Q", true)
 	BM.c:Slider("QDM", "Q DMG mod", 0, -10, 10, 1)
-	BM.c:Boolean("dQ", "Draw Q on creeps", true)
 	BM.c:Boolean("W", "Use W", true)
 	BM.c:Slider("WHP", "Use W at %HP", 20, 1, 100, 1)
 	BM.c:Boolean("E", "Use E", true)
@@ -1787,10 +1786,9 @@ function Nasus:__init()
 	BM.c:Slider("RHP", "Use R at %HP", 20, 1, 100, 1)
 
 	BM:SubMenu("f", "Farm")
-	BM.f:Boolean("QLC", "Use Q in LaneClear", true)
-	BM.f:Boolean("QLH", "Use Q in LastHit", true)
-	BM.f:Boolean("QA", "Always use Q", true)
-
+	BM.f:DropDown("QM", "Auto Q in" ,1 , {"Always" , "Laneclear", "LastHit"})
+	BM.f:Boolean("dQ", "Draw Q on creeps", true)
+	
 	BM:SubMenu("ks", "Killsteal")
 	BM.ks:Boolean("KSQ","Killsteal with Q", true)
 	BM.ks:Boolean("KSE","Killsteal with E", true)
@@ -1835,9 +1833,9 @@ function Nasus:Tick()
 end
 
 function Nasus:Draw()
-	if myHero.dead or not BM.c.dQ:Value() then return end
+	if myHero.dead or not BM.f.dQ:Value() then return end
 	for _, creep in pairs(minionManager.objects) do
-		if Nasus:ValidCreep(creep,1000) then DrawText(math.floor(CalcDamage(myHero,creep,self.qDmg,0)),10,WorldToScreen(0,GetOrigin(creep)).x,WorldToScreen(0,GetOrigin(creep)).y,GoS.White) end
+		--if Nasus:ValidCreep(creep,1000) then DrawText(math.floor(CalcDamage(myHero,creep,self.qDmg,0)),10,WorldToScreen(0,GetOrigin(creep)).x,WorldToScreen(0,GetOrigin(creep)).y,GoS.White) end
 		if Nasus:ValidCreep(creep,1000) and GetCurrentHP(creep)<CalcDamage(myHero,creep,self.qDmg,0) then
 			DrawCircle(GetOrigin(creep),50,0,3,GoS.Red)
 		end
@@ -1863,7 +1861,8 @@ function Nasus:Combo(unit)
 end
 
 function Nasus:Farm()
-	if (SReady[0] or CanUseSpell(myHero,0) == 8) and ((BM.f.QLC:Value() and IOW:Mode() == "LaneClear") or (BM.f.QLH:Value() and IOW:Mode() == "LastHit") or (BM.f.QA:Value() and IOW:Mode() ~= "Combo")) then
+	local mod = BM.f.QM:Value()
+	if (SReady[0] or CanUseSpell(myHero,0) == 8) and ((mod == 2 and IOW:Mode() == "LaneClear") or (mod == 3 and IOW:Mode() == "LastHit") or (mod == 1 and IOW:Mode() ~= "Combo")) then
 		for _, creep in pairs(minionManager.objects) do
 			if Nasus:ValidCreep(creep, self.Spell[0].range) and GetCurrentHP(creep)<self.qDmg*2 and ((GetHealthPrediction(creep, GetWindUp(myHero))<CalcDamage(myHero, creep, self.qDmg, 0) and BM.c.QP:Value()) or (GetCurrentHP(creep)<CalcDamage(myHero, creep, self.qDmg, 0) and not BM.c.QP:Value())) then
 				CastSpell(0)
@@ -1909,6 +1908,8 @@ function Nasus:ValidCreep(creep, range)
 		return false
 	end
 end
+
+
 
 -- _  ___           _              _ 
 --| |/ (_)_ __   __| |_ __ ___  __| |
