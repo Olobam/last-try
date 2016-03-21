@@ -1085,7 +1085,7 @@ end
 
 
 function Velkoz:Tick()
-	if myHero.dead then or self.rCast return end
+	if myHero.dead or self.rCast then return end
 	
 	GetReady()
 	
