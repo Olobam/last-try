@@ -1,4 +1,4 @@
-local SLSeries = 0.07
+local SLSeries = 0.08
 local SLPatchnew, SLPatchold = 6.5, 6.4
 local AutoUpdater = true
 
@@ -2163,6 +2163,8 @@ function AutoLevel:__init()
 	SLS.AL:DropDown("aLS", "AutoLvL", 1, {"Q-W-E","Q-E-W","W-Q-E","W-E-Q","E-Q-W","E-W-Q"})
 	SLS.AL:Slider("sL", "Start AutoLvl with LvL x", 4, 1, 18, 1)
 	SLS.AL:Boolean("hL", "Humanize LvLUP", true)
+	SLS.AL:Slider("hT", "Humanize min delay", .5, 0, 1, .1)
+	SLS.AL:Slider("hF", "Humanize time frame", .2, 0, .5, .1)
 	
 	--AutoLvl
 	self.lTable={
@@ -2180,7 +2182,7 @@ end
 function AutoLevel:Do()
 	if SLS.AL.aL:Value() and GetLevelPoints(myHero) >= 1 and GetLevel(myHero) >= SLS.AL.sL:Value() then
 		if SLS.AL.hL:Value() then
-			DelayAction(function() LevelSpell(self.lTable[SLS.AL.aLS:Value()][GetLevel(myHero)-GetLevelPoints(myHero)+1]) end, math.random(500,750))
+			DelayAction(function() LevelSpell(self.lTable[SLS.AL.aLS:Value()][GetLevel(myHero)-GetLevelPoints(myHero)+1]) end, math.random(SLS.AL.hT:Value(),SLS.AL.hT:Value()+SLS.AL.hF:Value()))
 		else
 			LevelSpell(self.lTable[SLS.AL.aLS:Value()][GetLevel(myHero)-GetLevelPoints(myHero)+1])
 		end
