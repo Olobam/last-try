@@ -15,6 +15,8 @@ local SLSChamps = {
 	["Jinx"] = true,
 	["Aatrox"] = true,
 	["Kindred"] = true,
+	["Nocturne"] = true,
+	["Sivir"] = true,
 }
 
 local Name = GetMyHero()
@@ -54,10 +56,19 @@ Callback.Add("Load", function()
 		if SLS.Loader.U.LDraw:Value() then
 			Drawings()
 		end
+	end
+	if SLSChamps[ChampName] and ChampName ~= "Sivir" and ChampName ~= "Nocturne" then
 		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> Loaded! </b></font>")
-	elseif not SLSChamps[ChampName] then  
+	elseif not SLSChamps[ChampName] and ChampName ~= "Sivir" and ChampName ~= "Nocturne" then  
 		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> is not Supported </b></font>")
 		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#F2EE00\">Utility Loaded </b></font>")
+	end
+	if ChampName == "Sivir" then
+		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> is not Supported </b></font>")
+		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#F2EE00\">Utility Loaded - SpellBlock loaded </b></font>")
+	elseif ChampName == "Nocturne" then
+		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> is not Supported !</b></font>")
+		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#F2EE00\">Utility Loaded - SpellBlock loaded </b></font>")
 	end
 	if SLS.Loader.LU:Value() then
 	
@@ -774,6 +785,31 @@ function Soraka:AutoR()
 		    CastSpell(3)
 		end
 	end
+end
+
+
+class 'Sivir'
+
+function Sivir:__init()
+ HitMe()
+end
+
+function Sivir:HitMe(unit,pos,dt,ty)
+ DelayAction( function() 
+  CastSpell(2)
+ end,dt)
+end
+
+class 'Nocturne'
+
+function Nocturne:__init()
+ HitMe()
+end
+
+function Nocturne:HitMe(unit,pos,dt,ty)
+ DelayAction( function() 
+  CastSpell(1)
+ end,dt)
 end
 
 --[[
