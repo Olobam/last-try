@@ -23,7 +23,7 @@ local SLSChamps = {
 	-- ["Nami"] = true,
 	-- ["Corki"] = true,
 	-- ["KogMaw"] = true,
-	-- ["Nasus"] = true,
+	["Nasus"] = true,
 	["Jinx"] = true,
 	["Aatrox"] = true,
 	["Kindred"] = true,
@@ -1749,6 +1749,173 @@ function Kalista:WallJump()
 	end
 end
 
+--  _   _                     
+-- | \ | | __ _ ___ _   _ ___ 
+-- |  \| |/ _` / __| | | / __|
+-- | |\  | (_| \__ \ |_| \__ \
+-- |_| \_|\__,_|___/\__,_|___/
+--                            
+
+
+class 'Nasus'
+
+function Nasus:__init()
+	
+	Dmg = {
+		[0] = function (unit) return CalcDamage(myHero, unit, self.qDmg, 0) end,
+		[2] = function (unit) return CalcDamage(myHero, unit, 0, 40 * GetCastLevel(myHero,2) + 15 + GetBonusAP(myHero) * .6) end,
+		[3] = function (unit) return CalcDamage(myHero, unit, 0, math.min((.02 * GetCastLevel(myHero,3) + .01) * GetMaxHP(unit)),240) end,
+	}
+
+
+	Nasus.Spell = {
+		[0] = { delay = 0.3, range = 250},
+		[1] = { delay = .2, range = 600 },
+		[2] = { delay = .1, speed = math.huge, range = 650, radius = 395},
+		[3] = { range = 200 }
+	}
+	
+	BM:SubMenu("c", "Combo")
+	BM.c:Boolean("Q", "Use Q", true)
+	BM.c:Boolean("QP", "Use HP Pred for Q", true)
+	BM.c:Slider("QDM", "Q DMG mod", 0, -10, 10, 1)
+	BM.c:Boolean("dQ", "Draw Q on creeps", true)
+	BM.c:Boolean("W", "Use W", true)
+	BM.c:Slider("WHP", "Use W at %HP", 20, 1, 100, 1)
+	BM.c:Boolean("E", "Use E", true)
+	BM.c:Boolean("R", "Use R", true)
+	BM.c:Slider("RHP", "Use R at %HP", 20, 1, 100, 1)
+
+	BM:SubMenu("f", "Farm")
+	BM.f:Boolean("QLC", "Use Q in LaneClear", true)
+	BM.f:Boolean("QLH", "Use Q in LastHit", true)
+	BM.f:Boolean("QA", "Always use Q", true)
+
+	BM:SubMenu("ks", "Killsteal")
+	BM.ks:Boolean("KSQ","Killsteal with Q", true)
+	BM.ks:Boolean("KSE","Killsteal with E", true)
+
+
+--Var
+	self.qDmg = 0
+	self.Stacks = GetBuffData(myHero, "NasusQStacks").Stacks
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("Draw", function() self:Draw() end)
+end
+
+-- Start
+function Nasus:Tick()
+	if myHero.dead then return end
+	
+	if (_G.IOW or _G.DAC_Loaded) then
+		
+		GetReady()
+		self.qDmg = self:getQdmg()
+		self:KS()
+		self:Farm()
+		local Mode = nil
+		local target = GetCurrentTarget()
+		if _G.DAC_Loaded then 
+			Mode = DAC:Mode()
+		elseif _G.IOW then
+			Mode = IOW:Mode()
+		end
+
+	    if Mode == "Combo" then
+			self:Combo(target)
+		elseif Mode == "LaneClear" then
+		--	self:LaneClear()
+		--	self:JungleClear()
+		elseif Mode == "Harass" then
+			self:Harass(target)
+		else
+			return
+		end
+	end
+end
+
+function Nasus:Draw()
+	if myHero.dead or not BM.c.dQ:Value() then return end
+	for _, creep in pairs(minionManager.objects) do
+		if Nasus:ValidCreep(creep,1000) then DrawText(math.floor(CalcDamage(myHero,creep,self.qDmg,0)),10,WorldToScreen(0,GetOrigin(creep)).x,WorldToScreen(0,GetOrigin(creep)).y,GoS.White) end
+		if Nasus:ValidCreep(creep,1000) and GetCurrentHP(creep)<CalcDamage(myHero,creep,self.qDmg,0) then
+			DrawCircle(GetOrigin(creep),50,0,3,GoS.Red)
+		end
+	end
+end
+
+
+
+function Nasus:Combo(unit)
+	if BM.c.Q:Value() and SReady[0] and ValidTarget(unit, self.Spell[0].range) then
+		CastSpell(0)
+		AttackUnit(unit)
+	end
+	if SReady[1] and BM.c.W:Value() and ValidTarget(unit, self.Spell[1].range) and GetPercentHP(unit) < BM.c.WHP:Value() then
+		CastTargetSpell(unit,1)
+	end		
+	if SReady[2] and BM.c.E:Value() and ValidTarget(unit, self.Spell[2].range) then
+		local EPred=GetCircularAOEPrediction(unit, self.Spell[2])
+		if EPred and EPred.hitChance >= 0.2 then
+			CastSkillShot(2,EPred.castPos)
+		end
+	end				
+end
+
+function Nasus:Farm()
+	if (SReady[0] or CanUseSpell(myHero,0) == 8) and ((BM.f.QLC:Value() and IOW:Mode() == "LaneClear") or (BM.f.QLH:Value() and IOW:Mode() == "LastHit") or (BM.f.QA:Value() and IOW:Mode() ~= "Combo")) then
+		for _, creep in pairs(minionManager.objects) do
+			if Nasus:ValidCreep(creep, self.Spell[0].range) and GetCurrentHP(creep)<self.qDmg*2 and ((GetHealthPrediction(creep, GetWindUp(myHero))<CalcDamage(myHero, creep, self.qDmg, 0) and BM.c.QP:Value()) or (GetCurrentHP(creep)<CalcDamage(myHero, creep, self.qDmg, 0) and not BM.c.QP:Value())) then
+				CastSpell(0)
+				AttackUnit(creep)
+				break
+			end
+		end
+	end
+end
+
+function Nasus:KS()
+	if SReady[3] and BM.c.R:Value() and ValidTarget(unit, 1075) and GetPercentHP(myHero) < BM.c.RHP:Value() then
+		CastSpell(3)
+	end
+	for i,unit in pairs(GetEnemyHeroes()) do
+		if BM.ks.KSQ:Value() and Ready(0) and ValidTarget(unit, self.Spell[0].range) and GetCurrentHP(unit)+GetDmgShield(unit)+GetMagicShield(unit) < CalcDamage(myHero, unit, self.qDmg, 0) then
+			CastSpell(0)
+			AttackUnit(unit)
+		end
+		if BM.ks.KSE:Value() and Ready(_E) and ValidTarget(unit,self.Spell[2].range) and GetCurrentHP(unit)+GetDmgShield(unit)+GetMagicShield(unit) <  CalcDamage(myHero, unit, 0, 15+40*GetCastLevel(myHero,_E)+GetBonusAP(myHero)*6) then 
+			local NasusE=GetCircularAOEPrediction(unit, self.Spell[2])
+			if EPred and EPred.hitChance >= .2 then
+				CastSkillShot(_E,EPred.castPos)
+			end
+		end
+	end
+end
+
+function Nasus:getQdmg()
+	local base = 10 + 20*GetCastLevel(myHero,0) + GetBaseDamage(myHero) + GetBuffData(myHero, "NasusQStacks").Stacks + BM.c.QDM:Value()
+	if 		(Ready(GetItemSlot(myHero,3078))) and GetItemSlot(myHero,3078)>0 then base = base + GetBaseDamage(myHero)*2 
+	elseif 	(Ready(GetItemSlot(myHero,3057))) and GetItemSlot(myHero,3057)>0 then base = base + GetBaseDamage(myHero)
+	elseif 	(Ready(GetItemSlot(myHero,3057))) and GetItemSlot(myHero,3025)>0 then base = base + GetBaseDamage(myHero)*1.25 
+	end
+	return base
+end
+
+
+function Nasus:ValidCreep(creep, range)
+	if creep and not IsDead(creep) and GetTeam(creep) ~= MINION_ALLY and IsTargetable(creep) and GetDistance(GetOrigin(myHero), GetOrigin(creep)) < range then
+		return true
+	else 
+		return false
+	end
+end
+
+-- _  ___           _              _ 
+--| |/ (_)_ __   __| |_ __ ___  __| |
+--| ' /| | '_ \ / _` | '__/ _ \/ _` |
+--| . \| | | | | (_| | | |  __/ (_| |
+--|_|\_\_|_| |_|\__,_|_|  \___|\__,_|
+--  
 
 class "Kindred"
 
