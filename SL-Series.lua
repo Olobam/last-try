@@ -3,33 +3,19 @@ local SLPatchnew, SLPatchold = 6.5, 6.4
 local AutoUpdater = true
 
 require 'Inspired'
-require 'OpenPredict'	--SpellShield/HG
+require 'OpenPredict'
 
 local SLSChamps = {	
 	["Vayne"] = true,
-	-- ["Garen"] = true,
 	["Soraka"] = true,
-	-- ["DrMundo"] = true,
 	["Blitzcrank"] = true,
-	-- ["Leona"] = true,
-	-- ["Ezreal"] = true,
-	-- ["Lux"] = true,
-	-- ["Rumble"] = true,
-	-- ["Swain"] = true,
-	-- ["Thresh"] = true,
 	["Kalista"] = true,
 	["Velkoz"] = true,
-	-- ["Poppy"] = true,
-	-- ["Nami"] = true,
-	-- ["Corki"] = true,
-	-- ["KogMaw"] = true,
 	["Nasus"] = true,
 	["Jinx"] = true,
 	["Aatrox"] = true,
 	["Kindred"] = true,
 }
-
---Variables
 
 local Name = GetMyHero()
 local ChampName = myHero.charName
@@ -41,7 +27,6 @@ local SReady = {
 	[3] = false,
 }
 
---Functions
 local function GetADHP(unit)
 	return GetCurrentHP(unit) + GetDmgShield(unit)
 end
@@ -60,7 +45,7 @@ local function GetReady()
 	end
 end
 
--- Load
+
 Callback.Add("Load", function()	
 	Update()
 	Init()
