@@ -1,5 +1,5 @@
 local SLUtility = 0.01
-local SLUPatchnew, SLUPatchold = 6.5, 6.4
+local SLUPatchnew, SLUPatchold = 6.6, 6.5
 local AutoUpdater = true
 
 
