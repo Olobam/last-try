@@ -80,6 +80,9 @@ Callback.Add("Load", function()
 	if SLS.Loader.LS:Value() then
 		Summoners()
 	end
+	if SLS.Loader.LRS:Value() then
+		Recommend()
+	end
 end)    
 
 class 'Init'
@@ -102,6 +105,8 @@ function Init:__init()
 	L:Info("0.6xc", "")
 	L:Boolean("LDraw", "Load Drawings", true)
 	L:Info("0.6xc", "")
+	L:Boolean("LRS", "Load Recommended Scripts",true)
+	L:Info("xxx", "")
 	L:Info("0.7.", "You will have to press 2f6")
 	L:Info("0.8.", "to apply the changes")
 	
@@ -123,6 +128,31 @@ function Init:__init()
 	
 	if MapPositionGOS[ChampName] == true and FileExist(COMMON_PATH .. "MapPositionGOS.lua") then
 		require 'MapPositionGOS'
+	end
+end
+
+class 'Recommend'
+
+function Recommend:__init()
+
+	self.RecommendedUtility = {
+	[1] = {Name = "Radar Hack", Link = "https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/RadarHack.lua", Author = "Noddy", File = "RadarHack"},
+	[2] = {Name = "Recall Tracker", Link = "https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/RecallTracker.lua", Author = "Noddy", File = "RecallTracker"}
+	}
+	self.Reload = false
+	SLS:Menu("Re","Recommended Scripts")
+	for n,i in pairs(self.RecommendedUtility) do
+		SLS.Re:Boolean("S"..n,"Load "..i.Name.." ["..i.Author.."]", false)
+	end
+	SLS.Re:Info("xxx","2x F6 after download")
+	
+	for n,i in pairs(self.RecommendedUtility) do
+		if SLS.Re["S"..n]:Value() and not pcall (require, i.File) then
+			DownloadFileAsync(i.Link,SCRIPT_PATH .. i.File..".lua", function() print("|SL| Downloaded "..i.Name.." from "..i.Author.." succesfully.") end)
+			self.Reload = true
+		elseif SLS.Re["S"..n]:Value() and FileExist(SCRIPT_PATH .. i.File .. ".lua") then
+			require(i.File)
+		end
 	end
 end
 	
