@@ -1,4 +1,4 @@
-local SLUtility = 0.01
+local SLUtility = 0.02
 local SLUPatchnew, SLUPatchold = 6.6, 6.5
 local AutoUpdater = true
 
@@ -258,15 +258,15 @@ function AutoUpdate:__init()
 		if tonumber(data) > SLUtility then
 			self.webV = data
 			self.State = "|SL-Utility| Update to v"..self.webV
-			Callback.Add("Draw", function() self:Box() end)
-			Callback.Add("WndMsg", function(key,msg) self:Click(key,msg) end)
+			Callback.Add("Draw", function() self:Boxm() end)
+			Callback.Add("WndMsg", function(key,msg) self:Clickm(key,msg) end)
 		end
 	end
 
 	GetWebResultAsync("https://raw.githubusercontent.com/xSxcSx/SL-Series/master/SL-Utility.version", AutoUpdate)
 end
 
-function AutoUpdate:Box()
+function AutoUpdate:Boxm()
 	if not self.Do then return end
 	local cur = GetCursorPos()
 	FillRect(0,0,360,85,GoS.Red)
@@ -288,7 +288,7 @@ function AutoUpdate:Box()
 	
 end
 
-function AutoUpdate:Click(key,msg)
+function AutoUpdate:Clickm(key,msg)
 	local cur = GetCursorPos()
 	if key == 513 and cur.x < 350 and cur.y < 75 then
 		self.State = "Downloading..."
