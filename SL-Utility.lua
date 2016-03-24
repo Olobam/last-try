@@ -1,13 +1,13 @@
-local SLUtility = 0.02
+local SLUtility = 0.03
 local SLUPatchnew, SLUPatchold = 6.6, 6.5
-local AutoUpdater = true
+local Updater = true
 
 
 require 'Inspired'
 
 
 Callback.Add("Load", function()	
-	AutoUpdate()
+	SLUtilityUpdater()
 	Initi()
 	
 	PrintChat("<font color=\"#fd8b12\"><b>["..SLUPatchnew.."-"..SLUPatchold.."] [SL-Utility] v.: "..SLUtility.." - <font color=\"#F2EE00\"> Loaded </b></font>")
@@ -245,56 +245,18 @@ function SkinChanger:Change()
 	end
 end
 
+class 'SLUtilityUpdater'
 
-class 'AutoUpdate'
-
-function AutoUpdate:__init()
-	if not AutoUpdater then return end
-	self.webV = "Error"
-	self.Stat = "Error"
-	self.Do = true
-
-	function AutoUpdate(data)
-		if tonumber(data) > SLUtility then
-			self.webV = data
-			self.State = "|SL-Utility| Update to v"..self.webV
-			Callback.Add("Draw", function() self:Boxm() end)
-			Callback.Add("WndMsg", function(key,msg) self:Clickm(key,msg) end)
-		end
+function SLUtilityUpdater:__init()
+	function SLUtilityUpdate(data)
+		if not Updater then return end
+			if tonumber(data) > SLUtility then
+				PrintChat("<font color=\"#fd8b12\"><b>[SL-Utility] - <font color=\"#F2EE00\">New Version found ! "..data.."</b></font>")
+				PrintChat("<font color=\"#fd8b12\"><b>[SL-Utility] - <font color=\"#F2EE00\">Downloading Update... Please wait</b></font>")
+				DownloadFileAsync("https://raw.githubusercontent.com/xSxcSx/SL-Series/master/SL-Utility.lua", SCRIPT_PATH .. "SL-Utility.lua", function() PrintChat("<font color=\"#fd8b12\"><b>[SL-Utility] - <font color=\"#F2EE00\">Reload the Script with 2x F6</b></font>") return	end)
+			else
+				PrintChat("<font color=\"#fd8b12\"><b>[SL-Utility] - <font color=\"#F2EE00\">No Updates Found.</b></font>")
+			end
 	end
-
-	GetWebResultAsync("https://raw.githubusercontent.com/xSxcSx/SL-Series/master/SL-Utility.version", AutoUpdate)
-end
-
-function AutoUpdate:Boxm()
-	if not self.Do then return end
-	local cur = GetCursorPos()
-	FillRect(0,0,360,85,GoS.Red)
-	if cur.x < 350 and cur.y < 75 then
-		FillRect(0,0,350,75,GoS.White)
-	else
-		FillRect(0,0,350,75,GoS.Black)
-	end
-	
-	DrawText(self.State, 40, 10, 10, GoS.Green)
-	
-	FillRect(360,10,50,60,GoS.Red)
-	FillRect(365,15,40,50,GoS.White)
-	if cur.x < 370 or cur.x > 400 or cur.y<7 or cur.y > 60 then
-		DrawText("X", 60, 370,7, GoS.Black)
-	else
-		DrawText("X", 60, 370,7, GoS.Red)
-	end
-	
-end
-
-function AutoUpdate:Clickm(key,msg)
-	local cur = GetCursorPos()
-	if key == 513 and cur.x < 350 and cur.y < 75 then
-		self.State = "Downloading..."
-		DownloadFileAsync("https://raw.githubusercontent.com/xSxcSx/SL-Series/master/SL-Utility.lua", SCRIPT_PATH .. "SL-Utility.lua", function() self.State = "Update Complete" PrintChat("<font color=\"#fd8b12\"><b>[SL-Utility] - <font color=\"#F2EE00\">Reload the Script with 2x F6</b></font>") return	end)
-	elseif key == 513 and cur.x > 370 and cur.x < 400 and cur.y > 7 and cur.y < 60 then
-		Callback.Del("Draw", function() self:Box() end)
-		self.Do = false
-	end
+ GetWebResultAsync("https://raw.githubusercontent.com/xSxcSx/SL-Series/master/SL-Utility.version", SLUtilityUpdate)
 end
