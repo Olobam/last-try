@@ -124,7 +124,7 @@ function Recommend:__init()
 	[1] = {Name = "Radar Hack", Link = "https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/RadarHack.lua", Author = "Noddy", File = "RadarHack"},
 	[2] = {Name = "Recall Tracker", Link = "https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/RecallTracker.lua", Author = "Noddy", File = "RecallTracker"}
 	}
-	self.Reload = false
+
 	SLS:Menu("Re","Recommended Scripts")
 	for n,i in pairs(self.RecommendedUtility) do
 		SLS.Re:Boolean("S"..n,"Load "..i.Name.." ["..i.Author.."]", false)
@@ -133,8 +133,7 @@ function Recommend:__init()
 	
 	for n,i in pairs(self.RecommendedUtility) do
 		if SLS.Re["S"..n]:Value() and not pcall (require, i.File) then
-			DownloadFileAsync(i.Link,SCRIPT_PATH .. i.File..".lua", function() print("|SL| Downloaded "..i.Name.." from "..i.Author.." succesfully.") end)
-			self.Reload = true
+			DownloadFileAsync(i.Link,SCRIPT_PATH .. i.File..".lua", function() print("|SL| Downloaded "..i.Name.." from "..i.Author.." succesfully.") require(i.File) end)
 		elseif SLS.Re["S"..n]:Value() and FileExist(SCRIPT_PATH .. i.File .. ".lua") then
 			require(i.File)
 		end
