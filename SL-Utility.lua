@@ -1,9 +1,10 @@
-local SLUtility = 0.03
+local SLUtility = 0.04
 local SLUPatchnew, SLUPatchold = 6.6, 6.5
 local Updater = true
 
 
 require 'Inspired'
+require 'OpenPredict'
 
 
 Callback.Add("Load", function()	
@@ -12,6 +13,9 @@ Callback.Add("Load", function()
 	
 	PrintChat("<font color=\"#fd8b12\"><b>["..SLUPatchnew.."-"..SLUPatchold.."] [SL-Utility] v.: "..SLUtility.." - <font color=\"#F2EE00\"> Loaded </b></font>")
 	
+	if SLU.Load.LA:Value() then
+		Activator()
+	end
 	if SLU.Load.LSK:Value() then
 		SkinChanger()
 	end
@@ -33,6 +37,8 @@ function Initi:__init()
 
 	SLU = MenuConfig("SL-Utility", "SL-Utility")
 	SLU:Menu("Load", "|SL| Loader")
+	SLU.Load:Boolean("LA", "Load Activator", true)
+	SLU.Load:Info("as^dasc", "")
 	SLU.Load:Boolean("LSK", "Load SkinChanger", true)
 	SLU.Load:Info("0.3", "")
 	SLU.Load:Boolean("LAL", "Load AutoLevel", true)
@@ -43,6 +49,9 @@ function Initi:__init()
 	SLU.Load:Info("0.6yc", "")
 	SLU.Load:Info("0.7.", "You will have to press 2f6")
 	SLU.Load:Info("0.8.", "to apply the changes")
+	
+	SLU:Menu("Activator", "|SL| Activator")
+	M = SLU["Activator"]
 	
 end
 
@@ -242,6 +251,355 @@ function SkinChanger:Change()
 	elseif not SLU.S.uS:Value() and cSkin ~= 0 then
 		HeroSkinChanger(myHero,0)
 		cSkin = 0 
+	end
+end
+
+--Activator
+class 'Activator'
+
+function Activator:__init()
+
+	self.ShopPos = nil
+	self.badPot = false
+	self.cc = {}
+	Ignite = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerdot") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonerdot") and SUMMONER_2 or nil))
+	Heal = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerheal") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonerheal") and SUMMONER_2 or nil))
+	Snowball = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonersnowball") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonersnowball") and SUMMONER_2 or nil))
+	Barrier = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerbarrier") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonerbarrier") and SUMMONER_2 or nil))
+	
+	Snowballd = { delay = 0.25, range = 1600, speed = 1200, width = 50 }
+	
+	self.CCType = { 
+	[5] = "Stun", 
+	[8] = "Taunt", 
+	[11] = "Snare", 
+	[21] = "Fear", 
+	[22] = "Charm", 
+	[24] = "Suppression",
+	}
+	
+	
+	self.PAC = {	--PointAndClick
+	[3144] = {Name = "Cutlass", Range = 550},
+	[3153] = {Name = "BotrK", Range = 550},
+	[3146] = {Name = "Gunblade", Range = 700},	
+	}
+	
+	self.RS = {		--RangeSelfcast
+	[3142] = {Name = "Ghostblade", Range = 700},
+	[3800] = {Name = "Righteous Glory", Range = 700},
+	[3092] = {Name = "Frost Queen", Range = 700},
+	[3143] = {Name = "Randuins", Range = 500},
+	[3069] = {Name = "Talisman", Range = 700},
+	}
+	
+	self.AA = {		--AAReset
+	[3077] = {Name = "Tiamat"},
+	[3074] = {Name = "Ravenous Hydra"},
+	[3748] = {Name = "Titanic Hydra"},
+	}
+	
+	self.CC = {		--QSS
+	[3140] = {Name = "QSS"},
+	[3137] = {Name = "Dervish Blade"},
+	[3139] = {Name = "Mercurial Scimitar"},
+	[3222] = {Name = "Crucible", Allies = true},
+
+	}
+	
+	self.SU = {		--Shield Units
+	[3190] = {Name = "Locket", Range = 600},
+	[3401] = {Name = "Face of the Mountain", Range = 600},
+	}
+	
+	self.HP = {		--HealthPots
+	[2003] = {Name = "Health Potion", Stack = false},
+	[2031] = {Name = "Refillable Potion", Stack = true},
+	[2032] = {Name = "Hunters Potion", Stack = true},
+	}
+	
+	self.CP = {Name = "Corruption Potion", Stack = true}
+	
+	self.SI = {		--Stasis
+	[3157] = {Name = "Hourglass"},
+	[3090] = {Name = "Wooglets"},
+	}
+	
+	M:Info("xxx","Items appear here as you buy")
+	
+	M:SubMenu("Sum", "Summoners")
+	if Ignite then
+	M.Sum:Menu("ign", "Ignite")
+	M.Sum.ign:Boolean("enable","Enable Ignite", true)
+	end
+	if Heal then 
+	M.Sum:Menu("Heal", "Heal")
+	M.Sum.Heal:Boolean("healme","Heal myself", true)
+	M.Sum.Heal:Boolean("healally", "Heal ally", true)
+	M.Sum.Heal:Slider("allyHP", "Ally HP to heal him", 8, 1, 100, 2)
+	M.Sum.Heal:Slider("myHP", "my HP to heal myself", 8, 1, 100, 2)
+	end
+	if Snowball then
+	M.Sum:Menu("SB", "Snowball")
+	M.Sum.SB:Boolean("enable", "Enable Snowball", false)
+	M.Sum.SB:Slider("h", "HitChance", 45, 0, 100, 1)
+	end
+	if Barrier then
+	M.Sum:Menu("Barrier", "Barrier")
+	M.Sum.Barrier:Boolean("enable","Use Barrier", true)
+	M.Sum.Barrier:Slider("myHP", "my HP to use Barrier", 8, 1, 100, 2)
+	end
+	
+	
+	Callback.Add("Tick", function() self:Tickpx() end)
+	Callback.Add("UpdateBuff", function(unit, buff) self:UBuff(unit, buff) end)
+	Callback.Add("RemoveBuff", function(unit, buff) self:RBuff(unit, buff) end)
+	Callback.Add("CreateObj", function (Object) self:Shop(Object) end)
+	Callback.Add("ProcessSpellComplete", function (unit, spellProc) self:SpellsComplete(unit, spellProc) end)
+end
+
+function Activator:Tickpx()
+	self:Check()
+	self:Use(GetCurrentTarget())
+	if Ignite then 
+		self:Ignite() 
+	end
+	if Heal then 
+		self:Heal() 
+	end
+	if Snowball then 
+		self:Snowball() 
+	end
+	if Barrier then 
+		self:Barrier() 
+	end
+end	
+
+function Activator:Shop(Object)
+	if GetObjectBaseName(Object):lower():find("shop") and GetDistance(Object,myHero)<2000 then
+		self.ShopPos = GetOrigin(Object)
+	end
+end
+
+function Activator:Check()
+	--print(self.badPot)
+	if (not self.ShopPos or GetDistance(myHero,self.ShopPos) <= 1500) or myHero.dead then
+		for i,c in pairs(self.PAC) do
+			if GetItemSlot(myHero,i)>0 then
+				if not c.State and not M[c.Name] then
+					M:Menu(c.Name,c.Name)
+					M[c.Name]:Boolean("u","Use "..c.Name,true)
+					M[c.Name]:Slider("hp","%EnemyHp to use", 100, 10, 100, 5)
+				end
+				c.State = true
+			else
+				c.State = false
+			end
+		end
+		
+		for i,c in pairs(self.RS) do
+			if GetItemSlot(myHero,i)>0 then
+				if not c.State and not M[c.Name] then
+					M:Menu(c.Name,c.Name)
+					M[c.Name]:Boolean("u","Use "..c.Name,true)
+					M[c.Name]:Slider("r","Range to use", c.Range, 200, 1500, 50)
+					M[c.Name]:Slider("hp","%EnemyHp to use", 100, 10, 100, 5)
+				end
+				c.State = true
+			else
+				c.State = false
+			end
+		end
+		
+		for i,c in pairs(self.CC) do
+			if GetItemSlot(myHero,i)>0 then
+				if not c.State and not M[c.Name] then
+					M:Menu(c.Name,c.Name)
+					M[c.Name]:Boolean("u","Use "..c.Name,true)
+					for n,m in pairs(self.CCType) do
+						M[c.Name]:Boolean("i"..n,"Cleanse "..m, true)
+					end
+					if c.Allies then
+						for _,l in pairs(GetAllyHeroes()) do
+							M[c.Name]:Boolean(GetObjectName(l),"Cleanse for "..GetObjectName(l), true)
+						end
+					end
+				end
+				c.State = true
+			else
+				c.State = false
+			end
+		end
+		
+		for i,c in pairs(self.AA) do
+			if GetItemSlot(myHero,i)>0 then
+				if not c.State and not M[c.Name] then
+					M:Menu(c.Name,c.Name)
+					M[c.Name]:Boolean("u","Use "..c.Name,true)
+					M[c.Name]:Slider("hp","%EnemyHp to use", 100, 10, 100, 5)
+				end
+				c.State = true
+			else
+				c.State = false
+			end
+		end
+		
+		for i,c in pairs(self.SU) do
+			if GetItemSlot(myHero,i)>0 then
+				if not c.State and not M[c.Name] then
+					M:Menu(c.Name,c.Name)
+					M[c.Name]:Boolean("u","Use "..c.Name,true)
+					M[c.Name]:Slider("hp","Use at % HP", 10, 2, 80, 2)
+					M[c.Name]:Boolean("self","Shield self" ,true)
+					DelayAction(function()
+						for _,l in pairs(GetAllyHeroes()) do
+							M[c.Name]:Boolean(GetObjectName(l),"Shield "..GetObjectName(l), true)
+						end
+					end,.001)
+				end
+				c.State = true
+			else
+				c.State = false
+			end
+		end
+		
+		for i,c in pairs(self.HP) do
+			if GetItemSlot(myHero,i)>0 then
+				if not c.State and not M[c.Name] then
+					M:Menu(c.Name,c.Name)
+					M[c.Name]:Boolean("u", "Use "..c.Name,true)
+					M[c.Name]:Slider("hp","Use at % HP", 10, 2, 80, 2)
+				end
+				c.State = true
+			else
+				c.State = false
+			end
+		end
+	end
+end
+
+function Activator:Use(target)
+	if IOW:Mode() == "Combo" then
+		for i,c in pairs(self.PAC) do
+			if c.State and CanUseSpell(myHero,GetItemSlot(myHero,i)) and M[c.Name].u:Value() and ValidTarget(target,c.Range) and GetPercentHP(target) <= M[c.Name].hp:Value() then
+				CastTargetSpell(target,GetItemSlot(myHero,i))
+			end
+		end
+		for i,c in pairs(self.RS) do
+			if c.State and CanUseSpell(myHero,GetItemSlot(myHero,i)) and M[c.Name].u:Value() and ValidTarget(target,M[c.Name].r:Value()) and GetPercentHP(target) <= M[c.Name].hp:Value() then
+				CastSpell(GetItemSlot(myHero,i))
+			end
+		end
+	end
+	for i,c in pairs(self.SU) do
+		if c.State and CanUseSpell(myHero,GetItemSlot(myHero,i)) and M[c.Name].u:Value() then
+			if M[c.Name].self:Value() and GetPercentHP(myHero) <= M[c.Name].hp:Value() and EnemiesAround(myHero,700)>=1 then
+				CastSpell(GetItemSlot(myHero,i))
+			else
+				for _,n in pairs(GetAllyHeroes()) do
+					if M[c.Name][GetObjectName(n)] and M[c.Name][GetObjectName(n)]:Value() and GetPercentHP(n) <= M[c.Name].hp:Value() and EnemiesAround(n,700)>=1 and GetDistance(myHero,n)<600 then
+						CastTargetSpell(n,(GetItemSlot(myHero,i)))
+					end
+				end
+			end
+		end
+	end
+	for i,c in pairs(self.HP) do
+		if c.State and CanUseSpell(myHero,GetItemSlot(myHero,i)) and M[c.Name].u:Value() and GetPercentHP(myHero) <= M[c.Name].hp:Value() and (not c.Stack or GetItemAmmo(myHero,GetItemSlot(myHero,i))>=1) and not self.badPot then
+			CastSpell(GetItemSlot(myHero,i))
+		end
+	end
+	for i,c in pairs(self.CC) do
+		if c.State and CanUseSpell(myHero,GetItemSlot(myHero,i)) and M[c.Name].u:Value() then
+			if c.Allies then 
+				for _,n in pairs(GetAllyHeroes()) do
+					if self.cc[GetObjectName(n)] and GetDistance(myHero,n)<600 and M[c.Name][GetObjectName(n)]:Value() then
+						CastTargetSpell(n,GetItemSlot(myHero,i))
+					end
+				end
+			elseif self.cc[GetObjectName(myHero)] then
+				CastSpell(GetItemSlot(myHero,i))
+			end				
+		end
+	end
+end
+
+function Activator:Ignite()
+  for _,k in pairs(GetEnemyHeroes()) do
+	if M.Sum.ign.enable:Value() and IsReady(Ignite) then
+  		if 20*GetLevel(myHero)+50 > GetCurrentHP(k)+GetHPRegen(k)*3 and ValidTarget(k, 600) then
+			CastTargetSpell(k, Ignite)
+		end
+	end
+  end
+end
+
+function Activator:Heal()
+		if IsReady(Heal) and M.Sum.Heal.healme:Value() and GetPercentHP(myHero) <= M.Sum.Heal.myHP:Value() and EnemiesAround(GetOrigin(myHero), 675) > 1 then
+			CastSpell(Heal)
+		end
+	for _,a in pairs(GetAllyHeroes()) do
+		if a and IsReady(Heal) and M.Sum.Heal.healally:Value() and GetPercentHP(a) <= M.Sum.Heal.allyHP:Value() and EnemiesAround(GetOrigin(myHero), 675) > 1 and GetDistance(myHero,a) < 675 then
+			CastSpell(Heal)
+		end
+	end
+end
+
+function Activator:Snowball()
+	for _,unit in pairs(GetEnemyHeroes()) do
+		local Pred = GetPrediction(unit, Snowballd)
+		if IsReady(Snowball) and M.Sum.SB.enable:Value() and Pred and Pred.hitChance >= M.Sum.SB.h:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < Snowballd.range then
+			CastSkillShot(Snowball,Pred.castPos)
+		end
+	end
+end
+
+function Activator:Barrier()
+	if IsReady(Barrier) and M.Sum.Barrier.enable:Value() and GetPercentHP(myHero) <= M.Sum.Barrier.myHP:Value() and EnemiesAround(GetOrigin(myHero), 675) > 1 then
+		CastSpell(Barrier)
+	end
+end
+
+function Activator:SpellsComplete(unit, spellProc)
+	if unit == myHero and spellProc.name:lower():find("attack") and IOW:Mode() == "Combo" then
+		for i,c in pairs(self.AA) do 
+			if c.State and CanUseSpell(myHero,GetItemSlot(myHero,i)) and M[c.Name].u:Value() and GetPercentHP(spellProc.target) <= M[c.Name].hp:Value() then
+				CastSpell(GetItemSlot(myHero,i))
+				AttackUnit(spellProc.target)
+			end
+		end
+	elseif unit == myHero and spellProc.name:lower():find("recall") then
+		self.badPot = true
+		DelayAction(function () self.badPot = false end, 15)
+	end
+end
+
+function Activator:UBuff(unit,buffProc)
+	if unit == myHero and buffProc.Name:lower():find("recall") then 
+		self.badPot = true
+	elseif GetTeam(unit) == MINION_ALLY then
+		for i,c in pairs(self.CC) do
+			if M[c.Name] and c.State and CanUseSpell(myHero,GetItemSlot(myHero,i)) and M[c.Name].u:Value() and M[c.Name]["i"..buffProc.Type] and M[c.Name]["i"..buffProc.Type]:Value() then
+				self.cc[GetObjectName(unit)] = true
+			end
+		end
+	end
+	if unit == myHero and buffProc.Name:lower():find("potion") or buffProc.Name:lower():find("crystalflask") then
+		self.badPot = true 
+		DelayAction(function() self.badPot = false end,
+		buffProc.ExpireTime-GetGameTimer())
+	end
+end
+
+function Activator:RBuff(unit,buffProc)
+	if unit == myHero and buffProc.Name:lower():find("recall") and GetDistance(GetOrigin(myHero),self.ShopPos)>1000 then 
+		self.badPot = false
+	elseif GetTeam(unit) == MINION_ALLY then
+		for i,c in pairs(self.CC) do
+			if M[c.Name] and M[c.Name].u:Value() and M[c.Name]["i"..buffProc.Type] and M[c.Name]["i"..buffProc.Type]:Value() then
+				self.cc[GetObjectName(unit)] = false
+			end
+		end
 	end
 end
 
