@@ -57,14 +57,6 @@ function Stop(state)
 	end
 end
 
-OnTick(function ()
-	if KeyIsDown(32) then
-	Stop(true)
-	else 
-	Stop(false)
-	end
-end)
-
 Callback.Add("Load", function()	
 	Update()
 	Init()
