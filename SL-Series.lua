@@ -22,6 +22,7 @@ local SLSChamps = {
 local Name = GetMyHero()
 local ChampName = myHero.charName
 local Dmg = {}
+local Mode = nil
 local SReady = {
 	[0] = false,
 	[1] = false,
@@ -45,8 +46,24 @@ local function GetReady()
 			SReady[s] = false
 		end
 	end
+end 
+
+local t = {_G.MoveToXYZ, _G.AttackUnit, _G.CastSkillShot, _G.CastSkillShot2, _G.CastSkillShot3, _G.HoldPosition, _G.CastSpell, _G.CastTargetSpell}
+function Stop(state)
+	if state then 
+		_G.MoveToXYZ, _G.AttackUnit, _G.CastSkillShot, _G.CastSkillShot2, _G.CastSkillShot3, _G.HoldPosition, _G.CastSpell, _G.CastTargetSpell = function() end, function() end,function() end,function() end,function() end,function() end,function() end,function() end
+	else
+		_G.MoveToXYZ, _G.AttackUnit, _G.CastSkillShot, _G.CastSkillShot2, _G.CastSkillShot3, _G.HoldPosition, _G.CastSpell, _G.CastTargetSpell = t[1], t[2], t[3], t[4], t[5], t[6], t[7], t[8]
+	end
 end
 
+OnTick(function ()
+	if KeyIsDown(32) then
+	Stop(true)
+	else 
+	Stop(false)
+	end
+end)
 
 Callback.Add("Load", function()	
 	Update()
@@ -76,15 +93,15 @@ Callback.Add("Load", function()
 	if SLS.Loader.LRS:Value() then
 		Recommend()
 	end
+	SLOrb()
 end)    
-
 class 'Init'
 
 function Init:__init()
 	local AntiGapCloser = {}
 	local GapCloser = {}
 	local MapPositionGOS = {["Vayne"] = true, ["Poppy"] = true, ["Kalista"] = true, ["Kindred"] = true,}
-
+	
 	SLS = MenuConfig("SL-Series", "SL-Series")
 	SLS:Menu("Loader", "|SL| Loader")
 	L = SLS["Loader"]
@@ -119,13 +136,12 @@ end
 class 'Recommend'
 
 function Recommend:__init()
-
 	self.RecommendedUtility = {
-	[1] = {Name = "Radar Hack", Link = "https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/RadarHack.lua", Author = "Noddy", File = "RadarHack"},
-	[2] = {Name = "Recall Tracker", Link = "https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/RecallTracker.lua", Author = "Noddy", File = "RecallTracker"}
+	[1] = {Name = "Radar Hack", 	Link = "https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/RadarHack.lua",		Author = "Noddy",	File = "RadarHack"},
+	[2] = {Name = "Recall Tracker",	Link = "https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/RecallTracker.lua",	Author = "Noddy",	File = "RecallTracker"},
 	}
 
-	SLS:Menu("Re","Recommended Scripts")
+	SLS:Menu("Re","|SL| Recommended Scripts")
 	for n,i in pairs(self.RecommendedUtility) do
 		SLS.Re:Boolean("S"..n,"Load "..i.Name.." ["..i.Author.."]", false)
 	end
@@ -133,11 +149,39 @@ function Recommend:__init()
 	
 	for n,i in pairs(self.RecommendedUtility) do
 		if SLS.Re["S"..n]:Value() and not pcall (require, i.File) then
-			DownloadFileAsync(i.Link,SCRIPT_PATH .. i.File..".lua", function() print("|SL| Downloaded "..i.Name.." from "..i.Author.." succesfully.") require(i.File) end)
+			DownloadFileAsync(i.Link, SCRIPT_PATH .. i.File..".lua", function() 
+				if pcall (require, i.File) then
+					print("|SL| Downloaded "..i.Name.." from "..i.Author.." succesfully.") 
+				else
+					print("Error downloading, please install manually")
+				end
+			end)
 		elseif SLS.Re["S"..n]:Value() and FileExist(SCRIPT_PATH .. i.File .. ".lua") then
 			require(i.File)
+			print("|SL| Loaded "..i.Name)
 		end
 	end
+end
+	
+
+class 'SLOrb'
+
+function SLOrb:__init()
+	SLS:Menu("SO","|SL| OrbSettings")
+	SLS.SO:KeyBinding("Combo", "Combo", string.byte(" "), false)
+	SLS.SO:KeyBinding("Harass", "Harass", string.byte("C"), false)
+	SLS.SO:KeyBinding("LaneClear", "LaneClear", string.byte("V"), false)
+	SLS.SO:KeyBinding("LastHit", "LastHit", string.byte("X"), false)
+	
+	Callback.Add("Tick",function() 
+		if 		SLS.SO.Combo:Value() then Mode = "Combo" 
+		elseif 	SLS.SO.Harass:Value() then Mode = "Harass" 
+		elseif 	SLS.SO.LaneClear:Value() then Mode = "LaneClear" 
+		elseif 	SLS.SO.LastHit:Value() then Mode = "LastHit" 
+		else Mode = nil 
+		end
+	end)
+	
 end
 	
 ---------------------------------------------------------------------------------------------
@@ -218,31 +262,21 @@ end
 
 function Vayne:Tick()
 	if myHero.dead then return end
+			
+	GetReady()
 	
-	if (_G.IOW or _G.DAC_Loaded) then
+	self:KS()
 		
-		GetReady()
-		
-		self:KS()
-		
-		local Mode = nil
-		local target = GetCurrentTarget()
-		if _G.DAC_Loaded then 
-			Mode = DAC:Mode()
-		elseif _G.IOW then
-			Mode = IOW:Mode()
-		end
-
-	    if Mode == "Combo" then
-			self:Combo(target)
-		elseif Mode == "LaneClear" then
-			self:JungleClear()
-			self:LaneClear()
-		elseif Mode == "Harass" then
-			self:Harass(target)
-		else
-			return
-		end
+	local target = GetCurrentTarget()
+	   if Mode == "Combo" then
+		self:Combo(target)
+	elseif Mode == "LaneClear" then
+		self:JungleClear()
+		self:LaneClear()
+	elseif Mode == "Harass" then
+		self:Harass(target)
+	else
+		return
 	end
 end
 
@@ -418,30 +452,17 @@ end
 function Blitzcrank:Tick()
 	if myHero.dead then return end
 	
-	if (_G.IOW or _G.DAC_Loaded) then
-		
-		GetReady()
-		
-		self:KS()
-		
-		local Mode = nil
-		local target = GetCurrentTarget()
-		if _G.DAC_Loaded then 
-			Mode = DAC:Mode()
-		elseif _G.IOW then
-			Mode = IOW:Mode()
-		end
-
-	    if Mode == "Combo" then
-			self:Combo(target)
-		elseif Mode == "LaneClear" then
-			self:LaneClear()
-			self:JungleClear()
-		elseif Mode == "Harass" then
-			self:Harass(target)
-		else
-			return
-		end
+	local target = GetCurrentTarget()
+	
+	   if Mode == "Combo" then
+		self:Combo(target)
+	elseif Mode == "LaneClear" then
+		self:LaneClear()
+		self:JungleClear()
+	elseif Mode == "Harass" then
+		self:Harass(target)
+	else
+		return
 	end
 end
 
@@ -631,34 +652,26 @@ end
 function Soraka:Tick()
 	if myHero.dead then return end
 	self.Spell[0].delay = BM.p.aE:Value()
-	if (_G.IOW or _G.DAC_Loaded) then
 		
-		GetReady()
+	GetReady()
 		
-		self:KS()
+	self:KS()
+	
+	self:AutoW()
 		
-		self:AutoW()
-		
-		self:AutoR()
-		
-		local Mode = nil
-		local target = GetCurrentTarget()
-		if _G.DAC_Loaded then 
-			Mode = DAC:Mode()
-		elseif _G.IOW then
-			Mode = IOW:Mode()
-		end
+	self:AutoR()
+	
+	local Mode = nil
 
-	    if Mode == "Combo" then
-			self:Combo(target)
-		elseif Mode == "LaneClear" then
-			self:JungleClear()
-			self:LaneClear()
-		elseif Mode == "Harass" then
-			self:Harass(target)
-		else
-			return
-		end
+	if Mode == "Combo" then
+		self:Combo(target)
+	elseif Mode == "LaneClear" then
+		self:JungleClear()
+		self:LaneClear()
+	elseif Mode == "Harass" then
+		self:Harass(target)
+	else
+		return
 	end
 end
 
@@ -775,7 +788,7 @@ end
 class 'Sivir'
 
 function Sivir:__init()
- HitMe()
+	HitMe()
 end
 
 function Sivir:HitMe(unit,pos,dt,ty)
@@ -787,7 +800,7 @@ end
 class 'Nocturne'
 
 function Nocturne:__init()
- HitMe()
+	HitMe()
 end
 
 function Nocturne:HitMe(unit,pos,dt,ty)
@@ -866,33 +879,24 @@ end
 function Aatrox:Tick()
 	if myHero.dead then return end
 	
-	if (_G.IOW or _G.DAC_Loaded) then
-		GetReady()
+	GetReady()
 		
-		self:KS()
+	self:KS()
 		
-		local Mode = nil
-		local target = GetCurrentTarget()
-		if _G.DAC_Loaded then 
-			Mode = DAC:Mode()
-		elseif _G.IOW then
-			Mode = IOW:Mode()
-		end
+	local target = GetCurrentTarget()
 		
-		self:Toggle(target)
+	self:Toggle(target)
 		
-		if Mode == "Combo" then
-			self:Combo(target)
-		elseif Mode == "LaneClear" then
-			self:LaneClear()
-			self:JungleClear()
-		-- elseif Mode == "LastHit" then
-			-- self:LastHit()
-		elseif Mode == "Harass" then
-			self:Harass(target)
-		else
-			return
-		end
+	if Mode == "Combo" then
+		self:Combo(target)
+	elseif Mode == "LaneClear" then
+		self:LaneClear()
+		self:JungleClear()
+	elseif Mode == "LastHit" then
+	elseif Mode == "Harass" then
+		self:Harass(target)
+	else
+		return
 	end
 end
 
@@ -1073,32 +1077,22 @@ function Velkoz:Tick()
 	
 	GetReady()
 	
-	if (_G.IOW or _G.DAC_Loaded) then
+	GetReady()
+	--self:Split()
+		
+	local target = GetCurrentTarget()
 	
-		GetReady()
-		--self:Split()
-	--	self:KS()
-		
-		local Mode = nil
-		local target = GetCurrentTarget()
-		if _G.DAC_Loaded then 
-			Mode = DAC:Mode()
-		elseif _G.IOW then
-			Mode = IOW:Mode()
-		end
-		
-		if Mode == "Combo" then
-			self:Combo(target)
-		elseif Mode == "LaneClear" then
-		--	self:LaneClear()
-		--	self:JungleClear()
-		elseif Mode == "LastHit" then
-		--	self:LastHit()
-		elseif Mode == "Harass" then
-		--	self:Harass(target)
-		else
-			return
-		end
+	if Mode == "Combo" then
+		self:Combo(target)
+	elseif Mode == "LaneClear" then
+	--	self:LaneClear()
+	--	self:JungleClear()
+	elseif Mode == "LastHit" then
+	--	self:LastHit()
+	elseif Mode == "Harass" then
+	--	self:Harass(target)
+	else
+		return
 	end
 end
 
@@ -1171,7 +1165,7 @@ function Velkoz:Split()
 end
 
 function Velkoz:ProcessSpellComplete(unit,spellProc)
-	if unit == myHero and spellProc.name == "VelkozQ" then
+	if unit == myHero and spellProc.name:lower() == "velkozq" then
 		self.QStart= Vector(spellProc.startPos)+Vector(Vector(spellProc.endPos)-spellProc.startPos):normalized()*5
 	end
 end
@@ -1203,13 +1197,8 @@ function Velkoz:UpdateBuff(unit,buffProc)
 	if unit ~= myHero and (buffProc.Type == 29 or buffProc.Type == 11 or buffProc.Type == 24 or buffProc.Type == 30) then 
 		self.ccTrack[GetObjectName(unit)] = true
 		self.rTime = buffProc.ExpireTime
-	elseif unit == myHero and buffProc.Name:lower() == "VelkozR" then
-		if 	_G.DAC_Loaded then 
-			DAC:OrbwalkerEnabled(false) 
-		else
-			IOW.movementEnabled = false
-			IOW.attacksEnabled = false
-		end
+	elseif unit == myHero and buffProc.Name:lower() == "velkozr" then
+		Block(true)
 		self.rCast = true
 	end
 end
@@ -1217,13 +1206,8 @@ end
 function Velkoz:RemoveBuff(unit,buffProc)
 	if unit ~= myHero and (buffProc.Type == 29 or buffProc.Type == 11 or buffProc.Type == 24 or buffProc.Type == 30) then 
 		self.ccTrack[GetObjectName(unit)] = false
-	elseif unit == myHero and buffProc.Name:lower() == "VelkozR" then
-		if 	_G.DAC_Loaded then 
-			DAC:OrbwalkerEnabled(true) 
-		else
-			IOW.movementEnabled = true
-			IOW.attacksEnabled = true
-		end
+	elseif unit == myHero and buffProc.Name:lower() == "velkozr" then
+		Block(false)
 		self.rCast = false
 	end
 end
@@ -1320,32 +1304,24 @@ function Jinx:Tick()
 	
 	self.RocketRange = 25 * GetCastLevel(myHero,_Q) + 600
 	
-	if (_G.IOW or _G.DAC_Loaded) then
 	
-		GetReady()
+	GetReady()
 		
-		self:KS()
+	self:KS()
 		
-		local Mode = nil
-		local target = GetCurrentTarget()
-		if _G.DAC_Loaded then 
-			Mode = DAC:Mode()
-		elseif _G.IOW then
-			Mode = IOW:Mode()
-		end
+	local target = GetCurrentTarget()
 		
-		if Mode == "Combo" then
-			self:Combo(target)
-		elseif Mode == "LaneClear" then
-			self:LaneClear()
-			self:JungleClear()
-		elseif Mode == "LastHit" then
-			self:LastHit()
-		elseif Mode == "Harass" then
-			self:Harass(target)
-		else
-			return
-		end
+	if Mode == "Combo" then
+		self:Combo(target)
+	elseif Mode == "LaneClear" then
+		self:LaneClear()
+		self:JungleClear()
+	elseif Mode == "LastHit" then
+		self:LastHit()
+	elseif Mode == "Harass" then
+		self:Harass(target)
+	else
+		return
 	end
 end
 
@@ -1622,27 +1598,18 @@ end
 function Kalista:Tick()
 	if myHero.dead then return end
 	
-	if (_G.IOW or _G.DAC_Loaded) then
+	GetReady()
+	self:KS()
+	self:AutoR()
+	self:WallJump()
+		
+	local target = GetCurrentTarget()
 	
-		GetReady()
-		self:KS()
-		self:AutoR()
-		self:WallJump()
-		
-		local Mode = nil
-		local target = GetCurrentTarget()
-		if _G.DAC_Loaded then 
-			Mode = DAC:Mode()
-		elseif _G.IOW then
-			Mode = IOW:Mode()
-		end
-		
-		if Mode == "LaneClear" then
-			self:LaneClear()
-			self:JungleClear()
-		else
-			return
-		end
+	if Mode == "LaneClear" then
+		self:LaneClear()
+		self:JungleClear()
+	else
+		return
 	end
 end
 
@@ -1655,7 +1622,7 @@ end
 function Kalista:AAReset(unit, spell)
 	local ta = spell.target
 	if unit == myHero and ta ~= nil and spell.name:lower():find("attack") and SReady[0] and ValidTarget(ta, self.Spell[0].range) then
-		if ((IOW:Mode() == "Combo" and BM.C.Q:Value()) or (IOW:Mode() == "Harass" and BM.H.Q:Value()) and GetObjectType(ta) == Obj_AI_Hero) or (IOW:Mode() == "LaneClear" and ((BM.JC.Q:Value() and (GetObjectType(ta)==Obj_AI_Camp or GetObjectType(ta)==Obj_AI_Minion)) or (BM.LC.Q:Value() and GetObjectType(ta)==Obj_AI_Minion))) then
+		if ((Mode == "Combo" and BM.C.Q:Value()) or (Mode == "Harass" and BM.H.Q:Value()) and GetObjectType(ta) == Obj_AI_Hero) or (Mode == "LaneClear" and ((BM.JC.Q:Value() and (GetObjectType(ta)==Obj_AI_Camp or GetObjectType(ta)==Obj_AI_Minion)) or (BM.LC.Q:Value() and GetObjectType(ta)==Obj_AI_Minion))) then
 			local Pred = GetPrediction(ta, self.Spell[0])
 			if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
 				CastSkillShot(0,Pred.castPos)
@@ -1693,7 +1660,7 @@ function Kalista:KS()
 		end
 	end
 	
-	if not BM.AE.MobOpt.UseMode:Value() or IOW:Mode() == "LaneClear" then
+	if not BM.AE.MobOpt.UseMode:Value() or Mode == "LaneClear" then
 		for _,mob in pairs(minionManager.objects) do
 			if GetTeam(mob) == MINION_JUNGLE then
 				if SReady[2] and ValidTarget(mob, 750) and Dmg[2](mob) > GetCurrentHP(mob) then
@@ -1818,30 +1785,23 @@ end
 function Nasus:Tick()
 	if myHero.dead then return end
 	
-	if (_G.IOW or _G.DAC_Loaded) then
 		
-		GetReady()
-		self.qDmg = self:getQdmg()
-		self:KS()
-		self:Farm()
-		local Mode = nil
-		local target = GetCurrentTarget()
-		if _G.DAC_Loaded then 
-			Mode = DAC:Mode()
-		elseif _G.IOW then
-			Mode = IOW:Mode()
-		end
+	GetReady()
+	self.qDmg = self:getQdmg()
+	self:KS()
+	self:Farm()
+	local target = GetCurrentTarget()
 
-	    if Mode == "Combo" then
-			self:Combo(target)
-		elseif Mode == "LaneClear" then
-		--	self:LaneClear()
-		--	self:JungleClear()
-		elseif Mode == "Harass" then
-			self:Harass(target)
-		else
-			return
-		end
+
+    if Mode == "Combo" then
+		self:Combo(target)
+	elseif Mode == "LaneClear" then
+	--	self:LaneClear()
+	--	self:JungleClear()
+	elseif Mode == "Harass" then
+		self:Harass(target)
+	else
+		return
 	end
 end
 
@@ -1875,7 +1835,7 @@ end
 
 function Nasus:Farm()
 	local mod = BM.f.QM:Value()
-	if (SReady[0] or CanUseSpell(myHero,0) == 8) and ((mod == 2 and IOW:Mode() == "LaneClear") or (mod == 3 and IOW:Mode() == "LastHit") or (mod == 1 and IOW:Mode() ~= "Combo")) then
+	if (SReady[0] or CanUseSpell(myHero,0) == 8) and ((mod == 2 and Mode == "LaneClear") or (mod == 3 and Mode == "LastHit") or (mod == 1 and Mode ~= "Combo")) then
 		for _, creep in pairs(minionManager.objects) do
 			if Nasus:ValidCreep(creep, self.Spell[0].range) and GetCurrentHP(creep)<self.qDmg*2 and ((GetHealthPrediction(creep, GetWindUp(myHero))<CalcDamage(myHero, creep, self.qDmg, 0) and BM.c.QP:Value()) or (GetCurrentHP(creep)<CalcDamage(myHero, creep, self.qDmg, 0) and not BM.c.QP:Value())) then
 				CastSpell(0)
@@ -1967,7 +1927,6 @@ function Kindred:__init()
 	OnProcessSpellComplete(function(unit, spell) self:OnProcComplete(unit, spell) end)
 	OnProcessSpell(function(unit, spell) self:OnProc(unit, spell) end)
 	Flash = (GetCastName(myHero, SUMMONER_1):lower():find("summonerflash") and SUMMONER_1 or (GetCastName(myHero, SUMMONER_2):lower():find("summonerflash") and SUMMONER_2 or nil)) -- Ty Platy
-	self.Mode = nil
 	self.target = nil
 
 	BM:Menu("Combo", "Combo")
@@ -2013,19 +1972,13 @@ end
 
 function Kindred:Tick()
 	if not IsDead(myHero) then
-		if (_G.IOW or _G.DAC_Loaded) then
 	
-			GetReady()
-			self.target = GetCurrentTarget()
-			if _G.DAC_Loaded then 
-				self.Mode = DAC:Mode()
-			elseif _G.IOW then
-				self.Mode = IOW:Mode()
-			end
-		end
-		if self.Mode == "Combo" then
+		GetReady()
+		self.target = GetCurrentTarget()
+
+		if Mode == "Combo" then
 			self:Combo(self.target)
-		elseif self.Mode == "LaneClear" then
+		elseif Mode == "LaneClear" then
 			self:LaneClear()
 		end
 
@@ -2118,7 +2071,7 @@ function Kindred:OnProcComplete(unit, spell)
 	local QMana = (self.Spells[0].mana*100)/GetMaxMana(myHero)
 	if unit == myHero then
 		if spell.name:lower():find("attack") then
-			if self.Mode == "LaneClear" then 
+			if Mode == "LaneClear" then 
 				for _, mob in pairs(minionManager.objects) do	
 					if BM.QOptions.QL:Value() and ValidTarget(mob, 500) and GetTeam(mob) == MINION_ENEMY and BM.LaneClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= BM.LaneClear.MM:Value() and SReady[0] then
 						CastSkillShot(0, GetMousePos())
@@ -2127,7 +2080,7 @@ function Kindred:OnProcComplete(unit, spell)
 						CastSkillShot(0, GetMousePos()) 
 					end
 				end
-			elseif self.Mode == "Combo" then
+			elseif Mode == "Combo" then
 				if BM.QOptions.QC:Value() and SReady[0] and BM.Combo.Q:Value() and ValidTarget(self.target, 500) then
     				CastSkillShot(0, GetMousePos()) 
 				end
