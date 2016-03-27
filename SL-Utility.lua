@@ -1,4 +1,4 @@
-local SLUtility = 0.04
+local SLUtility = 0.05
 local SLUPatchnew, SLUPatchold = 6.6, 6.5
 local Updater = true
 
@@ -176,6 +176,11 @@ function Reallifeinfo:__init()
 	SLU.Date.DY:Slider("Horizontal", "Horizontal (Drawings)", GetResolution().x*.9, 0, GetResolution().x, 10)
 	SLU.Date.DY:Slider("Vertical", "Vertical (Drawings)", 120, 0, GetResolution().y, 10)
 	SLU.Date.DY:ColorPick("ColorPick", "Color Pick - Year", {255,226,255,18})
+	SLU.Date:Menu("DT", "Draw Time")
+	SLU.Date.DT:Boolean("DrawTime", "Draw Current Time", true)
+	SLU.Date.DT:Slider("Horizontal", "Horizontal (Drawings)", GetResolution().x*.9, 0, GetResolution().x, 10)
+	SLU.Date.DT:Slider("Vertical", "Vertical (Drawings)", 120, 0, GetResolution().y, 10)
+	SLU.Date.DT:ColorPick("ColorPick", "Color Pick - Time", {255,226,255,18})
 	
 	Callback.Add("Draw", function() self:EnableDraw() end)
 end
@@ -187,11 +192,14 @@ function Reallifeinfo:EnableDraw()
 	if SLU.Date.DDA.DrawDate:Value() then
 		DrawText("Current Date    : "..os.date("%x", os.time()), 15, SLU.Date.DDA.Horizontal:Value(), SLU.Date.DDA.Vertical:Value(), SLU.Date.DDA.ColorPick:Value())
 	end
-	if SLU.Date.DM.DrawMonth:Value() then
+	if SLU.Date.DM.DrawMonth:Value() then				
 		DrawText("Current Month : "..os.date("%B"), 15, SLU.Date.DM.Horizontal:Value(), SLU.Date.DM.Vertical:Value(), SLU.Date.DM.ColorPick:Value())
 	end
 	if SLU.Date.DY.DrawYear:Value() then
 		DrawText("Current Year   : "..os.date("%Y"), 15, SLU.Date.DY.Horizontal:Value(), SLU.Date.DY.Vertical:Value(), SLU.Date.DY.ColorPick:Value())
+	end
+	if SLU.Date.DT.DrawTime:Value() then
+		DrawText("Current Time   : "..os.date("*t").hour.." : "..os.date("*t").min.." : "..os.date("*t").sec, 15, SLU.Date.DT.Horizontal:Value(), SLU.Date.DT.Vertical:Value()+20, SLU.Date.DT.ColorPick:Value())
 	end
 end
 
