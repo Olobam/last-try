@@ -199,7 +199,7 @@ function Reallifeinfo:EnableDraw()
 		DrawText("Current Year   : "..os.date("%Y"), 15, SLU.Date.DY.Horizontal:Value(), SLU.Date.DY.Vertical:Value(), SLU.Date.DY.ColorPick:Value())
 	end
 	if SLU.Date.DT.DrawTime:Value() then
-		DrawText("Current Time   : "..os.date("*t").hour.." : "..os.date("*t").min.." : "..os.date("*t").sec, 15, SLU.Date.DT.Horizontal:Value(), SLU.Date.DT.Vertical:Value()+20, SLU.Date.DT.ColorPick:Value())
+		DrawText("Current Time   : "..os.date("*t").hour.." : "..os.date("*t").min.." : "..os.date("*t").sec, 15, SLU.Date.DT.Horizontal:Value(), SLU.Date.DT.Vertical:Value(), SLU.Date.DT.ColorPick:Value())
 	end
 end
 
