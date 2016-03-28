@@ -180,7 +180,7 @@ function Reallifeinfo:__init()
 	SLU.Date:Menu("DT", "Draw Time")
 	SLU.Date.DT:Boolean("DrawTime", "Draw Current Time", true)
 	SLU.Date.DT:Slider("Horizontal", "Horizontal (Drawings)", GetResolution().x*.9, 0, GetResolution().x, 10)
-	SLU.Date.DT:Slider("Vertical", "Vertical (Drawings)", 120, 0, GetResolution().y, 10)
+	SLU.Date.DT:Slider("Vertical", "Vertical (Drawings)", 140, 0, GetResolution().y, 10)
 	SLU.Date.DT:ColorPick("ColorPick", "Color Pick - Time", {255,226,255,18})
 	
 	Callback.Add("Draw", function() self:EnableDraw() end)
