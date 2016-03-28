@@ -6,6 +6,7 @@ local Updater = true
 require 'Inspired'
 require 'OpenPredict'
 
+local charName = myHero.charName
 
 Callback.Add("Load", function()	
 	SLUtilityUpdater()
@@ -207,33 +208,33 @@ end
 class 'AutoLevel'
 
 function AutoLevel:__init()
-	SLU:SubMenu("AL", "|SL| Auto Level")
-	SLU.AL:Boolean("aL", "Use AutoLvl", false)
-	SLU.AL:DropDown("aLS", "AutoLvL", 1, {"Q-W-E","Q-E-W","W-Q-E","W-E-Q","E-Q-W","E-W-Q"})
-	SLU.AL:Slider("sL", "Start AutoLvl with LvL x", 4, 1, 18, 1)
-	SLU.AL:Boolean("hL", "Humanize LvLUP", true)
-	SLU.AL:Slider("hT", "Humanize min delay", .5, 0, 1, .1)
-	SLU.AL:Slider("hF", "Humanize time frame", .2, 0, .5, .1)
+	SLU:SubMenu(charName.."AL", "|SL| Auto Level")
+	SLU[charName.."AL"]:Boolean("aL", "Use AutoLvl", true)
+	SLU[charName.."AL"]:DropDown("aLS", "AutoLvL", 1, {"Q-W-E","Q-E-W","W-Q-E","W-E-Q","E-Q-W","E-W-Q"})
+	SLU[charName.."AL"]:Slider("sL", "Start AutoLvl with LvL x", 4, 1, 18, 1)
+	SLU[charName.."AL"]:Boolean("hL", "Humanize LvLUP", true)
+	SLU[charName.."AL"]:Slider("hT", "Humanize min delay", .5, 0, 1, .1)
+	SLU[charName.."AL"]:Slider("hF", "Humanize time frame", .2, 0, .5, .1)
 	
 	--AutoLvl
 	self.lTable={
-	[1] = {_Q,_W,_E,_Q,_Q,_R,_Q,_W,_Q,_W,_R,_W,_W,_E,_E,_R,_E,_E},
+	[1] = {_Q,_W,_E,_Q,_Q,_R,_Q,_W,_Q,_W,_R,_W,_W,_E,_E,_R,_E,_E}, 
 	[2] = {_Q,_E,_W,_Q,_Q,_R,_Q,_E,_Q,_E,_R,_E,_E,_W,_W,_R,_W,_W},
 	[3] = {_W,_Q,_E,_W,_W,_R,_W,_Q,_W,_Q,_R,_Q,_Q,_E,_E,_R,_E,_E},
 	[4] = {_W,_E,_Q,_W,_W,_R,_W,_E,_W,_E,_R,_E,_E,_Q,_Q,_R,_Q,_Q},
 	[5] = {_E,_Q,_W,_E,_E,_R,_E,_Q,_E,_Q,_R,_Q,_Q,_W,_W,_R,_W,_W},
-	[6] = {_E,_W,_Q,_E,_E,_R,_E,_W,_E,_W,_R,_W,_W,_Q,_Q,_R,_Q,_Q},
+	[6] = {_E,_W,_Q,_E,_E,_R,_E,_W,_E,_W,_R,_W,_W,_Q,_Q,_R,_Q,_Q}, 
 	}
 	
 	Callback.Add("Tick", function() self:Do() end)
 end
 
 function AutoLevel:Do()
-	if SLU.AL.aL:Value() and GetLevelPoints(myHero) >= 1 and GetLevel(myHero) >= SLU.AL.sL:Value() then
-		if SLU.AL.hL:Value() then
-			DelayAction(function() LevelSpell(self.lTable[SLU.AL.aLS:Value()][GetLevel(myHero)-GetLevelPoints(myHero)+1]) end, math.random(SLU.AL.hT:Value(),SLU.AL.hT:Value()+SLU.AL.hF:Value()))
+	if SLU[charName.."AL"].aL:Value() and GetLevelPoints(myHero) >= 1 and GetLevel(myHero) >= SLU[charName.."AL"].sL:Value() then
+		if SLU[charName.."AL"].hL:Value() then
+			DelayAction(function() LevelSpell(self.lTable[SLU[charName.."AL"].aLS:Value()][GetLevel(myHero)-GetLevelPoints(myHero)+1]) end, math.random(SLU[charName.."AL"].hT:Value(),SLU[charName.."AL"].hT:Value()+SLU[charName.."AL"].hF:Value()))
 		else
-			LevelSpell(self.lTable[SLU.AL.aLS:Value()][GetLevel(myHero)-GetLevelPoints(myHero)+1])
+			LevelSpell(self.lTable[SLU[charName.."AL"].aLS:Value()][GetLevel(myHero)-GetLevelPoints(myHero)+1])
 		end
 	end
 end
