@@ -1,4 +1,4 @@
-local SLSeries = 0.11
+local SLSeries = 0.12
 local SLPatchnew, SLPatchold = 6.6, 6.5
 local AutoUpdater = true
 
@@ -1190,7 +1190,7 @@ function Velkoz:UpdateBuff(unit,buffProc)
 		self.ccTrack[GetObjectName(unit)] = true
 		self.rTime = buffProc.ExpireTime
 	elseif unit == myHero and buffProc.Name:lower() == "velkozr" then
-		Block(true)
+		Stop(true)
 		self.rCast = true
 	end
 end
@@ -1199,7 +1199,7 @@ function Velkoz:RemoveBuff(unit,buffProc)
 	if unit ~= myHero and (buffProc.Type == 29 or buffProc.Type == 11 or buffProc.Type == 24 or buffProc.Type == 30) then 
 		self.ccTrack[GetObjectName(unit)] = false
 	elseif unit == myHero and buffProc.Name:lower() == "velkozr" then
-		Block(false)
+		Stop(false)
 		self.rCast = false
 	end
 end
@@ -1519,7 +1519,7 @@ function Kalista:__init()
 	
 	Dmg = {
 	[0] = function (unit) return CalcDamage(myHero, unit, 60 * GetCastLevel(myHero,0) - 50 + GetBonusDmg(myHero), 0) end, 
-	[2] = function (unit) if not unit then return end return CalcDamage(myHero, unit, (10 * GetCastLevel(myHero,2) + 10 + (GetBonusDmg(myHero)+GetBaseDamage(myHero)) * .6) + ((self.eTrack[GetNetworkID(unit)] or 0)-1) * (({10,14,19,25,32})[GetCastLevel(myHero,2)] + (GetBaseDamage(myHero)+GetBaseDamage(myHero))*({0.2,0.225,0.25,0.275,0.3})[GetCastLevel(myHero,2)]), 0) end,
+	[2] = function (unit) return CalcDamage(myHero, unit, (10 * GetCastLevel(myHero,2) + 10 + (GetBonusDmg(myHero)+GetBaseDamage(myHero)) * .6) + ((self.eTrack[GetNetworkID(unit)] or 0)-1) * (({10,14,19,25,32})[GetCastLevel(myHero,2)] + (GetBaseDamage(myHero)+GetBaseDamage(myHero))*({0.2,0.225,0.25,0.275,0.3})[GetCastLevel(myHero,2)]), 0) end,
 	}
 	
 	self.EpicJgl = {["SRU_Baron"]=true, ["SRU_Dragon"]=true, ["TT_Spiderboss"]=true}
@@ -1546,7 +1546,7 @@ function Kalista:__init()
 	BM.AE:Slider("xM", "Kill X Minions", 2, 1, 7, 1)	
 	BM.AE:Boolean("UseC", "Use on Champs", true)
 	BM.AE:Boolean("UseBD", "Use before death", true)
-	BM.AE:Boolean("UseL", "Use if leaves range", true)
+	BM.AE:Boolean("UseL", "Use if leaves range", false)
 	BM.AE:Slider("OK", "Over kill", 10, 0, 50, 5)
 	BM.AE:Slider("D", "Delay to use E", 10, 0, 50, 5)	
 	
