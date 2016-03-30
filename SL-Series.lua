@@ -1122,7 +1122,7 @@ function Velkoz:Combo(unit)
 		CastSkillShot(_E,EPred.castPos)
 	end
 	
-	if ValidTarget(unit,1550*.8) and SReady[3] and EnemiesAround(GetOrigin(myHero),400) == 0 and GetDistance(GetOrigin(myHero),GetOrigin(unit)) then
+	if BM.c.R:Value() and ValidTarget(unit,1550*.8) and SReady[3] and EnemiesAround(GetOrigin(myHero),400) == 0 and GetDistance(GetOrigin(myHero),GetOrigin(unit)) then
 		if GetADHP(unit) < Velkoz:RDmg(unit) then
 			CastSkillShot(3, GetOrigin(unit))
 		end
