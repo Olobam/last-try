@@ -1,4 +1,4 @@
-local SLSeries = 0.13
+local SLSeries = 0.14
 local SLPatchnew, SLPatchold = 6.6, 6.5
 local AutoUpdater = true
 
@@ -2845,12 +2845,14 @@ self.s = {
    
     DelayAction(function()
         for _,k in pairs(GetEnemyHeroes()) do
+		 if self.s[GetObjectName(k)] then
           for m,p in pairs(self.s[GetObjectName(k)]) do
             if p and p.name ~= "" and p.type then
 			  if not SLS.SB.Spells[GetObjectName(k)] then SLS.SB.Spells:Menu(GetObjectName(k), GetObjectName(k)) end
               SLS.SB.Spells[GetObjectName(k)]:Boolean(m, self.str[m].. " - "..(p.displayname or p.name), true)
 			  SLS.SB.Spells[GetObjectName(k)]:Slider("d"..m, self.str[m].. " - Danger", p.danger, 1, 5, 1)
             end
+		   end
           end
         end
 	Callback.Add("ProcessSpell", function(unit, spellProc) self:Detect(unit, spellProc) end)
