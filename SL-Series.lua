@@ -2988,14 +2988,14 @@ function HitMe:Detect(unit, spellProc)
 				self.fT = SLS.SB.hV:Value()
 				self.multi = SLS.SB.wM:Value()
 				
-				if i.range*2 < GetDistance(myHero,spellProc.startPos) then print("rangekill") return end
+				if i.range*2 < GetDistance(myHero,spellProc.startPos) then return end
 				
 				--Simple Kappa Linear
 				if i.type == "linear" or i.type == "cone" then
 					local cPred = GetPrediction(myHero,i)
 					local dT = i.delay + GetDistance(spellProc.startPos, cPred.castPos) / i.speed
-					print("Delay "..i.delay)
-					print("TravelTime "..GetDistance(spellProc.startPos, cPred.castPos) / i.speed)
+					--print("Delay "..i.delay)
+					--print("TravelTime "..GetDistance(spellProc.startPos, cPred.castPos) / i.speed)
 					
 					--Line-Line junction check
 					local S1 = Vector(spellProc.startPos)
@@ -3006,8 +3006,8 @@ function HitMe:Detect(unit, spellProc)
 					
 					CollP = Vector(VectorIntersection(S1,R1,S2,R2).x,spellProc.startPos.y, VectorIntersection(S1,R1,S2,R2).y)
 					local d = GetDistance(Vector(CollP),cPred.castPos)
-					print("Distance "..math.floor(d).." ".. spellProc.name)
-					print("Time "..dT*self.fT)
+					--print("Distance "..math.floor(d).." ".. spellProc.name)
+					--print("Time "..dT*self.fT)
 					if (d<i.width*self.multi or GetDistance(myHero,CollP)<i.width*self.multi) --[[and (i.collision or not pI:mCollision(1))]] then
 						_G[ChampName]:HitMe(unit,spellProc,dT*self.fT*.001,i.type2)
 					end
@@ -3020,7 +3020,7 @@ function HitMe:Detect(unit, spellProc)
 					
 					DelayAction( function()
 						local d = GetDistance(Vector(R1),cPred.castPos)
-						print("Distance "..math.floor(d).." ".. spellProc.name)
+						--print("Distance "..math.floor(d).." ".. spellProc.name)
 						if d<i.radius*self.multi or GetDistance(myHero,spellProc.endPos)<i.radius*self.multi then
 							_G[ChampName]:HitMe(unit,spellProc,dT*self.fT*.001,i.type2)
 						end
@@ -3030,11 +3030,11 @@ function HitMe:Detect(unit, spellProc)
 				elseif spellProc.target and spellProc.target == myHero then
 					local dT = i.delay + GetDistance(myHero, spellProc.startPos) / i.speed
 					DelayAction( function()
-						print(spellProc.name.." Targeted")
+						--print(spellProc.name.." Targeted")
 						_G[ChampName]:HitMe(unit,spellProc,dT*self.fT*.001,i.type2)
 					end, dT*self.fT*.001)
 				else
-					print(spellProc.name.." Error")
+					--print(spellProc.name.." Error")
 				end
 			end
 		end
