@@ -1,9 +1,7 @@
-local SLUtility = 0.05
+local SLUtility = 0.06
 local SLUPatchnew, SLUPatchold = 6.6, 6.5
 local Updater = true
 
-
-require 'Inspired'
 require 'OpenPredict'
 
 local charName = myHero.charName
@@ -29,6 +27,7 @@ Callback.Add("Load", function()
 	if SLU.Load.LRLI:Value() then 
 		Reallifeinfo()
 	end
+   SLOrbc()
 end)
 
 
@@ -53,6 +52,27 @@ function Initi:__init()
 	
 	SLU:Menu("Activator", "|SL| Activator")
 	M = SLU["Activator"]
+	
+end
+
+
+class 'SLOrbc'
+
+function SLOrbc:__init()
+	SLU:Menu("SLO","|SL| OrbSettings")
+	SLU.SLO:KeyBinding("Combom", "Combo", string.byte(" "), false)
+	SLU.SLO:KeyBinding("Harassm", "Harass", string.byte("C"), false)
+	SLU.SLO:KeyBinding("LaneClearm", "LaneClear", string.byte("V"), false)
+	SLU.SLO:KeyBinding("LastHitm", "LastHit", string.byte("X"), false)
+	
+	Callback.Add("Tick",function() 
+		if 		SLU.SLO.Combom:Value() then Mode = "Combo" 
+		elseif 	SLU.SLO.Harassm:Value() then Mode = "Harass" 
+		elseif 	SLU.SLO.LaneClearm:Value() then Mode = "LaneClear" 
+		elseif 	SLU.SLO.LastHitm:Value() then Mode = "LastHit" 
+		else Mode = nil 
+		end
+	end)
 	
 end
 
@@ -94,13 +114,13 @@ self.lastspell = 0
 end
 
 function Humanizer:moveEvery()
-	if IOW:Mode() == "Combo" then
+	if Mode == "Combo" then
 		return 1 / SLU.Hum.ML.combo:Value()
-	elseif IOW:Mode() == "LastHit" then
+	elseif Mode == "LastHit" then
 		return 1 / SLU.Hum.ML.lhit:Value()
-	elseif IOW:Mode() == "Harass" then
+	elseif Mode == "Harass" then
 		return 1 / SLU.Hum.ML.harass:Value()
-	elseif IOW:Mode() == "LaneClear" then
+	elseif Mode == "LaneClear" then
 		return 1 / SLU.Hum.ML.lclear:Value()
 	else
 		return 1 / SLU.Hum.ML.perm:Value()
@@ -108,13 +128,13 @@ function Humanizer:moveEvery()
 end
 
 function Humanizer:Spells()
-	if IOW:Mode() == "Combo" then
+	if Mode == "Combo" then
 		return 1 / SLU.Hum.SPC.bcombo:Value()
-	elseif IOW:Mode() == "LastHit" then
+	elseif Mode == "LastHit" then
 		return 1 / SLU.Hum.SPC.blhit:Value()
-	elseif IOW:Mode() == "Harass" then
+	elseif Mode == "Harass" then
 		return 1 / SLU.Hum.SPC.bharass:Value()
-	elseif IOW:Mode() == "LaneClear" then
+	elseif Mode == "LaneClear" then
 		return 1 / SLU.Hum.SPC.blclear:Value()
 	else
 		return 1 / SLU.Hum.SPC.bperm:Value()
@@ -122,7 +142,7 @@ function Humanizer:Spells()
 end
 
 function Humanizer:IssueOrder(order)
-	if order.flag == 2 and SLU.Hum.enable:Value() and IOW:Mode() ~= nil then
+	if order.flag == 2 and SLU.Hum.enable:Value() then
 		if os.clock() - self.lastCommand < self:moveEvery() then
 		  BlockOrder()
 		  self.bCount = self.bCount + 1
@@ -133,7 +153,7 @@ function Humanizer:IssueOrder(order)
 end
 
 function Humanizer:SpellCast(spell)
-	if SLU.Hum.enable1:Value() and IOW:Mode() ~= nil then
+	if SLU.Hum.enable1:Value() then
 		if os.clock() - self.lastspell < self:Spells() then
 		  BlockCast()
 		  self.bCount1 = self.bCount1 + 1
@@ -488,7 +508,7 @@ function Activator:Check()
 end
 
 function Activator:Use(target)
-	if IOW:Mode() == "Combo" then
+	if Mode == "Combo" then
 		for i,c in pairs(self.PAC) do
 			if c.State and CanUseSpell(myHero,GetItemSlot(myHero,i)) and M[c.Name].u:Value() and ValidTarget(target,c.Range) and GetPercentHP(target) <= M[c.Name].hp:Value() then
 				CastTargetSpell(target,GetItemSlot(myHero,i))
@@ -570,7 +590,7 @@ function Activator:Barrier()
 end
 
 function Activator:SpellsComplete(unit, spellProc)
-	if unit == myHero and spellProc.name:lower():find("attack") and IOW:Mode() == "Combo" then
+	if unit == myHero and spellProc.name:lower():find("attack") and Mode == "Combo" then
 		for i,c in pairs(self.AA) do 
 			if c.State and CanUseSpell(myHero,GetItemSlot(myHero,i)) and M[c.Name].u:Value() and GetPercentHP(spellProc.target) <= M[c.Name].hp:Value() then
 				CastSpell(GetItemSlot(myHero,i))
