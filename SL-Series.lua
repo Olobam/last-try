@@ -1,4 +1,4 @@
-local SLSeries = 0.15
+local SLSeries = 0.16
 local SLPatchnew, SLPatchold = 6.6, 6.5
 local AutoUpdater = true
 
@@ -652,10 +652,10 @@ function Soraka:Tick()
 		
 	self:AutoR()
 	
-	local Mode = nil
+	local Target = GetCurrentTarget()
 
 	if Mode == "Combo" then
-		self:Combo(target)
+		self:Combo(Target)
 	elseif Mode == "LaneClear" then
 		self:JungleClear()
 		self:LaneClear()
@@ -779,7 +779,117 @@ end
 class 'Sivir'
 
 function Sivir:__init()
+	
+	Sivir.Spell = { 
+	[0] = { delay = 0.250, speed = 1350, width = 85, range = 1075 },
+	}
+	
+	Dmg = {
+	[0] = function (unit) return CalcDamage(myHero, unit, 20 * GetCastLevel(myHero,0) + 5 + (.1 * GetCastLevel(myHero,0) + .6) * (GetBonusDmg(myHero) + GetBaseDamage(myHero)), .5*GetBonusAP(myHero)) end,
+	[1] = function (unit) return CalcDamage(myHero, unit, ((5 * GetCastLevel(myHero,2) + 45)/100) * GetBonusDmg(myHero), 0) end,
+	}
+	
+	BM:Menu("C", "Combo")
+	BM.C:Boolean("Q", "Use Q", true)
+	BM.C:Boolean("W", "Use W", true)
+	BM.C:Boolean("R", "Use R", true)
+	BM.C:Slider("RE", "Use R if x enemies", 2, 1, 5, 1)
+	BM.C:Slider("RHP", "myHeroHP ", 75, 1, 100, 5)
+	BM.C:Slider("REHP", "EnemyHP ", 65, 1, 100, 5)
+	
+	BM:Menu("LC", "LaneClear")
+	BM.LC:Boolean("Q", "Use Q", true)
+	BM.LC:Boolean("W", "Use W", true)
+	
+	BM:Menu("JC", "JungleClear")
+	BM.JC:Boolean("Q", "Use Q", true)
+	BM.JC:Boolean("W", "Use W", true)
+	
+	BM:Menu("KS", "Killsteal")
+	BM.KS:Boolean("Q", "Use Q", true)
+	
+	BM:Menu("p", "Prediction")
+	BM.p:Slider("hQ", "HitChance Q", 20, 0, 100, 1)
+	
+	Callback.Add("Tick", function() self:Tick() end)
 	HitMe()
+end
+
+function Sivir:Tick()
+	if myHero.dead then return end
+		
+	GetReady()
+		
+	self:KS()
+		
+	local Target = GetCurrentTarget()
+	
+	if Mode == "Combo" then
+		self:Combo(Target)
+	elseif Mode == "LaneClear" then
+		self:JungleClear()
+		self:LaneClear()
+	else
+		return
+	end
+end
+
+function Sivir:Combo(target)
+	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() then
+		local Pred = GetPrediction(target, self.Spell[0])
+		if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+			CastSkillShot(0,Pred.castPos)
+		end
+	end
+	if SReady[1] and ValidTarget(target, 550) and BM.C.W:Value() then
+		CastSpell(1)
+	end
+	if SReady[3] and ValidTarget(target, 800) and BM.C.R:Value() and EnemiesAround(myHero,800) >= BM.C.RE:Value() and GetPercentHP(myHero) < BM.C.RHP:Value() and GetPercentHP(target) < BM.C.REHP:Value() then
+		CastSpell(3)
+	end
+end
+
+function Sivir:LaneClear()
+	for _,minion in pairs(minionManager.objects) do
+		if GetTeam(minion) == MINION_ENEMY then
+			if SReady[0] and ValidTarget(minion, self.Spell[0].range) and BM.LC.Q:Value() then
+				local Pred = GetPrediction(minion, self.Spell[0])
+				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+					CastSkillShot(0,Pred.castPos)
+				end
+			end
+			if SReady[1] and ValidTarget(minion, 550) and BM.LC.W:Value() then
+				CastSpell(1)
+			end
+		end
+	end
+end
+
+function Sivir:JungleClear()
+	for _,mob in pairs(minionManager.objects) do
+		if GetTeam(mob) == MINION_JUNGLE then
+			if SReady[0] and ValidTarget(mob, self.Spell[0].range) and BM.JC.Q:Value() then
+				local Pred = GetPrediction(mob, self.Spell[0])
+				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+					CastSkillShot(0,Pred.castPos)
+				end
+			end
+			if IsReady(1) and ValidTarget(mob, 550) and BM.JC.W:Value() then
+				CastSpell(1)
+			end
+		end
+	end
+end
+
+function Sivir:KS()
+	for _,target in pairs(GetEnemyHeroes()) do
+		if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.KS.Q:Value() and GetAPHP(target) < Dmg[0](target) then
+			local Pred = GetPrediction(target, self.Spell[0])
+			if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+				CastSkillShot(0,Pred.castPos)
+			end
+		end
+	end
 end
 
 function Sivir:HitMe(unit,pos,dt,ty)
