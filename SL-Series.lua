@@ -65,16 +65,13 @@ Callback.Add("Load", function()
 			Drawings()
 		end
 	end
-	if SLSChamps[ChampName] and ChampName ~= "Sivir" and ChampName ~= "Nocturne" then
+	if SLSChamps[ChampName] and ChampName ~= "Nocturne" then
 		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> Loaded! </b></font>")
-	elseif not SLSChamps[ChampName] and ChampName ~= "Sivir" and ChampName ~= "Nocturne" then  
+	elseif not SLSChamps[ChampName] and ChampName ~= "Nocturne" then  
 		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> is not Supported </b></font>")
 		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#F2EE00\">Utility Loaded </b></font>")
 	end
-	if ChampName == "Sivir" then
-		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> is not Supported </b></font>")
-		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#F2EE00\">Utility Loaded - SpellBlock loaded </b></font>")
-	elseif ChampName == "Nocturne" then
+	if ChampName == "Nocturne" then
 		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> is not Supported !</b></font>")
 		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#F2EE00\">Utility Loaded - SpellBlock loaded </b></font>")
 	end
