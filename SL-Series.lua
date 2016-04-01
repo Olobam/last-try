@@ -2971,11 +2971,38 @@ self.s = {
 	
 end
 
+	SLS.SB:Menu("Spells", "Spells")
+    SLS.SB:Slider("hV","Humanize Value",50,0,100,1)
+    SLS.SB:Slider("wM","Width Mulitplicator",1.5,1,5,.1)
+   
+    DelayAction(function()
+        for _,k in pairs(GetEnemyHeroes()) do
+		 if self.s[GetObjectName(k)] then
+          for m,p in pairs(self.s[GetObjectName(k)]) do
+			if p.name == "" and GetCastName(k,m) then p.name = GetCastName(k,m) end
+			if not p.type then p.type = "target" end
+            if p and p.name ~= "" and p.type then
+			  if not SLS.SB.Spells[GetObjectName(k)] then SLS.SB.Spells:Menu(GetObjectName(k), GetObjectName(k)) end
+              SLS.SB.Spells[GetObjectName(k)]:Boolean(m, (self.str[m] or "?").. " - "..(p.displayname or p.name or "?"), true)
+			  SLS.SB.Spells[GetObjectName(k)]:Slider("d"..m, (self.str[m] or "?").. " - Danger", (p.danger or 1), 1, 5, 1)
+            end
+		   end
+          end
+        end
+	Callback.Add("ProcessSpell", function(unit, spellProc) self:Detect(unit, spellProc) end)
+    end, .001)
+ 
+    self.multi = 2
+    self.fT = .75
+    CollP = Vector(0,0,0)
+   
+	
+end
+
 function HitMe:Detect(unit, spellProc)
 	if self.s[GetObjectName(unit)] and SLS.SB.uS:Value() and GetTeam(unit) == MINION_ENEMY then
 		for d,i in pairs(self.s[GetObjectName(unit)]) do
 			if SLS.SB.Spells[GetObjectName(unit)] and SLS.SB.Spells[GetObjectName(unit)][d] and SLS.SB.Spells[GetObjectName(unit)][d]:Value() and ((i.name and i.name:lower() == spellProc.name:lower()) or (i.name == "" and d >= 0 and GetCastName(unit,d) == spellProc.name)) and SLS.SB.Spells[GetObjectName(unit)]["d"..d] and SLS.SB.Spells[GetObjectName(unit)]["d"..d]:Value() >= SLS.SB.dV:Value() then
-				print("Passed: "..i.name.." from "..GetObjectName(unit))
 				i.speed = i.speed or math.huge
 				i.range = i.range or math.huge
 				i.delay = i.delay or 0
