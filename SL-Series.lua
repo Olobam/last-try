@@ -2953,32 +2953,6 @@ self.s = {
         for _,k in pairs(GetEnemyHeroes()) do
 		 if self.s[GetObjectName(k)] then
           for m,p in pairs(self.s[GetObjectName(k)]) do
-            if p and p.name ~= "" and p.type then
-			  if not SLS.SB.Spells[GetObjectName(k)] then SLS.SB.Spells:Menu(GetObjectName(k), GetObjectName(k)) end
-              SLS.SB.Spells[GetObjectName(k)]:Boolean(m, self.str[m].. " - "..(p.displayname or p.name), true)
-			  SLS.SB.Spells[GetObjectName(k)]:Slider("d"..m, self.str[m].. " - Danger", p.danger, 1, 5, 1)
-            end
-		   end
-          end
-        end
-	Callback.Add("ProcessSpell", function(unit, spellProc) self:Detect(unit, spellProc) end)
-    end, .001)
- 
-    self.multi = 2
-    self.fT = .75
-    CollP = Vector(0,0,0)
-   
-	
-end
-
-	SLS.SB:Menu("Spells", "Spells")
-    SLS.SB:Slider("hV","Humanize Value",50,0,100,1)
-    SLS.SB:Slider("wM","Width Mulitplicator",1.5,1,5,.1)
-   
-    DelayAction(function()
-        for _,k in pairs(GetEnemyHeroes()) do
-		 if self.s[GetObjectName(k)] then
-          for m,p in pairs(self.s[GetObjectName(k)]) do
 			if p.name == "" and GetCastName(k,m) then p.name = GetCastName(k,m) end
 			if not p.type then p.type = "target" end
             if p and p.name ~= "" and p.type then
