@@ -1,5 +1,5 @@
-local SLUtility = 0.06
-local SLUPatchnew, SLUPatchold = 6.6, 6.5
+local SLUtility = 0.07
+local SLUPatchnew, SLUPatchold = 6.7, 6.6
 local Updater = true
 
 require 'OpenPredict'
@@ -93,8 +93,6 @@ self.lastspell = 0
 	SLU.Hum:Boolean("enable1", "Use SpellCast Limiter", true)
 	SLU.Hum:Slider("Horizontal", "Horizontal (Drawings)", 0, 0, GetResolution().x, 10)
 	SLU.Hum:Slider("Vertical", "Vertical (Drawings)", 0, 0, GetResolution().y, 10)
-	SLU.Hum:Info("as-.,", "if your champ stutters you will")
-	SLU.Hum:Info("sa-.,", "have to turn off spellcast limiter")
 	SLU.Hum:Menu("ML", "Movement Limiter")
 	SLU.Hum.ML:Slider("lhit", "Max. Movements in Last Hit", 6, 1, 20, 1)
 	SLU.Hum.ML:Slider("lclear", "Max. Movements in Lane Clear", 6, 1, 20, 1)
@@ -252,9 +250,9 @@ end
 function AutoLevel:Do()
 	if SLU[charName.."AL"].aL:Value() and GetLevelPoints(myHero) >= 1 and GetLevel(myHero) >= SLU[charName.."AL"].sL:Value() then
 		if SLU[charName.."AL"].hL:Value() then
-			DelayAction(function() LevelSpell(self.lTable[SLU[charName.."AL"].aLS:Value()][GetLevel(myHero)-GetLevelPoints(myHero)+1]) end, math.random(SLU[charName.."AL"].hT:Value(),SLU[charName.."AL"].hT:Value()+SLU[charName.."AL"].hF:Value()))
+			DelayAction(function() LevelSpell(self.lTable[SLU[charName.."AL"].aLS:Value()][GetLevel(myHero)-GetLevelPoints(myHero)+1]or nil) end, math.random(SLU[charName.."AL"].hT:Value(),SLU[charName.."AL"].hT:Value()+SLU[charName.."AL"].hF:Value()))
 		else
-			LevelSpell(self.lTable[SLU[charName.."AL"].aLS:Value()][GetLevel(myHero)-GetLevelPoints(myHero)+1])
+			LevelSpell(self.lTable[SLU[charName.."AL"].aLS:Value()][GetLevel(myHero)-GetLevelPoints(myHero)+1]or nil)
 		end
 	end
 end
