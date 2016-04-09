@@ -1,4 +1,4 @@
-local SLSeries = 1.00
+local SLSeries = 1.01
 local SLPatchnew, SLPatchold = 6.7, 6.6
 local AutoUpdater = true
 
@@ -51,8 +51,12 @@ local t = {_G.MoveToXYZ, _G.AttackUnit, _G.CastSkillShot, _G.CastSkillShot2, _G.
 function Stop(state)
 	if state then 
 		_G.MoveToXYZ, _G.AttackUnit, _G.CastSkillShot, _G.CastSkillShot2, _G.CastSkillShot3, _G.HoldPosition, _G.CastSpell, _G.CastTargetSpell = function() end, function() end,function() end,function() end,function() end,function() end,function() end,function() end
+		BlockF7OrbWalk(true)
+		BlockF7Dodge(true)
 	else
 		_G.MoveToXYZ, _G.AttackUnit, _G.CastSkillShot, _G.CastSkillShot2, _G.CastSkillShot3, _G.HoldPosition, _G.CastSpell, _G.CastTargetSpell = t[1], t[2], t[3], t[4], t[5], t[6], t[7], t[8]
+		BlockF7OrbWalk(false)
+		BlockF7Dodge(false)
 	end
 end
 
