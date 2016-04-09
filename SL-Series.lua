@@ -1,4 +1,4 @@
-local SLSeries = 0.01
+local SLSeries = 1.00
 local SLPatchnew, SLPatchold = 6.7, 6.6
 local AutoUpdater = true
 
