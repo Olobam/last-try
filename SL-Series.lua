@@ -1,5 +1,5 @@
-local SLSeries = 0.17
-local SLPatchnew, SLPatchold = 6.6, 6.5
+local SLSeries = 0.01
+local SLPatchnew, SLPatchold = 6.7, 6.6
 local AutoUpdater = true
 
 require 'OpenPredict'
@@ -82,7 +82,8 @@ Callback.Add("Load", function()
 		Recommend()
 	end
 	SLOrb()
-end)    
+end)   
+ 
 class 'Init'
 
 function Init:__init()
@@ -104,7 +105,7 @@ function Init:__init()
 	L:Info("0.7.", "You will have to press 2f6")
 	L:Info("0.8.", "to apply the changes")
 	
-	if L.LC:Value() then
+	if L.LC:Value() and SLSChamps[ChampName] then
 		SLS:Menu(ChampName, "|SL| "..ChampName) 
 		BM = SLS[ChampName] 
 		
@@ -1609,7 +1610,7 @@ function Kalista:__init()
 	self.soul = nil
 	
 	for _,i in pairs(GetAllyHeroes()) do
-		if GotBuff(i, "kalistacoopstrikeally") >= 1 then
+		if GotBuff(i, "kalistacoopstrikeally") == 1 then
 			soul = i
 		end
 	end
@@ -1625,7 +1626,7 @@ function Kalista:__init()
 	
 	Dmg = {
 	[0] = function (unit) return CalcDamage(myHero, unit, 60 * GetCastLevel(myHero,0) - 50 + GetBonusDmg(myHero), 0) end, 
-	[2] = function (unit) return CalcDamage(myHero, unit, (10 * GetCastLevel(myHero,2) + 10 + (GetBonusDmg(myHero)+GetBaseDamage(myHero)) * .6) + ((self.eTrack[GetNetworkID(unit)] or 0)-1) * (({10,14,19,25,32})[GetCastLevel(myHero,2)] + (GetBaseDamage(myHero)+GetBaseDamage(myHero))*({0.2,0.225,0.25,0.275,0.3})[GetCastLevel(myHero,2)]), 0) end,
+	[2] = function (unit) if not unit then return end return CalcDamage(myHero, unit, (10 * GetCastLevel(myHero,2) + 10 + (GetBonusDmg(myHero)+GetBaseDamage(myHero)) * .6) + ((self.eTrack[GetNetworkID(unit)] or 0)-1) * (({10,14,19,25,32})[GetCastLevel(myHero,2)] + (GetBaseDamage(myHero)+GetBaseDamage(myHero))*({0.2,0.225,0.25,0.275,0.3})[GetCastLevel(myHero,2)]), 0) end,
 	}
 	
 	self.EpicJgl = {["SRU_Baron"]=true, ["SRU_Dragon"]=true, ["TT_Spiderboss"]=true}
