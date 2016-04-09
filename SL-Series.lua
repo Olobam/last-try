@@ -1134,7 +1134,7 @@ function Velkoz:__init()
 	BM:SubMenu("a", "Advanced")
 	BM.a:Slider("eQ", "Extra Q", 20 , 10, 50, 2)
 	BM.a:Slider("v", "QChecks", 4, 1, 8, 1)
-	BM.a:Boolean("D","Developer Debug",true)
+	BM.a:Boolean("D","Developer Debug", false)
 
 	self.ccTrack = {}
   	DelayAction(function ()
