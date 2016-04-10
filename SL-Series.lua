@@ -1,4 +1,4 @@
-local SLSeries = 1.01
+local SLSeries = 1.02
 local SLPatchnew, SLPatchold = 6.7, 6.6
 local AutoUpdater = true
 
@@ -95,7 +95,7 @@ function Init:__init()
 	local GapCloser = {}
 	local MapPositionGOS = {["Vayne"] = true, ["Poppy"] = true, ["Kalista"] = true, ["Kindred"] = true,}
 	
-	SLS = MenuConfig("SL-Series", "SL-Series")
+	SLS = MenuConfig("SL-Series", "["..SLPatchnew.."-"..SLPatchold.."][v.:"..SLSeries.."] SL-Series")
 	SLS:Menu("Loader", "|SL| Loader")
 	L = SLS["Loader"]
 	L:Boolean("LC", "Load Champion", true)
@@ -130,13 +130,15 @@ class 'Recommend'
 
 function Recommend:__init()
 	self.RecommendedUtility = {
-	[1] = {Name = "Radar Hack", 	Link = "https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/RadarHack.lua",		Author = "Noddy",	File = "RadarHack"},
-	[2] = {Name = "Recall Tracker",	Link = "https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/RecallTracker.lua",	Author = "Noddy",	File = "RecallTracker"},
+	[1] = {Name = "Radar Hack", 	Link = "https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/RadarHack.lua",		        Author = "Noddy",	File = "RadarHack"},
+	[2] = {Name = "Recall Tracker",	Link = "https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/RecallTracker.lua",	        Author = "Noddy",	File = "RecallTracker"},
+	[3] = {Name = "GoSEvade",       Link = "https://raw.githubusercontent.com/KeVuong/GoS/master/Evade.lua",                    Author = "MeoBeo",  File = "Evade"},
 	}
 
 	SLS:Menu("Re","|SL| Recommended Scripts")
+	SLS.Re:Info("xx.x", "Load : ")
 	for n,i in pairs(self.RecommendedUtility) do
-		SLS.Re:Boolean("S"..n,"Load "..i.Name.." ["..i.Author.."]", false)
+		SLS.Re:Boolean("S"..n,"- "..i.Name.." ["..i.Author.."]", false)
 	end
 	SLS.Re:Info("xxx","2x F6 after download")
 	
@@ -155,7 +157,6 @@ function Recommend:__init()
 		end
 	end
 end
-	
 
 class 'SLOrb'
 
@@ -814,6 +815,7 @@ function Sivir:__init()
 	BM.p:Slider("hQ", "HitChance Q", 20, 0, 100, 1)
 	
 	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("ProcessSpellComplete", function(unit,spell) self:AAReset(unit,spell) end)
 	HitMe()
 end
 
@@ -836,15 +838,32 @@ function Sivir:Tick()
 	end
 end
 
+function Sivir:AAReset(unit, spell)
+	local ta = spell.target
+	if unit == myHero and ta ~= nil and spell.name:lower():find("attack") and SReady[1] then
+		if Mode == "Combo" and BM.C.W:Value() then
+			if ValidTarget(ta, GetRange(myHero)+GetHitBox(myHero)) then
+				CastSpell(1)
+			end
+		elseif Mode == "LaneClear" and BM.LC.W:Value() and GetTeam(ta) == MINION_ENEMY then
+			if ValidTarget(ta, GetRange(myHero)+GetHitBox(myHero)) then
+				CastSpell(1)
+			end
+		elseif Mode == "LaneClear" and BM.JC.W:Value() and GetTeam(ta) == MINION_JUNGLE then
+			if ValidTarget(ta, GetRange(myHero)+GetHitBox(myHero)) then
+				CastSpell(1)
+			end
+		end
+	end
+end
+				
+
 function Sivir:Combo(target)
 	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() then
 		local Pred = GetPrediction(target, self.Spell[0])
 		if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
 			CastSkillShot(0,Pred.castPos)
 		end
-	end
-	if SReady[1] and ValidTarget(target, 550) and BM.C.W:Value() then
-		CastSpell(1)
 	end
 	if SReady[3] and ValidTarget(target, 800) and BM.C.R:Value() and EnemiesAround(myHero,800) >= BM.C.RE:Value() and GetPercentHP(myHero) < BM.C.RHP:Value() and GetPercentHP(target) < BM.C.REHP:Value() then
 		CastSpell(3)
@@ -860,9 +879,6 @@ function Sivir:LaneClear()
 					CastSkillShot(0,Pred.castPos)
 				end
 			end
-			if SReady[1] and ValidTarget(minion, 550) and BM.LC.W:Value() then
-				CastSpell(1)
-			end
 		end
 	end
 end
@@ -875,9 +891,6 @@ function Sivir:JungleClear()
 				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
 					CastSkillShot(0,Pred.castPos)
 				end
-			end
-			if IsReady(1) and ValidTarget(mob, 550) and BM.JC.W:Value() then
-				CastSpell(1)
 			end
 		end
 	end
