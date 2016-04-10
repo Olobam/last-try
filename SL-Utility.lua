@@ -1,4 +1,4 @@
-local SLUtility = 0.07
+local SLUtility = 0.08
 local SLUPatchnew, SLUPatchold = 6.7, 6.6
 local Updater = true
 
@@ -35,7 +35,7 @@ class 'Initi'
 
 function Initi:__init()
 
-	SLU = MenuConfig("SL-Utility", "SL-Utility")
+	SLU = MenuConfig("SL-Utility", "["..SLUPatchnew.."-"..SLUPatchold.."][v.:"..SLUtility.."] SL-Utility")
 	SLU:Menu("Load", "|SL| Loader")
 	SLU.Load:Boolean("LA", "Load Activator", true)
 	SLU.Load:Info("as^dasc", "")
