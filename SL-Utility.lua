@@ -388,6 +388,7 @@ end
 
 function Activator:Tickpx()
 	self:Check()
+	if myHero.dead then return end
 	self:Use(GetCurrentTarget())
 	if Ignite then 
 		self:Ignite() 
