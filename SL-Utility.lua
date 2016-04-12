@@ -1,4 +1,4 @@
-local SLUtility = 0.08
+local SLUtility = 0.09
 local SLUPatchnew, SLUPatchold = 6.7, 6.6
 local Updater = true
 
@@ -343,13 +343,14 @@ function Activator:__init()
 	[2003] = {Name = "Health Potion", Stack = false},
 	[2031] = {Name = "Refillable Potion", Stack = true},
 	[2032] = {Name = "Hunters Potion", Stack = true},
+	[2033] = {Name = "Corruption Potion", Stack = true},
 	}
 	
-	self.CP = {Name = "Corruption Potion", Stack = true}
+	--self.CP 
 	
 	self.SI = {		--Stasis
-	[3157] = {Name = "Hourglass"},
-	[3090] = {Name = "Wooglets"},
+	--[3157] = {Name = "Hourglass"},
+	--[3090] = {Name = "Wooglets"},
 	}
 	
 	M:Info("xxx","Items appear here as you buy")
@@ -562,11 +563,11 @@ function Activator:Ignite()
 end
 
 function Activator:Heal()
-		if IsReady(Heal) and M.Sum.Heal.healme:Value() and GetPercentHP(myHero) <= M.Sum.Heal.myHP:Value() and EnemiesAround(GetOrigin(myHero), 675) > 1 then
+		if IsReady(Heal) and M.Sum.Heal.healme:Value() and GetPercentHP(myHero) <= M.Sum.Heal.myHP:Value() and EnemiesAround(GetOrigin(myHero), 675) >= 1 then
 			CastSpell(Heal)
 		end
 	for _,a in pairs(GetAllyHeroes()) do
-		if a and IsReady(Heal) and M.Sum.Heal.healally:Value() and GetPercentHP(a) <= M.Sum.Heal.allyHP:Value() and EnemiesAround(GetOrigin(myHero), 675) > 1 and GetDistance(myHero,a) < 675 then
+		if a and IsReady(Heal) and M.Sum.Heal.healally:Value() and GetPercentHP(a) <= M.Sum.Heal.allyHP:Value() and EnemiesAround(GetOrigin(myHero), 675) >= 1 and GetDistance(myHero,a) < 675 then
 			CastSpell(Heal)
 		end
 	end
@@ -582,7 +583,7 @@ function Activator:Snowball()
 end
 
 function Activator:Barrier()
-	if IsReady(Barrier) and M.Sum.Barrier.enable:Value() and GetPercentHP(myHero) <= M.Sum.Barrier.myHP:Value() and EnemiesAround(GetOrigin(myHero), 675) > 1 then
+	if IsReady(Barrier) and M.Sum.Barrier.enable:Value() and GetPercentHP(myHero) <= M.Sum.Barrier.myHP:Value() and EnemiesAround(GetOrigin(myHero), 675) >= 1 then
 		CastSpell(Barrier)
 	end
 end
