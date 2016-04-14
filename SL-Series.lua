@@ -1,4 +1,4 @@
-local SLSeries = 1.02
+local SLSeries = 1.03
 local SLPatchnew, SLPatchold = 6.7, 6.6
 local AutoUpdater = true
 
@@ -2514,6 +2514,10 @@ self.s = {
 			[_W] = { displayname = "Volley", name = "Volley", objname = "VolleyAttack", speed = 902, delay = 0.25, range = 1200, width = 100, collision = true, aoe = false, type = "cone", danger = 2},
 			[_R] = { displayname = "Enchanted Crystal Arrow", name = "EnchantedCrystalArrow", objname = "EnchantedCrystalArrow", speed = 1600, delay = 0.5, range = 25000, width = 100, collision = true, aoe = false, type = "linear", danger = 5, type2 = "cc"}
 		},
+		["AurelionSol"] = {
+			[_Q] = { displayname = "Starsurge", name = "AurelionSolQ", objname = "AurelionSolQMissile", speed = 850, delay = 0.25, range = 1500, width = 150, collision = false, aoe = true, type = "linear", danger = 3},
+			[_R] = { displayname = "Voice of Light", name = "AurelionSolR", objname = "AurelionSolRBeamMissile", speed = 4600, delay = 0.3, range = 1420, width = 120, collision = false, aoe = true, type = "linear", danger = 4},
+		},
 		["Azir"] = {
 			[_Q] = { displayname = "Conquering Sands", name = "AzirQ", speed = 2500, delay = 0.250, range = 880, width = 100, collision = false, aoe = false, type = "linear", danger = 2},
 			[_E] = { displayname = "Shifting Sands", name = "AzirE", range = 1100, delay = 0.25, speed = 1200, width = 60, collision = true, aoe = false, type = "linear", danger = 1},
@@ -2644,6 +2648,11 @@ self.s = {
 			[_W] = { displayname = "Hextech Micro-Rockets", name = "Heimerdingerwm", objname = "HeimerdingerWAttack2", speed = 1800, delay = 0.25, range = 1500, width = 70, collision = true, aoe = false, type = "linear", danger = 2},
 			[_E] = { displayname = "CH-2 Electron Storm Grenade", name = "HeimerdingerE", objname = "HeimerdingerESpell", speed = 1200, delay = 0.25, range = 925, width = 100, collision = false, aoe = true, type = "circular", danger = 3, type2 = "cc"}
 		},
+		["Illaoi"] = {
+			[_Q] = { displayname = "Tentacle Smash", name = "IllaoiQ", objname = "", speed = math.huge, delay = 0.75, range = 850, width = 100, collision = false, aoe = true, type = "linear", danger = 2},
+			[_E] = { displayname = "Test of Spirit", name = "IllaoiE", objname = "Illaoiemis", speed = 1900, delay = 0.25, range = 950, width = 50, collision = true, aoe = false, type = "linear", danger = 4},
+			[_R] = { displayname = "Leap of Faith", name = "IllaoiR", objname = "", speed = math.huge, delay = 0.5, range = 0, width = 450, collision = false, aoe = true, type = "circular", danger = 5},
+		},
 		["Irelia"] = {
 			[_E] = { displayname = "Irelia E", name = "IreliaEquilibriumStrike", danger = 3, type2 = "cc"},
 			[_R] = { displayname = "Transcendent Blades", name = "IreliaTranscendentBlades", objname = "IreliaTranscendentBlades", speed = 1700, delay = 0.250, range = 1200, width = 25, collision = false, aoe = false, type = "linear", danger = 1}
@@ -2661,6 +2670,10 @@ self.s = {
 		["Jayce"] = {
 			[_Q] = { displayname = "Shock Blast", name = "jayceshockblast", objname = "JayceShockBlastMis", speed = 1450, delay = 0.15, range = 1750, width = 70, collision = true, aoe = false, type = "linear", danger = 2},
 			[-1] = { displayname = "Shock Blast Acceleration", name = "JayceQAccel", objname = "JayceShockBlastWallMis", speed = 2350, delay = 0.15, range = 1300, width = 70, collision = true, aoe = false, type = "linear", danger = 3}
+		},
+		["Jhin"] = {
+			[_W] = { displayname = "Deadly Flourish", name = "JhinW", objname = "JhinWMissile", speed = 5000, delay = 0.75, range = 2500, width = 40, collision = true, aoe = false, type = "linear", danger = 2},
+			[_R] = { displayname = "Curtain Call", name = "JhinR", objname = "JhinRShotMis", speed = 5000, delay = 0.25, range = 3000, width = 80, collision = true, aoe = false, type = "linear", danger = 3},
 		},
 		["Jinx"] = {
 			[_W] = { displayname = "Zap!", name = "JinxW", objname = "JinxWMissile", speed = 3000, delay = 0.600, range = 1400, width = 60, collision = true, aoe = false, type = "linear", danger = 3},
@@ -2866,6 +2879,9 @@ self.s = {
 		["Thresh"] = {
 			[_Q] = { displayname = "Death Sentence", name = "ThreshQ", objname = "ThreshQMissile", speed = 1825, delay = 0.25, range = 1050, width = 70, collision = true, aoe = false, type = "linear", danger = 3},
 			[_E] = { displayname = "Flay", name = "ThreshE", objname = "ThreshEMissile1", speed = 2000, delay = 0.25, range = 450, width = 110, collision = false, aoe = false, type = "linear", danger = 3}
+		},
+		["TahmKench"] = {
+			[_Q] = { displayname = "Tongue Lash", name = "TahmKenchQ", objname = "TahmkenchQMissile", speed = 2000, delay = 0.25, range = 951, width = 70, collision = true, aoe = false, type = "linear", danger = 3},
 		},
 		["Tristana"] = {
 			[_W] = { displayname = "Rocket Jump", name = "RocketJump", objname = "RocketJump", speed = 2100, delay = 0.25, range = 900, width = 125, collision = false, aoe = false, type = "circular", danger = 2}
