@@ -1,4 +1,4 @@
-local SLSeries = 1.03
+local SLSeries = 1.04
 local SLPatchnew, SLPatchold = 6.7, 6.6
 local AutoUpdater = true
 
@@ -291,13 +291,13 @@ end
 function Vayne:AAReset(unit, spell)
 	local ta = spell.target
 	if unit == myHero and ta ~= nil and spell.name:lower():find("attack") and SReady[0] then
-	  local QPos = Vector(ta) - (Vector(ta) - Vector(myHero)):perpendicular():normalized() * 350
+	  local QPos = Vector(ta) - (Vector(ta) - Vector(myHero)):perpendicular():normalized() * ( GetDistance(myHero,ta) * 1.2 )
 	  local QPos2 = Vector(Vector(myHero) - Vector(ta)) + Vector(myHero):normalized() * 75
 	  local QPos3 = Vector(ta) + Vector(ta):normalized()
 		if Mode == "Combo" and BM.C.Q:Value() and ValidTarget(ta, 825) then
-			if BM.C.QL:Value() == 1 and GetDistance(myHero,ta) > 250 then
+			if BM.C.QL:Value() == 1 and GetDistance(myHero,ta) > 275 then
 				CastSkillShot(0, QPos)
-			elseif BM.C.QL:Value() == 1 and GetDistance(myHero,ta) < 250 then
+			elseif BM.C.QL:Value() == 1 and GetDistance(myHero,ta) < 275 then
 				CastSkillShot(0, QPos2)
 			elseif BM.C.QL:Value() == 1 and GetDistance(myHero,ta) > 650 then
 				CastSkillShot(0, QPos3)
@@ -305,9 +305,9 @@ function Vayne:AAReset(unit, spell)
 				CastSkillShot(0, GetMousePos())
 			end
 		elseif Mode == "Harass" and BM.H.Q:Value() and ValidTarget(ta, 825) then
-			if BM.H.QL:Value() == 1 and GetDistance(myHero,ta) > 250 then
+			if BM.H.QL:Value() == 1 and GetDistance(myHero,ta) > 275 then
 				CastSkillShot(0, QPos)
-			elseif BM.H.QL:Value() == 1 and GetDistance(myHero,ta) < 250 then
+			elseif BM.H.QL:Value() == 1 and GetDistance(myHero,ta) < 275 then
 				CastSkillShot(0, QPos2)
 			elseif BM.H.QL:Value() == 1 and GetDistance(myHero,ta) > 650 then
 				CastSkillShot(0, QPos3)
@@ -315,9 +315,9 @@ function Vayne:AAReset(unit, spell)
 				CastSkillShot(0, GetMousePos())
 			end
 		elseif Mode == "LaneClear" and BM.JC.Q:Value() and GetTeam(ta) == MINION_JUNGLE then
-			if BM.JC.QL:Value() == 1 and GetDistance(myHero,ta) > 250 then
+			if BM.JC.QL:Value() == 1 and GetDistance(myHero,ta) > 275 then
 				CastSkillShot(0, QPos)
-			elseif BM.JC.QL:Value() == 1 and GetDistance(myHero,ta) < 250 then
+			elseif BM.JC.QL:Value() == 1 and GetDistance(myHero,ta) < 275 then
 				CastSkillShot(0, QPos2)
 			elseif BM.JC.QL:Value() == 1 and GetDistance(myHero,ta) > 650 then
 				CastSkillShot(0, QPos3)
@@ -325,9 +325,9 @@ function Vayne:AAReset(unit, spell)
 				CastSkillShot(0, GetMousePos())
 			end
 		elseif Mode == "LaneClear" and BM.LC.Q:Value() and GetTeam(ta) == MINION_ENEMY then
-			if BM.LC.QL:Value() == 1 and GetDistance(myHero,ta) > 250 then
+			if BM.LC.QL:Value() == 1 and GetDistance(myHero,ta) > 275 then
 				CastSkillShot(0, QPos)
-			elseif BM.LC.QL:Value() == 1 and GetDistance(myHero,ta) < 250 then
+			elseif BM.LC.QL:Value() == 1 and GetDistance(myHero,ta) < 275 then
 				CastSkillShot(0, QPos2)
 			elseif BM.LC.QL:Value() == 1 and GetDistance(myHero,ta) > 650 then
 				CastSkillShot(0, QPos3)
@@ -2515,7 +2515,7 @@ self.s = {
 			[_R] = { displayname = "Enchanted Crystal Arrow", name = "EnchantedCrystalArrow", objname = "EnchantedCrystalArrow", speed = 1600, delay = 0.5, range = 25000, width = 100, collision = true, aoe = false, type = "linear", danger = 5, type2 = "cc"}
 		},
 		["AurelionSol"] = {
-			[_Q] = { displayname = "Starsurge", name = "AurelionSolQ", objname = "AurelionSolQMissile", speed = 850, delay = 0.25, range = 1500, width = 150, collision = false, aoe = true, type = "linear", danger = 3},
+			[_Q] = { displayname = "Starsurge", name = "AurelionSolQ", objname = "AurelionSolQMissile", speed = 850, delay = 0.25, range = 1500, width = 150, collision = false, aoe = true, type = "linear", danger = 3, type2 = "cc"},
 			[_R] = { displayname = "Voice of Light", name = "AurelionSolR", objname = "AurelionSolRBeamMissile", speed = 4600, delay = 0.3, range = 1420, width = 120, collision = false, aoe = true, type = "linear", danger = 4},
 		},
 		["Azir"] = {
@@ -2583,7 +2583,7 @@ self.s = {
 		},
 		["Ekko"] = {
 			[_Q] = { displayname = "Timewinder", name = "EkkoQ", objname = "ekkoqmis", speed = 1050, delay = 0.25, range = 925, width = 140, collision = false, aoe = false, type = "linear", danger = 2},
-			[_W] = { displayname = "Parallel Convergence", name = "EkkoW", objname = "EkkoW", speed = math.huge, delay = 2.5, range = 1600, width = 450, collision = false, aoe = true, type = "circular", danger = 3},
+			[_W] = { displayname = "Parallel Convergence", name = "EkkoW", objname = "EkkoW", speed = math.huge, delay = 3.25, range = 1600, width = 450, collision = false, aoe = true, type = "circular", danger = 3},
 			[_E] = { displayname = "Phase Dive", name = "EkkoE", delay = 0.50, range = 350, danger = 1},
 			[_R] = { displayname = "Chronobreak", name = "EkkoR", objname = "EkkoR", speed = math.huge, delay = 0.5, range = 0, width = 400, collision = false, aoe = true, type = "circular", danger = 4}
 		},
@@ -2672,7 +2672,7 @@ self.s = {
 			[-1] = { displayname = "Shock Blast Acceleration", name = "JayceQAccel", objname = "JayceShockBlastWallMis", speed = 2350, delay = 0.15, range = 1300, width = 70, collision = true, aoe = false, type = "linear", danger = 3}
 		},
 		["Jhin"] = {
-			[_W] = { displayname = "Deadly Flourish", name = "JhinW", objname = "JhinWMissile", speed = 5000, delay = 0.75, range = 2500, width = 40, collision = true, aoe = false, type = "linear", danger = 2},
+			[_W] = { displayname = "Deadly Flourish", name = "JhinW", objname = "JhinWMissile", speed = 5000, delay = 0.75, range = 2500, width = 40, collision = true, aoe = false, type = "linear", danger = 2, type2 = "cc"},
 			[_R] = { displayname = "Curtain Call", name = "JhinR", objname = "JhinRShotMis", speed = 5000, delay = 0.25, range = 3000, width = 80, collision = true, aoe = false, type = "linear", danger = 3},
 		},
 		["Jinx"] = {
