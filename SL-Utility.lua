@@ -1,5 +1,5 @@
-local SLUtility = 0.09
-local SLUPatchnew, SLUPatchold = 6.7, 6.6
+local SLUtility = 0.10
+local SLUPatchnew, SLUPatchold = 6.8, 6.7
 local Updater = true
 
 require 'OpenPredict'
