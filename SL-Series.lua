@@ -1,5 +1,5 @@
-local SLSeries = 1.04
-local SLPatchnew, SLPatchold = 6.7, 6.6
+local SLSeries = 1.05
+local SLPatchnew, SLPatchold = 6.8, 6.7
 local AutoUpdater = true
 
 require 'OpenPredict'
@@ -16,6 +16,7 @@ local SLSChamps = {
 	["Kindred"] = true,
 	["Nocturne"] = true,
 	["Sivir"] = true,
+	["Vladimir"] = true,
 }
 
 local Name = GetMyHero()
@@ -2258,6 +2259,199 @@ function Kindred:WallBetween(p1, p2, distance) --p1 and p2 are Vectors3d
 	end
 end
 
+
+class 'Vladimir'
+
+function Vladimir:__init()
+	
+	Vladimir.Spell = {
+	[0] = { range = 600 },
+	[1] = { range = 350 },
+	[2] = { range = 610 },
+	[3] = { delay = 0.25, speed = math.huge, range = 700, radius = 175},
+	}
+	
+	Dmg = {
+	[0] = function(unit) return CalcDamage(myHero, unit, 0, 35 * GetCastLevel(myHero,0) + 55 + GetBonusAP(myHero) * .6) end,
+	[2] = function(unit) return CalcDamage(myHero, unit, 0, self.eDmg) end,
+	[3] = function(unit) return CalcDamage(myHero, unit, 0, 100 * GetCastLevel(myHero,3) + 50 + GetBonusAP(myHero) * .7) end,
+	}
+	
+	BM:Menu("C", "Combo")
+	BM.C:Boolean("Q", "Use Q", true)
+	BM.C:Boolean("E", "Use E", true)
+	BM.C:Boolean("R", "Use R", true)
+	BM.C:Boolean("REA", "Use if R will hit > x enemies", 2, 1, 5, 1)
+	
+	BM:Menu("H", "Harass")
+	BM.H:Boolean("Q", "Use Q", true)
+	BM.H:Boolean("E", "Use E", true)
+	
+	BM:Menu("LC", "LaneClear")
+	BM.LC:Boolean("Q", "Use Q", true)
+	BM.LC:Boolean("E", "Use E", true)
+	
+	BM:Menu("JC", "JungleClear")
+	BM.JC:Boolean("Q", "Use Q", true)
+	BM.JC:Boolean("E", "Use E", true)
+	
+	BM:Menu("KS", "Killsteal")
+	BM.KS:Boolean("Q", "Use Q", true)
+	BM.KS:Boolean("E", "Use E", true)
+	BM.KS:Boolean("R", "Use R", false)
+	
+	BM:Menu("p", "Prediction")
+	BM.p:Slider("hR", "HitChance R", 40, 0, 100, 1)
+	
+	BM:Boolean("StackE", "Auto Stack E", true)
+	BM:Slider("EST", "Objects Around to stop", 1, 0, 15, 1)
+	BM:Slider("HPE", "HP to stop stacking E <= (%)", 5, 1, 100, 5)
+	BM:Slider("StacksE", "Max E Stacks", 4, 0, 4, 1)
+	
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("UpdateBuff", function(unit,buff) self:UpdateBuff(unit,buff) end)
+	Callback.Add("RemoveBuff", function(unit,buff) self:RemoveBuff(unit,buff) end)
+	HitMe()
+	
+	self.EStacks = 0
+	self.ETime = 0
+
+end
+
+function Vladimir:HitMe(unit,pos,dt,ty)
+ DelayAction( function() 
+  CastSpell(1)
+ end,dt)
+end
+
+function Vladimir:Tick()
+	if myHero.dead then return end
+	
+		
+	GetReady()
+	
+	self.eDmg = self:EDmg()
+	
+	self:AutoEStack()
+	
+	self:KS()
+	
+	local target = GetCurrentTarget()
+
+
+    if Mode == "Combo" then
+		self:Combo(target)
+	elseif Mode == "LaneClear" then
+		self:LaneClear()
+		self:JungleClear()
+	elseif Mode == "Harass" then
+		self:Harass(target)
+	else
+		return
+	end
+end
+
+function Vladimir:EDmg()
+	dmg = 25 * GetCastLevel(myHero,2) + 35
+	if self.EStacks == 1 then
+		Edmg = dmg + GetBonusAP(myHero) * .4
+	elseif self.EStacks == 2 then
+		Edmg = dmg * 1.33 + GetBonusAP(myHero) * .4
+	elseif self.EStacks == 3 then
+		Edmg = dmg * 1.66 + GetBonusAP(myHero) * .4
+	elseif self.EStacks == 4 then
+		Edmg = dmg * 2 + GetBonusAP(myHero) * .4
+	end
+end
+
+function Vladimir:AutoEStack()
+	if BM.StackE:Value() and SReady[2] and self.EStacks < BM.StacksE:Value() and self.ETime - GetGameTimer() < 0.2 and GetPercentHP(myHero) >= BM.HPE:Value() and (EnemiesAround(GetOrigin(myHero), 850) <= BM.EST:Value() or MinionsAround(GetOrigin(myHero), 850) <= BM.EST:Value()) then
+		CastSpell(2)
+	elseif BM.StackE:Value() and SReady[2] and self.EStacks == 4 and self.ETime - GetGameTimer() < 0.2 and GetPercentHP(myHero) >= BM.HPE:Value() and (EnemiesAround(GetOrigin(myHero), 850) <= BM.EST:Value() or MinionsAround(GetOrigin(myHero), 850) <= BM.EST:Value()) then
+		CastSpell(2)
+	end	
+end
+
+function Vladimir:Combo(target)
+	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() then
+		CastTargetSpell(target,0)
+	end
+	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() then
+		CastSpell(2)
+	end
+	if SReady[3] and ValidTarget(target, self.Spell[3].range) and BM.C.R:Value() and EnemiesAround(GetOrigin(target), self.Spell[3].radius) >= BM.C.REA:Value() then
+		local Pred = GetCircularAOEPrediction(target, self.Spell[3])
+		if Pred.hitChance >= BM.p.hR:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[3].range then
+			CastSkillShot(3,Pred.castPos)
+		end
+	end
+end
+
+function Vladimir:Harass(target)
+	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.H.Q:Value() then
+		CastTargetSpell(target,0)
+	end
+	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.H.E:Value() then
+		CastSpell(2)
+	end
+end
+
+function Vladimir:LaneClear()
+	for _,minion in pairs(minionManager.objects) do
+		if GetTeam(minion) == MINION_ENEMY then
+			if SReady[0] and ValidTarget(minion, self.Spell[0].range) and BM.LC.Q:Value() then
+				CastTargetSpell(minion,0)
+			end
+			if SReady[2] and ValidTarget(minion, self.Spell[2].range) and BM.LC.E:Value() then
+				CastSpell(2)
+			end
+		end
+	end
+end
+
+function Vladimir:JungleClear()
+	for _,mob in pairs(minionManager.objects) do
+		if GetTeam(mob) == MINION_JUNGLE then
+			if SReady[0] and ValidTarget(mob, self.Spell[0].range) and BM.JC.Q:Value() then
+				CastTargetSpell(mob,0)
+			end
+			if SReady[2] and ValidTarget(mob, self.Spell[2].range) and BM.JC.E:Value() then
+				CastSpell(2)
+			end
+		end
+	end
+end
+
+function Vladimir:KS()
+	for _,target in pairs(GetEnemyHeroes()) do
+		if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.KS.Q:Value() and GetAPHP(target) < Dmg[0](target) then
+			CastTargetSpell(target,0)
+		end
+		if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.KS.E:Value() and GetAPHP(target) < Dmg[2](target) then
+			CastSpell(2)
+		end
+		if SReady[3] and ValidTarget(target, self.Spell[3].range) and BM.KS.R:Value() and GetAPHP(target) < Dmg[3](target) then
+			local Pred = GetCircularAOEPrediction(target, self.Spell[3])
+			if Pred.hitChance >= BM.p.hR:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[3].range then
+				CastSkillShot(3,Pred.castPos)
+			end
+		end
+	end
+end
+
+function Vladimir:UpdateBuff(unit,buff)
+	if unit == myHero and buff.Name == "vladimirtidesofbloodcost" then
+		self.EStacks = buff.Count
+		self.ETime = buff.ExpireTime
+	end
+end
+
+function Vladimir:RemoveBuff(unit,buff)
+	if unit == myHero and buff.Name == "vladimirtidesofbloodcost" then
+		self.EStacks = 0
+	end
+end
+
 ---------------------------------------------------------------------------------------------
 -------------------------------------UTILITY-------------------------------------------------
 ---------------------------------------------------------------------------------------------
@@ -2473,7 +2667,7 @@ function HitMe:__init()
     if Name == "Sivir" or "Morgana" then
         SLS.SB:Boolean("uS","Use Spellshield",true)
         SLS.SB:Slider("dV","Danger Value",2,1,5,1)
-    elseif Name == "Nocturne" then
+    elseif Name == "Nocturne" or "Vladimir" then
         SLS:Boolean("uS","Use Hourglass",true)
         SLS:Slider("dV","Danger Value",5,1,5,1)
     elseif GetItemSlot(myHero,3157)>0 or GetItemSlot(myHero,3090)>0 then
