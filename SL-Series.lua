@@ -1,4 +1,4 @@
-local SLSeries = 1.05
+local SLSeries = 1.06
 local SLPatchnew, SLPatchold = 6.8, 6.7
 local AutoUpdater = true
 
@@ -3065,7 +3065,7 @@ self.s = {
 			[_R] = { name = "", speed = math.huge, delay = 0.25, range = 0, width = 650, collision = false, aoe = false, type = "circular", danger = 4, type2 = "nuke"}
 		},
 		["Taric"] = {
-			[_R] = { name = "TaricHammerSmash", speed = math.huge, delay = 0.25, range = 0, width = 175, collision = false, aoe = false, type = "circular", danger = 3}
+			[_E] = { name = "TaricE", speed = math.huge, delay = 1, range = 650, width = 300, collision = false, aoe = false, type = "circular", danger = 3}
 		},
 		["Teemo"] = {
 			[_Q] = { name = "", danger = 3}
