@@ -1,4 +1,4 @@
-local SLSeries = 1.07
+local SLSeries = 1.08
 local SLPatchnew, SLPatchold = 6.9, 6.8
 local AutoUpdater = true
 
@@ -2954,7 +2954,9 @@ self.s = {
 		},
 		["Malzahar"] = {
 			[_Q] = { displayname = "Call of the Void", name = "AlZaharCalloftheVoid", objname = "AlZaharCalloftheVoid", speed = math.huge, delay = 1, range = 900, width = 100, collision = false, aoe = false, type = "linear", danger = 3},
-			[_W] = { displayname = "Null Zone", name = "AlZaharNullZone", speed = math.huge, delay = 0.5, range = 800, width = 250, collision = false, aoe = false, type = "circular", danger = 1},
+			--[_W] = { displayname = "Null Zone", name = "AlZaharNullZone", speed = math.huge, delay = 0.5, range = 800, width = 250, collision = false, aoe = false, type = "circular", danger = 1},
+			[_R] = { displayname = "Nether Grasp", name = "AlZaharNetherGrasp", speed = math.huge, delay = 0, range = 700, danger = 5},
+
 		},
 		["Maokai"] = {
 			[_W] = { name = "", speed = 2000, delay = .1, danger = 3, type2 = "5"},
@@ -3167,9 +3169,9 @@ self.s = {
 			[_Q] = { displayname = "Time Bomb", name = "ZileanQ", objname = "ZileanQMissile", speed = math.huge, delay = 0.5, range = 900, width = 150, collision = false, aoe = true, type = "circular", danger = 3}
 		},
 		["Zyra"] = {
-			[-8] = { name = "zyrapassivedeathmanager", objname = "zyrapassivedeathmanager", speed = 1900, delay = 0.5, range = 1475, width = 70, collision = false, aoe = false, type = "linear", danger = 3},
+			--[-8] = { name = "zyrapassivedeathmanager", objname = "zyrapassivedeathmanager", speed = 1900, delay = 0.5, range = 1475, width = 70, collision = false, aoe = false, type = "linear", danger = 3},
 			[_Q] = { name = "ZyraQFissure", objname = "ZyraQFissure", speed = math.huge, delay = 0.7, range = 800, width = 85, collision = false, aoe = true, type = "circular", danger = 2},
-			[_E] = { name = "ZyraGraspingRoots", objname = "ZyraGraspingRoots", speed = 1150, delay = 0.25, range = 1100, width = 70, collision = false, aoe = false, type = "linear", danger = 3, type2 = "cc"},
+			[_E] = { name = "ZyraGraspingRoots", objname = "ZyraGraspingRoots", speed = 1150, delay = 0.25, range = 1100, width = 200, collision = false, aoe = true, type = "linear", danger = 3, type2 = "cc"},
 			[_R] = { name = "ZyraBrambleZone", speed = math.huge, delay = 1, range = 1100, width = 500, collision=false, aoe = true, type = "circular", danger = 4, type2 = "nuke"}
 		}
 	}
