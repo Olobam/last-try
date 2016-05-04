@@ -1172,8 +1172,8 @@ function Velkoz:__init()
 	
 	Dmg = {
 	[0] = function (unit) return CalcDamage(myHero, unit, 40 * GetCastLevel(myHero,0) + 40 + GetBonusAP(myHero), 0)*.6 end, 
-	[1] = function (unit) return CalcDamage(myHero, unit, 20 * GetCastLevel(myHero,1) + 10 + GetBonusDmg(myHero), 1)*.25 end, 
-	[2] = function (unit) return CalcDamage(myHero, unit, 30 * GetCastLevel(myHero,2) - 10 + GetBonusDmg(myHero), 2)*.5 end, 
+	[1] = function (unit) return CalcDamage(myHero, unit, 20 * GetCastLevel(myHero,1) + 10 + GetBonusDmg(myHero), 1)*.15 end, 
+	[2] = function (unit) return CalcDamage(myHero, unit, 30 * GetCastLevel(myHero,2) - 10 + GetBonusDmg(myHero), 2)*.3 end, 
 	[3] = function (unit) return Velkoz:RDmg(unit) end,
 	}
 	
@@ -1259,8 +1259,8 @@ function Velkoz:Combo(unit)
 end
 
 function Velkoz:RDmg(unit)
-	local RTick = 30 + 20 * GetCastLevel(myHero,_R) + GetBonusAP(myHero) * .06
-	local Passive = 25 + 10 * GetLevel(myHero)
+	local RTick = 27.5 + 22.5 * GetCastLevel(myHero,3) + GetBonusAP(myHero) * .1
+	local Passive = 25 + 8 * GetLevel(myHero) + myHero.ap * .4
 	local ticks = (1550 - GetDistance(GetOrigin(unit),GetOrigin(myHero))) / (GetMoveSpeed(unit)*.8)
 	if self.ccTrack and self.ccTrack[GetObjectName(unit)] and self.rTime > GetGameTimer() then ticks = ticks + (self.rTime - GetGameTimer())*4 end
 	ticks = math.max(ticks,10)
