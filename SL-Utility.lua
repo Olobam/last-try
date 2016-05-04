@@ -1,5 +1,5 @@
-local SLUtility = 0.10
-local SLUPatchnew, SLUPatchold = 6.8, 6.7
+local SLUtility = 0.11
+local SLUPatchnew, SLUPatchold = 6.9, 6.8
 local Updater = true
 
 require 'OpenPredict'
@@ -555,7 +555,7 @@ end
 
 function Activator:Ignite()
   for _,k in pairs(GetEnemyHeroes()) do
-	if M.Sum.ign.enable:Value() and IsReady(Ignite) then
+	if M.Sum.ign.enable:Value() and IsReady(Ignite) and not k.dead then
   		if 20*GetLevel(myHero)+50 > GetCurrentHP(k)+GetHPRegen(k)*3 and ValidTarget(k, 600) then
 			CastTargetSpell(k, Ignite)
 		end
@@ -564,11 +564,11 @@ function Activator:Ignite()
 end
 
 function Activator:Heal()
-		if IsReady(Heal) and M.Sum.Heal.healme:Value() and GetPercentHP(myHero) <= M.Sum.Heal.myHP:Value() and EnemiesAround(GetOrigin(myHero), 675) >= 1 then
+		if IsReady(Heal) and M.Sum.Heal.healme:Value() and GetPercentHP(myHero) <= M.Sum.Heal.myHP:Value() and EnemiesAround(GetOrigin(myHero), 675) >= 1 and not myHero.dead then
 			CastSpell(Heal)
 		end
 	for _,a in pairs(GetAllyHeroes()) do
-		if a and IsReady(Heal) and M.Sum.Heal.healally:Value() and GetPercentHP(a) <= M.Sum.Heal.allyHP:Value() and EnemiesAround(GetOrigin(myHero), 675) >= 1 and GetDistance(myHero,a) < 675 then
+		if a and IsReady(Heal) and M.Sum.Heal.healally:Value() and GetPercentHP(a) <= M.Sum.Heal.allyHP:Value() and EnemiesAround(GetOrigin(myHero), 675) >= 1 and GetDistance(myHero,a) < 675 and not a.dead then
 			CastSpell(Heal)
 		end
 	end
@@ -577,14 +577,14 @@ end
 function Activator:Snowball()
 	for _,unit in pairs(GetEnemyHeroes()) do
 		local Pred = GetPrediction(unit, Snowballd)
-		if IsReady(Snowball) and M.Sum.SB.enable:Value() and Pred and Pred.hitChance >= M.Sum.SB.h:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < Snowballd.range then
+		if IsReady(Snowball) and M.Sum.SB.enable:Value() and Pred and Pred.hitChance >= M.Sum.SB.h:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < Snowballd.range and not unit.dead then
 			CastSkillShot(Snowball,Pred.castPos)
 		end
 	end
 end
 
 function Activator:Barrier()
-	if IsReady(Barrier) and M.Sum.Barrier.enable:Value() and GetPercentHP(myHero) <= M.Sum.Barrier.myHP:Value() and EnemiesAround(GetOrigin(myHero), 675) >= 1 then
+	if IsReady(Barrier) and M.Sum.Barrier.enable:Value() and GetPercentHP(myHero) <= M.Sum.Barrier.myHP:Value() and EnemiesAround(GetOrigin(myHero), 675) >= 1 and not myHero.dead then
 		CastSpell(Barrier)
 	end
 end
