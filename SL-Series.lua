@@ -1,5 +1,5 @@
-local SLSeries = 1.06
-local SLPatchnew, SLPatchold = 6.8, 6.7
+local SLSeries = 1.07
+local SLPatchnew, SLPatchold = 6.9, 6.8
 local AutoUpdater = true
 
 require 'OpenPredict'
@@ -2759,11 +2759,11 @@ self.s = {
 		["Darius"] = {
 			[_Q] = { displayname = "Decimate", name = "DariusCleave", objname = "DariusCleave", speed = math.huge, delay = 0.75, range = 450, width = 450, type = "circular", danger = 3},
 			[_W] = { displayname = "Crippling Strike", name = "DariusNoxianTacticsONH", range = 275, danger = 2},
-			[_E] = { displayname = "Apprehend", name = "DariusAxeGrabCone", objname = "DariusAxeGrabCone", speed = math.huge, delay = 0.32, range = 570, width = 125, danger = 4},
+			[_E] = { displayname = "Apprehend", name = "DariusAxeGrabCone", objname = "DariusAxeGrabCone", speed = math.huge, delay = 0.32, range = 570, width = 125, danger = 4, type = "cone"},
 			[_R] = { displayname = "Noxian Guillotine", name = "DariusExecute", range = 460, danger = 4, type2 = "nuke"}
 		},
 		["Diana"] = {
-			[_Q] = { displayname = "Crescent Strike", name = "DianaArc", objname = "DianaArcArc", speed = 1500, delay = 0.250, range = 835, width = 130, collision = false, aoe = false, type = "circular", danger = 3},
+			[_Q] = { displayname = "Crescent Strike", name = "DianaArc", objname = "DianaArcArc", speed = 1600, delay = 0.250, range = 835, width = 130, collision = false, aoe = false, type = "circular", danger = 3},
 			[_W] = { displayname = "Pale Cascade", name = "PaleCascade", range = 250, danger = 1},
 			[_E] = { displayname = "Moonfall", name = "DianaVortex", speed = math.huge, delay = 0.33, range = 0, width = 395, collision = false, aoe = false, type = "circular", danger = 3, type2 = "cc"},
 			[_R] = { displayname = "Lunar Rush", name = "LunarRush", range = 825, danger = 4, type2 = "gc"}
@@ -2772,7 +2772,7 @@ self.s = {
 			[_Q] = { displayname = "Infected Cleaver", name = "InfectedCleaverMissile", objname = "InfectedCleaverMissile", speed = 2000, delay = 0.250, range = 1050, width = 75, collision = true, aoe = false, type = "linear", danger = 2}
 		},
 		["Draven"] = {
-			[_E] = { displayname = "Stand Aside", name = "DravenDoubleShot", objname = "DravenDoubleShotMissile", speed = 1400, delay = 0.250, range = 1100, width = 130, collision = false, aoe = false, type = "linear", danger = 2, type2 = "cc"},
+			[_E] = { displayname = "Stand Aside", name = "DravenDoubleShot", objname = "DravenDoubleShotMissile", speed = 1600, delay = 0.250, range = 1100, width = 130, collision = false, aoe = false, type = "linear", danger = 2, type2 = "cc"},
 			[_R] = { displayname = "Whirling Death", name = "DravenRCast", objname = "DravenR", speed = 2000, delay = 0.5, range = 25000, width = 160, collision = false, aoe = false, type = "linear", danger = 4}
 		},
 		["Ekko"] = {
