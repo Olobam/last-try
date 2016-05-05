@@ -1,5 +1,5 @@
-local SLSeries = 1.08
-local SLPatchnew, SLPatchold = 6.9, 6.8
+local SLSeries = 1.09
+local SLPatchnew, SLPatchold = GetGameVersion():sub(1,3), GetGameVersion():sub(1,3)-.1
 local AutoUpdater = true
 
 require 'OpenPredict'
@@ -78,7 +78,6 @@ Callback.Add("Load", function()
 		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> Loaded! </b></font>")
 	elseif not SLSChamps[ChampName] and ChampName ~= "Nocturne" then  
 		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> is not Supported </b></font>")
-		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#F2EE00\">Utility Loaded </b></font>")
 	end
 	if ChampName == "Nocturne" then
 		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> is not Supported !</b></font>")
