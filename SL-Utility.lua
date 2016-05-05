@@ -1,5 +1,5 @@
-local SLUtility = 0.11
-local SLUPatchnew, SLUPatchold = 6.9, 6.8
+local SLUtility = 0.12
+local SLUPatchnew, SLUPatchold = GetGameVersion():sub(1,3), GetGameVersion():sub(1,3)-.1
 local Updater = true
 
 require 'OpenPredict'
