@@ -1,4 +1,4 @@
-local SLSeries = 1.09
+local SLSeries = 1.10
 local SLPatchnew, SLPatchold = GetGameVersion():sub(1,3), GetGameVersion():sub(1,3)-.1
 local AutoUpdater = true
 
@@ -2276,7 +2276,7 @@ function Vladimir:__init()
 	
 	Dmg = {
 	[0] = function(unit) return CalcDamage(myHero, unit, 0, 35 * GetCastLevel(myHero,0) + 55 + GetBonusAP(myHero) * .6) end,
-	[2] = function(unit) return CalcDamage(myHero, unit, 0, self.eDmg) end,
+	[2] = function(unit) return CalcDamage(myHero, unit, 0, 25 * GetCastLevel(myHero,2) + 35 + GetBonusAP(source) * 0.45)  end,
 	[3] = function(unit) return CalcDamage(myHero, unit, 0, 100 * GetCastLevel(myHero,3) + 50 + GetBonusAP(myHero) * .7) end,
 	}
 	
@@ -2306,11 +2306,6 @@ function Vladimir:__init()
 	BM:Menu("p", "Prediction")
 	BM.p:Slider("hR", "HitChance R", 40, 0, 100, 1)
 	
-	BM:Boolean("StackE", "Auto Stack E", true)
-	BM:Slider("EST", "Objects Around to stop", 1, 0, 15, 1)
-	BM:Slider("HPE", "HP to stop stacking E <= (%)", 5, 1, 100, 5)
-	BM:Slider("StacksE", "Max E Stacks", 4, 0, 4, 1)
-	
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("UpdateBuff", function(unit,buff) self:UpdateBuff(unit,buff) end)
 	Callback.Add("RemoveBuff", function(unit,buff) self:RemoveBuff(unit,buff) end)
@@ -2333,10 +2328,6 @@ function Vladimir:Tick()
 		
 	GetReady()
 	
-	self.eDmg = self:EDmg()
-	
-	self:AutoEStack()
-	
 	self:KS()
 	
 	local target = GetCurrentTarget()
@@ -2352,27 +2343,6 @@ function Vladimir:Tick()
 	else
 		return
 	end
-end
-
-function Vladimir:EDmg()
-	dmg = 25 * GetCastLevel(myHero,2) + 35
-	if self.EStacks == 1 then
-		Edmg = dmg + GetBonusAP(myHero) * .4
-	elseif self.EStacks == 2 then
-		Edmg = dmg * 1.33 + GetBonusAP(myHero) * .4
-	elseif self.EStacks == 3 then
-		Edmg = dmg * 1.66 + GetBonusAP(myHero) * .4
-	elseif self.EStacks == 4 then
-		Edmg = dmg * 2 + GetBonusAP(myHero) * .4
-	end
-end
-
-function Vladimir:AutoEStack()
-	if BM.StackE:Value() and SReady[2] and self.EStacks < BM.StacksE:Value() and self.ETime - GetGameTimer() < 0.2 and GetPercentHP(myHero) >= BM.HPE:Value() and (EnemiesAround(GetOrigin(myHero), 850) <= BM.EST:Value() or MinionsAround(GetOrigin(myHero), 850) <= BM.EST:Value()) then
-		CastSpell(2)
-	elseif BM.StackE:Value() and SReady[2] and self.EStacks == 4 and self.ETime - GetGameTimer() < 0.2 and GetPercentHP(myHero) >= BM.HPE:Value() and (EnemiesAround(GetOrigin(myHero), 850) <= BM.EST:Value() or MinionsAround(GetOrigin(myHero), 850) <= BM.EST:Value()) then
-		CastSpell(2)
-	end	
 end
 
 function Vladimir:Combo(target)
@@ -3132,7 +3102,7 @@ self.s = {
 			[_R] = { name = "ViktorChaosStorm", speed = 1000, delay = 0.25, range = 700, width = 0, collision = false, aoe = true, type = "circular", danger = 2}
 		},
 		["Vladimir"] = {
-			[_R] = { displayname = "Hemoplague" ,name = "VladimirHemoplague", speed = math.huge, delay = 0.25, range = 700, width = 175, collision = false, aoe = true, type = "circular", danger = 4}
+			[_R] = { displayname = "Hemoplague" ,name = "VladimirR", speed = math.huge, delay = 0.25, range = 700, width = 175, collision = false, aoe = true, type = "circular", danger = 4}
 		},
 		["Xerath"] = {
 			[_Q] = { name = "xeratharcanopulse2", objname = "xeratharcanopulse2", speed = math.huge, delay = 1.75, range = 750, width = 100, collision = false, aoe = false, type = "linear", danger = 2},
