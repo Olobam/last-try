@@ -1,4 +1,4 @@
-local SLSeries = 1.11
+local SLSeries = 1.12
 local SLPatchnew, SLPatchold = GetGameVersion():sub(1,3), GetGameVersion():sub(1,3)-.1
 local AutoUpdater = true
 
