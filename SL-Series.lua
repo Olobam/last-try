@@ -1345,7 +1345,7 @@ function Jinx:__init()
 
 
 	self.Spell = {
-	[1] = { delay = 0.6, speed = 3000, width = 55, range = 1500},
+	[1] = { delay = 0.6, speed = 3000, width = 85, range = 1500},
 	[2] = { delay = 1, speed = 887, width = 120, range = 900},
 	[3] = { delay = 0.6, speed = 1700, width = 140, range = math.huge}
 	}
