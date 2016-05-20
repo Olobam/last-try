@@ -1,6 +1,11 @@
-local SLUtility = 0.12
-local SLUPatchnew, SLUPatchold = GetGameVersion():sub(1,3), GetGameVersion():sub(1,3)-.1
+local SLUtility = 0.13
+local SLUPatchnew = nil
 local Updater = true
+if GetGameVersion():sub(3,4) >= "10" then
+		SLUPatchnew = GetGameVersion():sub(1,4)
+	else
+		SLUPatchnew = GetGameVersion():sub(1,3)
+end
 
 require 'OpenPredict'
 
@@ -10,7 +15,7 @@ Callback.Add("Load", function()
 	SLUtilityUpdater()
 	Initi()
 	
-	PrintChat("<font color=\"#fd8b12\"><b>["..SLUPatchnew.."-"..SLUPatchold.."] [SL-Utility] v.: "..SLUtility.." - <font color=\"#F2EE00\"> Loaded </b></font>")
+	PrintChat("<font color=\"#fd8b12\"><b>["..SLUPatchnew.."] [SL-Utility] v.: "..SLUtility.." - <font color=\"#F2EE00\"> Loaded </b></font>")
 	
 	if SLU.Load.LA:Value() then
 		Activator()
@@ -35,7 +40,7 @@ class 'Initi'
 
 function Initi:__init()
 
-	SLU = MenuConfig("SL-Utility", "["..SLUPatchnew.."-"..SLUPatchold.."][v.:"..SLUtility.."] SL-Utility")
+	SLU = MenuConfig("SL-Utility", "["..SLUPatchnew.."][v.:"..SLUtility.."] SL-Utility")
 	SLU:Menu("Load", "|SL| Loader")
 	SLU.Load:Boolean("LA", "Load Activator", true)
 	SLU.Load:Info("as^dasc", "")
@@ -227,7 +232,7 @@ class 'AutoLevel'
 
 function AutoLevel:__init()
 	SLU:SubMenu(charName.."AL", "|SL| Auto Level")
-	SLU[charName.."AL"]:Boolean("aL", "Use AutoLvl", true)
+	SLU[charName.."AL"]:Boolean("aL", "Use AutoLvl", false)
 	SLU[charName.."AL"]:DropDown("aLS", "AutoLvL", 1, {"Q-W-E","Q-E-W","W-Q-E","W-E-Q","E-Q-W","E-W-Q"})
 	SLU[charName.."AL"]:Slider("sL", "Start AutoLvl with LvL x", 4, 1, 18, 1)
 	SLU[charName.."AL"]:Boolean("hL", "Humanize LvLUP", true)
