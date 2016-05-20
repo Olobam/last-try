@@ -1,5 +1,10 @@
-local SLSeries = 1.12
-local SLPatchnew, SLPatchold = GetGameVersion():sub(1,3), GetGameVersion():sub(1,3)-.1
+local SLSeries = 1.13
+local SLPatchnew = nil
+if GetGameVersion():sub(3,4) >= "10" then
+		SLPatchnew = GetGameVersion():sub(1,4)
+	else
+		SLPatchnew = GetGameVersion():sub(1,3)
+end
 local AutoUpdater = true
 
 require 'OpenPredict'
@@ -75,13 +80,13 @@ Callback.Add("Load", function()
 		end
 	end
 	if SLSChamps[ChampName] and ChampName ~= "Nocturne" then
-		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> Loaded! </b></font>")
+		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> Loaded! </b></font>")
 	elseif not SLSChamps[ChampName] and ChampName ~= "Nocturne" then  
-		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> is not Supported </b></font>")
+		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> is not Supported </b></font>")
 	end
 	if ChampName == "Nocturne" then
-		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> is not Supported !</b></font>")
-		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."-"..SLPatchold.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#F2EE00\">Utility Loaded - SpellBlock loaded </b></font>")
+		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> is not Supported !</b></font>")
+		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#F2EE00\">Utility Loaded - SpellBlock loaded </b></font>")
 	end
 	if SLS.Loader.LD:Value() then
 		DmgDraw()
@@ -99,7 +104,7 @@ function Init:__init()
 	local GapCloser = {}
 	local MapPositionGOS = {["Vayne"] = true, ["Poppy"] = true, ["Kalista"] = true, ["Kindred"] = true,}
 	
-	SLS = MenuConfig("SL-Series", "["..SLPatchnew.."-"..SLPatchold.."][v.:"..SLSeries.."] SL-Series")
+	SLS = MenuConfig("SL-Series", "["..SLPatchnew.."][v.:"..SLSeries.."] SL-Series")
 	SLS:Menu("Loader", "|SL| Loader")
 	L = SLS["Loader"]
 	L:Boolean("LC", "Load Champion", true)
