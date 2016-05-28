@@ -1,4 +1,4 @@
-local SLSeries = 1.14
+local SLSeries = 1.15
 local SLPatchnew = nil
 if GetGameVersion():sub(3,4) >= "10" then
 		SLPatchnew = GetGameVersion():sub(1,4)
@@ -79,14 +79,10 @@ Callback.Add("Load", function()
 			Drawings()
 		end
 	end
-	if SLSChamps[ChampName] and ChampName ~= "Nocturne" then
+	if SLSChamps[ChampName] then
 		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> Loaded! </b></font>")
-	elseif not SLSChamps[ChampName] and ChampName ~= "Nocturne" then  
+	else
 		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> is not Supported </b></font>")
-	end
-	if ChampName == "Nocturne" then
-		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> is not Supported !</b></font>")
-		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."] [SL-Series] v.: "..SLSeries.." - <font color=\"#F2EE00\">Utility Loaded - SpellBlock loaded </b></font>")
 	end
 	if SLS.Loader.LD:Value() then
 		DmgDraw()
@@ -925,13 +921,121 @@ end
 class 'Nocturne'
 
 function Nocturne:__init()
+	Nocturne.Spell = {
+	[0] = { delay = 0.250, speed = 1400, width = 120, range = 1125 },
+	[2] = { range = 425},
+	[3] = { range = function() return 1750 + GetCastLevel(myHero,3)*750 end},
+	}
+	
+	Dmg = {
+	[0] = function (unit) return CalcDamage(myHero, unit, 45 * GetCastLevel(myHero,0) + 15 + GetBonusDmg(myHero)* .75, 0) end,
+	[2] = function (unit) return CalcDamage(myHero, unit, 0, 45 * GetCastLevel(myHero,2) + 35 + myHero.ap) end,
+	[3] = function (unit) return CalcDamage(myHero, unit, 0, 45 * GetCastLevel(myHero,2) + 35 + myHero.ap) end,
+	}
+	
+	self.marker = nil
+	
+	BM:Menu("C", "Combo")
+	BM.C:Boolean("Q", "Use Q", true)
+	BM.C:Boolean("E", "Use E", true)
+	BM.C:DropDown("RM", "R Mode", 2, {"Off","Keypress","Auto"})
+	BM.C:KeyBinding("RK", "R Keypress", string.byte("T"))
+	
+	BM:Menu("LC", "LaneClear")
+	BM.LC:Boolean("Q", "Use Q", true)
+	
+	BM:Menu("JC", "JungleClear")
+	BM.JC:Boolean("Q", "Use Q", true)
+	
+	BM:Menu("KS", "Killsteal")
+	BM.KS:Boolean("Q", "Use Q", true)
+	
+	BM:Menu("p", "Prediction")
+	BM.p:Slider("hQ", "HitChance Q", 20, 0, 100, 1)
+	
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("Draw", function() self:Draw() end)
+	
 	HitMe()
 end
 
+function Nocturne:Tick()
+	if myHero.dead then return end
+		
+	GetReady()
+		
+	self:KS()
+		
+	local Target = GetCurrentTarget()
+	
+	if Mode == "Combo" then
+		self:Combo(Target)
+	elseif Mode == "LaneClear" then
+		self:LaneClear()
+	else
+		return
+	end
+end
+
+function Nocturne:KS()
+	self.marker = false
+	for _,target in pairs(GetEnemyHeroes()) do
+		if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.KS.Q:Value() and GetADHP(target) < Dmg[0](target) then
+		local Pred = GetPrediction(target, self.Spell[0])
+			if Pred.hitChance >= BM.p.hQ:Value()*.01 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+				CastSkillShot(0,Pred.castPos)
+			end
+		end
+		if SReady[3] and ValidTarget(target, self.Spell[3].range()) and GetADHP(target) < Dmg[0](target) + Dmg[3](target) + Dmg[2](target) + myHero.totalDamage*2 then
+			self.marker = target
+			if BM.C.RM:Value() == 3 or (BM.C.RM:Value() == 2 and BM.C.RK:Value()) then
+				CastSpell(3)
+				DelayAction(function() CastTargetSpell(target,3) end, .2)			
+			end
+		end
+	end
+end
+
+function Nocturne:Combo(target)
+	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() then
+		local Pred = GetPrediction(target, self.Spell[0])
+		if Pred.hitChance >= BM.p.hQ:Value()*.01 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+			CastSkillShot(0,Pred.castPos)
+		end
+	end
+	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() then
+		CastTargetSpell(target,2)
+	end
+end
+
+function Nocturne:LaneClear()
+	for _,minion in pairs(minionManager.objects) do
+		if SReady[0] and ValidTarget(minion, self.Spell[0].range) then
+			if GetTeam(minion) == MINION_ENEMY and BM.LC.Q:Value() then
+				local Pred = GetPrediction(minion, self.Spell[0])
+				if Pred.hitChance >= BM.p.hQ:Value()*.01 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+					CastSkillShot(0,Pred.castPos)
+				end
+			elseif GetTeam(minion) == 300 and BM.JC.Q:Value() then
+				local Pred = GetPrediction(minion, self.Spell[0])
+				if Pred.hitChance >= BM.p.hQ:Value()*.01 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
+					CastSkillShot(0,Pred.castPos)
+				end
+			end
+		end
+	end
+end
+
+function Nocturne:Draw()
+	if self.marker and BM.C.RM:Value() == 2 then
+		DrawText(self.marker.charName .. " killable press " .. string.char(BM.C.RK:Key()),40,50,50,GoS.Red)
+	end
+end
+
 function Nocturne:HitMe(unit,pos,dt,ty)
- DelayAction( function() 
-  CastSpell(1)
- end,dt)
+	DelayAction( function() 
+		CastSpell(1)
+	end,dt)
 end
 
 --[[
@@ -2551,7 +2655,12 @@ function Drawings:__init()
 	SLS.Dr:DropDown("DQM", "Draw Quality", 1, {"High", "Medium", "Low"})
 	SLS.Dr:Slider("DWi", "Circle witdth", 1, 1, 5, 1)
 	for i=0,3 do
-		if _G[ChampName].Spell and _G[ChampName].Spell[i] and _G[ChampName].Spell[i].range < 3000 and _G[ChampName].Spell[i].range > 200 then
+		if _G[ChampName].Spell and _G[ChampName].Spell[i] and _G[ChampName].Spell[i].range then
+			local range = _G[ChampName].Spell[i].range
+		else
+			local range = nil
+		end
+		if range and range < 3000 and range > 200 then
 			SLS.Dr:Boolean("D"..self.SNames[i+1], "Draw "..self.SNames[i+1], true)
 		end
 	end
