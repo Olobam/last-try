@@ -32,7 +32,9 @@ Callback.Add("Load", function()
 	PrintChat("<font color=\"#fd8b12\"><b>["..SLEPatchnew.."] [SL-Evade] v.: ["..Stage.." - "..SLEvadeVer.."] - <font color=\"#F2EE00\"> Loaded! </b></font>")
 end)
 
+
 class 'SLEvade'
+
 
 function SLEvade:__init()
 
@@ -53,9 +55,11 @@ function SLEvade:__init()
 	self.opos = nil --simulated obj pos
 	self.endposs = nil --endpos
 	self.mV = nil -- wp
+	
 	self.D = { --Dash items
 	[3152] = {Name = "Hextech Protobelt", State = false}
 	}
+	
 	self.SI = {	--Stasis
 	[3157] = {Name = "Hourglass", State = false},
 	[3090] = {Name = "Wooglets", State = false},
@@ -248,7 +252,7 @@ self.Spells = {
 	["PoppyRSpell"]={charName="Poppy",slot=3,type="Line",delay=0.3,range=1200,radius=100,speed=1600,addHitbox=true,danger=3,dangerous=true,proj="PoppyRMissile",killTime=0,displayname="PoppyR"},
 	["RengarE"]={charName="Rengar",slot=2,type="Line",delay=0.25,range=1000,radius=70,speed=1500,addHitbox=true,danger=3,dangerous=true,proj="RengarEFinal",killTime=0,displayname=""},
 	["reksaiqburrowed"]={charName="RekSai",slot=0,type="Line",delay=0.5,range=1625,radius=60,speed=1950,addHitbox=true,danger=3,dangerous=false,proj="RekSaiQBurrowedMis",killTime=0,displayname="RekSaiQ"},
-	["rivenizunablade"]={charName="Riven",slot=3,type="Line",delay=0.25,range=1100,radius=125,speed=1600,addHitbox=false,danger=5,dangerous=true,proj="RivenLightsaberMissile",killTime=0,displayname="WindSlash"},
+	["RivenIzunaBlade"]={charName="Riven",slot=3,type="Line",delay=0.25,range=1100,radius=125,speed=1600,addHitbox=false,danger=5,dangerous=true,proj="RivenLightsaberMissile",killTime=0,displayname="WindSlash"},
 	["RumbleGrenade"]={charName="Rumble",slot=2,type="Line",delay=0.25,range=950,radius=60,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="RumbleGrenade",killTime=0,displayname="Grenade"},
 	--["RumbleCarpetBombM"]={charName="Rumble",slot=3,type="Line",delay=0.4,range=1200,radius=200,speed=1600,addHitbox=true,danger=4,dangerous=false,proj="RumbleCarpetBombMissile",killTime=0,displayname="Carpet Bomb"}, --doesnt work
 	["RyzeQ"]={charName="Ryze",slot=0,type="Line",delay=0.25,range=900,radius=50,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="RyzeQ",killTime=0,displayname=""},
@@ -438,7 +442,7 @@ if myHero.dead then return end
 end
 
 function SLEvade:Drawp()
-if myHero.dead then return end
+if myHero.dead then return end 
 	for _,i in pairs(self.obj) do
 		if i.o then
 			i.p = {}
@@ -623,10 +627,10 @@ end
 function SLEvade:Drawings()
 	for _,i in pairs(self.obj) do
       if EMenu.Spells[_]["Draw".._]:Value() then
-		if i.spell.type == "Line" and not EMenu.Keys.DDraws:Value() then
+		if i.spell.type == "Line" and not EMenu.Keys.DDraws:Value() then	
 			if EMenu.Draws.DSPos:Value() and self.opos then
 				DrawCircle(self.opos, i.spell.radius, 1, 20, ARGB(145,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-			end
+			end	
 			local endPos = Vector(self.endposs)
 			local sPos = Vector(self.opos)
  			local ePos = Vector(endPos)
@@ -641,52 +645,101 @@ function SLEvade:Drawings()
  			local TopD4 = WorldToScreen(0,sPos-sVec2)
  			local BotD3 = WorldToScreen(0,ePos+sVec2)
  			local BotD4 = WorldToScreen(0,ePos-sVec2)
+			
 			if EMenu.Draws.DSPath:Value() then
-				if EMenu.Spells[_]["d".._]:Value() == 1 then
-					DrawLine(TopD1.x,TopD1.y,TopD2.x,TopD2.y,0.75,ARGB(145,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-					DrawLine(TopD1.x,TopD1.y,BotD1.x,BotD1.y,0.75,ARGB(145,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-					DrawLine(TopD2.x,TopD2.y,BotD2.x,BotD2.y,0.75,ARGB(145,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-					DrawLine(BotD1.x,BotD1.y,BotD2.x,BotD2.y,0.75,ARGB(145,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-				elseif EMenu.Spells[_]["d".._]:Value() == 2 then
-					DrawLine(TopD1.x,TopD1.y,TopD2.x,TopD2.y,1,ARGB(155,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-					DrawLine(TopD1.x,TopD1.y,BotD1.x,BotD1.y,1,ARGB(155,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-					DrawLine(TopD2.x,TopD2.y,BotD2.x,BotD2.y,1,ARGB(155,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-					DrawLine(BotD1.x,BotD1.y,BotD2.x,BotD2.y,1,ARGB(155,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-				elseif EMenu.Spells[_]["d".._]:Value() == 3 then
-					DrawLine(TopD1.x,TopD1.y,TopD2.x,TopD2.y,1.25,ARGB(165,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-					DrawLine(TopD1.x,TopD1.y,BotD1.x,BotD1.y,1.25,ARGB(165,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-					DrawLine(TopD2.x,TopD2.y,BotD2.x,BotD2.y,1.25,ARGB(165,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-					DrawLine(BotD1.x,BotD1.y,BotD2.x,BotD2.y,1.25,ARGB(165,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-				elseif EMenu.Spells[_]["d".._]:Value() == 4 then
-					DrawLine(TopD1.x,TopD1.y,TopD2.x,TopD2.y,1.5,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-					DrawLine(TopD1.x,TopD1.y,BotD1.x,BotD1.y,1.5,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-					DrawLine(TopD2.x,TopD2.y,BotD2.x,BotD2.y,1.5,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-					DrawLine(BotD1.x,BotD1.y,BotD2.x,BotD2.y,1.5,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-				end
-				if EMenu.Draws.DSEW:Value() then
+				if (GetDistance(self:Position(),(i.jp or Vector(self.endposs))) > i.spell.radius + myHero.boundingRadius) or (GetDistance(myHero,(i.jp or Vector(self.endposs))) > i.spell.radius + myHero.boundingRadius) then
 					if EMenu.Spells[_]["d".._]:Value() == 1 then
-						DrawLine(TopD3.x,TopD3.y,TopD4.x,TopD4.y,1.5,ARGB(145,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-						DrawLine(TopD3.x,TopD3.y,BotD3.x,BotD3.y,1.5,ARGB(145,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-						DrawLine(TopD4.x,TopD4.y,BotD4.x,BotD4.y,1.5,ARGB(145,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-						DrawLine(BotD3.x,BotD3.y,BotD4.x,BotD4.y,1.5,ARGB(145,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						DrawLine(TopD1.x,TopD1.y,TopD2.x,TopD2.y,0.75,ARGB(145,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						DrawLine(TopD1.x,TopD1.y,BotD1.x,BotD1.y,0.75,ARGB(145,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						DrawLine(TopD2.x,TopD2.y,BotD2.x,BotD2.y,0.75,ARGB(145,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						DrawLine(BotD1.x,BotD1.y,BotD2.x,BotD2.y,0.75,ARGB(145,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
 					elseif EMenu.Spells[_]["d".._]:Value() == 2 then
-						DrawLine(TopD3.x,TopD3.y,TopD4.x,TopD4.y,2,ARGB(155,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-						DrawLine(TopD3.x,TopD3.y,BotD3.x,BotD3.y,2,ARGB(155,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-						DrawLine(TopD4.x,TopD4.y,BotD4.x,BotD4.y,2,ARGB(155,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-						DrawLine(BotD3.x,BotD3.y,BotD4.x,BotD4.y,2,ARGB(155,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						DrawLine(TopD1.x,TopD1.y,TopD2.x,TopD2.y,1,ARGB(155,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						DrawLine(TopD1.x,TopD1.y,BotD1.x,BotD1.y,1,ARGB(155,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						DrawLine(TopD2.x,TopD2.y,BotD2.x,BotD2.y,1,ARGB(155,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						DrawLine(BotD1.x,BotD1.y,BotD2.x,BotD2.y,1,ARGB(155,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
 					elseif EMenu.Spells[_]["d".._]:Value() == 3 then
-						DrawLine(TopD3.x,TopD3.y,TopD4.x,TopD4.y,2.5,ARGB(165,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-						DrawLine(TopD3.x,TopD3.y,BotD3.x,BotD3.y,2.5,ARGB(165,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-						DrawLine(TopD4.x,TopD4.y,BotD4.x,BotD4.y,2.5,ARGB(165,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-						DrawLine(BotD3.x,BotD3.y,BotD4.x,BotD4.y,2.5,ARGB(165,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						DrawLine(TopD1.x,TopD1.y,TopD2.x,TopD2.y,1.25,ARGB(165,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						DrawLine(TopD1.x,TopD1.y,BotD1.x,BotD1.y,1.25,ARGB(165,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						DrawLine(TopD2.x,TopD2.y,BotD2.x,BotD2.y,1.25,ARGB(165,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						DrawLine(BotD1.x,BotD1.y,BotD2.x,BotD2.y,1.25,ARGB(165,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
 					elseif EMenu.Spells[_]["d".._]:Value() == 4 then
-						DrawLine(TopD3.x,TopD3.y,TopD4.x,TopD4.y,3,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-						DrawLine(TopD3.x,TopD3.y,BotD3.x,BotD3.y,3,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-						DrawLine(TopD4.x,TopD4.y,BotD4.x,BotD4.y,3,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-						DrawLine(BotD3.x,BotD3.y,BotD4.x,BotD4.y,3,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						DrawLine(TopD1.x,TopD1.y,TopD2.x,TopD2.y,1.5,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						DrawLine(TopD1.x,TopD1.y,BotD1.x,BotD1.y,1.5,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						DrawLine(TopD2.x,TopD2.y,BotD2.x,BotD2.y,1.5,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						DrawLine(BotD1.x,BotD1.y,BotD2.x,BotD2.y,1.5,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+					end
+					if EMenu.Draws.DSEW:Value() then
+						if EMenu.Spells[_]["d".._]:Value() == 1 then
+							DrawLine(TopD3.x,TopD3.y,TopD4.x,TopD4.y,1.5,ARGB(145,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+							DrawLine(TopD3.x,TopD3.y,BotD3.x,BotD3.y,1.5,ARGB(145,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+							DrawLine(TopD4.x,TopD4.y,BotD4.x,BotD4.y,1.5,ARGB(145,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+							DrawLine(BotD3.x,BotD3.y,BotD4.x,BotD4.y,1.5,ARGB(145,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						elseif EMenu.Spells[_]["d".._]:Value() == 2 then
+							DrawLine(TopD3.x,TopD3.y,TopD4.x,TopD4.y,2,ARGB(155,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+							DrawLine(TopD3.x,TopD3.y,BotD3.x,BotD3.y,2,ARGB(155,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+							DrawLine(TopD4.x,TopD4.y,BotD4.x,BotD4.y,2,ARGB(155,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+							DrawLine(BotD3.x,BotD3.y,BotD4.x,BotD4.y,2,ARGB(155,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						elseif EMenu.Spells[_]["d".._]:Value() == 3 then
+							DrawLine(TopD3.x,TopD3.y,TopD4.x,TopD4.y,2.5,ARGB(165,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+							DrawLine(TopD3.x,TopD3.y,BotD3.x,BotD3.y,2.5,ARGB(165,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+							DrawLine(TopD4.x,TopD4.y,BotD4.x,BotD4.y,2.5,ARGB(165,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+							DrawLine(BotD3.x,BotD3.y,BotD4.x,BotD4.y,2.5,ARGB(165,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						elseif EMenu.Spells[_]["d".._]:Value() == 4 then
+							DrawLine(TopD3.x,TopD3.y,TopD4.x,TopD4.y,3,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+							DrawLine(TopD3.x,TopD3.y,BotD3.x,BotD3.y,3,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+							DrawLine(TopD4.x,TopD4.y,BotD4.x,BotD4.y,3,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+							DrawLine(BotD3.x,BotD3.y,BotD4.x,BotD4.y,3,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						end
+					end
+				else
+					if EMenu.Spells[_]["d".._]:Value() == 1 then
+						DrawLine(TopD1.x,TopD1.y,TopD2.x,TopD2.y,0.75,GoS.Red)
+						DrawLine(TopD1.x,TopD1.y,BotD1.x,BotD1.y,0.75,GoS.Red)
+						DrawLine(TopD2.x,TopD2.y,BotD2.x,BotD2.y,0.75,GoS.Red)
+						DrawLine(BotD1.x,BotD1.y,BotD2.x,BotD2.y,0.75,GoS.Red)
+					elseif EMenu.Spells[_]["d".._]:Value() == 2 then
+						DrawLine(TopD1.x,TopD1.y,TopD2.x,TopD2.y,1,GoS.Red)
+						DrawLine(TopD1.x,TopD1.y,BotD1.x,BotD1.y,1,GoS.Red)
+						DrawLine(TopD2.x,TopD2.y,BotD2.x,BotD2.y,1,GoS.Red)
+						DrawLine(BotD1.x,BotD1.y,BotD2.x,BotD2.y,1,GoS.Red)
+					elseif EMenu.Spells[_]["d".._]:Value() == 3 then
+						DrawLine(TopD1.x,TopD1.y,TopD2.x,TopD2.y,1.25,GoS.Red)
+						DrawLine(TopD1.x,TopD1.y,BotD1.x,BotD1.y,1.25,GoS.Red)
+						DrawLine(TopD2.x,TopD2.y,BotD2.x,BotD2.y,1.25,GoS.Red)
+						DrawLine(BotD1.x,BotD1.y,BotD2.x,BotD2.y,1.25,GoS.Red)
+					elseif EMenu.Spells[_]["d".._]:Value() == 4 then
+						DrawLine(TopD1.x,TopD1.y,TopD2.x,TopD2.y,1.5,GoS.Red)
+						DrawLine(TopD1.x,TopD1.y,BotD1.x,BotD1.y,1.5,GoS.Red)
+						DrawLine(TopD2.x,TopD2.y,BotD2.x,BotD2.y,1.5,GoS.Red)
+						DrawLine(BotD1.x,BotD1.y,BotD2.x,BotD2.y,1.5,GoS.Red)
+					end
+					if EMenu.Draws.DSEW:Value() then
+						if EMenu.Spells[_]["d".._]:Value() == 1 then
+							DrawLine(TopD3.x,TopD3.y,TopD4.x,TopD4.y,1.5,GoS.Red)
+							DrawLine(TopD3.x,TopD3.y,BotD3.x,BotD3.y,1.5,GoS.Red)
+							DrawLine(TopD4.x,TopD4.y,BotD4.x,BotD4.y,1.5,GoS.Red)
+							DrawLine(BotD3.x,BotD3.y,BotD4.x,BotD4.y,1.5,GoS.Red)
+						elseif EMenu.Spells[_]["d".._]:Value() == 2 then
+							DrawLine(TopD3.x,TopD3.y,TopD4.x,TopD4.y,2,GoS.Red)
+							DrawLine(TopD3.x,TopD3.y,BotD3.x,BotD3.y,2,GoS.Red)
+							DrawLine(TopD4.x,TopD4.y,BotD4.x,BotD4.y,2,GoS.Red)
+							DrawLine(BotD3.x,BotD3.y,BotD4.x,BotD4.y,2,GoS.Red)
+						elseif EMenu.Spells[_]["d".._]:Value() == 3 then
+							DrawLine(TopD3.x,TopD3.y,TopD4.x,TopD4.y,2.5,GoS.Red)
+							DrawLine(TopD3.x,TopD3.y,BotD3.x,BotD3.y,2.5,GoS.Red)
+							DrawLine(TopD4.x,TopD4.y,BotD4.x,BotD4.y,2.5,GoS.Red)
+							DrawLine(BotD3.x,BotD3.y,BotD4.x,BotD4.y,2.5,GoS.Red)
+						elseif EMenu.Spells[_]["d".._]:Value() == 4 then
+							DrawLine(TopD3.x,TopD3.y,TopD4.x,TopD4.y,3,GoS.Red)
+							DrawLine(TopD3.x,TopD3.y,BotD3.x,BotD3.y,3,GoS.Red)
+							DrawLine(TopD4.x,TopD4.y,BotD4.x,BotD4.y,3,GoS.Red)
+							DrawLine(BotD3.x,BotD3.y,BotD4.x,BotD4.y,3,GoS.Red)
+						end
 					end
 				end
 			end
+			
 		elseif i.spell.type == "Circle" and not EMenu.Keys.DDraws:Value() then
 			if EMenu.Draws.DSPath:Value() then
 				if (GetDistance(self:Position(),i.p.endPos) > i.spell.radius + myHero.boundingRadius) or (GetDistance(myHero,i.p.endPos) > i.spell.radius + myHero.boundingRadius) then
@@ -740,7 +793,11 @@ end
 
 function SLEvade:Drawings2()
 	for _,i in pairs(self.obj) do
-		if EMenu.Draws.DevOpt:Value() then if i.jp then DrawCircle(i.jp,50,1,20,GoS.Red) end end
+		if EMenu.Draws.DevOpt:Value() then 
+			if i.jp then 
+				DrawCircle(i.jp,50,1,20,GoS.Red) 
+			end 
+		end
 		if EMenu.Draws.DEPos:Value() and not EMenu.Keys.DDraws:Value() and i.safe then	
 			if i.uDodge then 
 				dArrow(myHero.pos,i.safe,3,GoS.Red)
@@ -925,7 +982,9 @@ function SLEvade:DeleteObject(obj)
 	end, .001)	
 end
 
+
 class 'SLEAutoUpdater'
+
 
 function SLEAutoUpdater:__init()
 	function SLEUpdater(data)
