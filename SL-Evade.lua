@@ -50,6 +50,8 @@ function SLEvade:__init()
 	self.ut = false --self.usingitems
 	self.usp = false --self.usingsummonerspells
 	self.mposs2 = nil -- self.mousepos line
+	self.opos = nil --simulated obj pos
+	self.endposs = nil --endpos
 	self.mV = nil -- wp
 	self.D = { --Dash items
 	[3152] = {Name = "Hextech Protobelt", State = false}
@@ -223,12 +225,12 @@ self.Spells = {
 	["LucianRMis"]={charName="Lucian",slot=3,type="Line",delay=0.5,range=1400,radius=110,speed=2800,addHitbox=true,danger=2,dangerous=false,proj="lucianrmissileoffhand",killTime=0},
 	["LuluQ"]={charName="Lulu",slot=0,type="Line",delay=0.25,range=950,radius=60,speed=1450,addHitbox=true,danger=2,dangerous=false,proj="LuluQMissile",killTime=0},
 	["LuluQPix"]={charName="Lulu",slot=0,type="Line",delay=0.25,range=950,radius=60,speed=1450,addHitbox=true,danger=2,dangerous=false,proj="LuluQMissileTwo",killTime=0},
-	["LuxLightBinding"]={charName="Lux",slot=0,type="Line",delay=0.25,range=1300,radius=70,speed=1200,addHitbox=true,danger=3,dangerous=true,proj="LuxLightBindingMis",killTime=0},
+	["LuxLightBinding"]={charName="Lux",slot=0,type="Line",delay=0.25,range=1300,radius=70,speed=1250,addHitbox=true,danger=3,dangerous=true,proj="LuxLightBindingMis",killTime=0},
 	["LuxLightStrikeKugel"]={charName="Lux",slot=2,type="Circle",delay=0.25,range=1100,radius=275,speed=1300,addHitbox=true,danger=2,dangerous=false,proj="LuxLightStrikeKugel",killTime=5.25},
 	["LuxMaliceCannon"]={charName="Lux",slot=3,type="Line",delay=1,range=3500,radius=190,speed=999999999,addHitbox=true,danger=5,dangerous=true,proj="LuxMaliceCannon",killTime=0},
 	["UFSlash"]={charName="Malphite",slot=3,type="Circle",delay=0,range=1000,radius=270,speed=1500,addHitbox=true,danger=5,dangerous=true,proj="UFSlash",killTime=0.4},
 	["MalzaharQ"]={charName="Malzahar",slot=0,type="Line",delay=0.75,range=900,radius=85,speed=999999999,addHitbox=true,danger=2,dangerous=false,proj="MalzaharQ",killTime=0},
-	["DarkBindingMissile"]={charName="Morgana",slot=0,type="Line",delay=0.25,range=1300,radius=80,speed=1200,addHitbox=true,danger=3,dangerous=true,proj="DarkBindingMissile",killTime=0},
+	["DarkBindingMissile"]={charName="Morgana",slot=0,type="Line",delay=0.25,range=1300,radius=80,speed=1000,addHitbox=true,danger=3,dangerous=true,proj="DarkBindingMissile",killTime=0},
 	["NamiQ"]={charName="Nami",slot=0,type="Circle",delay=0.95,range=1625,radius=150,speed=999999999,addHitbox=true,danger=3,dangerous=true,proj="namiqmissile",killTime=0.35},
 	["NamiR"]={charName="Nami",slot=3,type="Line",delay=0.5,range=2750,radius=260,speed=850,addHitbox=true,danger=2,dangerous=false,proj="NamiRMissile",killTime=0},
 	["NautilusAnchorDrag"]={charName="Nautilus",slot=0,type="Line",delay=0.25,range=1250,radius=90,speed=2000,addHitbox=true,danger=3,dangerous=true,proj="NautilusAnchorDragMissile",killTime=0},
@@ -308,7 +310,7 @@ self.Spells = {
 	["ZiggsE"]={charName="Ziggs",slot=2,type="Circle",delay=0.5,range=900,radius=235,speed=1750,addHitbox=true,danger=2,dangerous=false,proj="ZiggsE",killTime=2.5},
 	["ZiggsR"]={charName="Ziggs",slot=3,type="Circle",delay=0,range=5300,radius=500,speed=999999999,addHitbox=true,danger=2,dangerous=false,proj="ZiggsR",killTime=1.25},
 	["ZileanQ"]={charName="Zilean",slot=0,type="Circle",delay=0.3,range=900,radius=210,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="ZileanQMissile",killTime=1.5},
-	["ZyraQ"]={charName="Zyra",slot=0,type="Circle",delay=0.85,range=800,radius=140,speed=999999999,addHitbox=true,danger=2,dangerous=false,proj="ZyraQ",killTime=0.3},
+	["ZyraQ"]={charName="Zyra",slot=0,type="Rectangle",delay=0.85,range=800,radius=140,speed=999999999,addHitbox=true,danger=2,dangerous=false,proj="ZyraQ",killTime=0.3},
 	["ZyraE"]={charName="Zyra",slot=2,type="Line",delay=0.25,range=1150,radius=70,speed=1150,addHitbox=true,danger=3,dangerous=true,proj="ZyraE",killTime=0},
 }
 
@@ -422,23 +424,12 @@ if myHero.dead then return end
 			i.p.endPos = Vector(i.o.endPos)
 		end
 		if i.p then
+			self.endposs = Vector(i.p.startPos)+Vector(Vector(i.p.endPos)-i.p.startPos):normalized()*(i.spell.range+i.spell.radius)
+			self.opos = Vector(i.p.startPos)+Vector(Vector(self.endposs)-i.p.startPos):normalized()* (i.spell.speed*(GetGameTimer()+i.spell.delay-i.startTime)-i.spell.radius+EMenu.Advanced.ew:Value())
 			self:CleanObj() 
 			self:Dodge()
 			self:Others() 
 			self:Pathfinding()
-		end
-		if i.safe and i.spell.type == "Line" and i.o then
-			if GetDistance(i.o)/i.spell.speed + i.spell.delay*.001 < GetDistance(i.safe)/myHero.ms then 
-					i.uDodge = true 
-				else
-					i.uDodge = false
-			end
-		elseif i.safe and i.spell.type == "Circle" then
-			if GetDistance(i.caster)/i.spell.speed + ((i.spell.killTime or 0)+i.spell.delay)*.001 < GetDistance(i.safe)/myHero.ms then
-					i.uDodge = true 
-				else
-					i.uDodge = false
-			end
 		end
 	end
 end
@@ -533,6 +524,19 @@ function SLEvade:Others()
 				i.mpos = nil
 			end
 		end
+		if i.safe and i.spell.type == "Line" and i.p then
+			if GetDistance(self.opos)/i.spell.speed + i.spell.delay < GetDistance(i.safe)/myHero.ms then 
+					i.uDodge = true 
+				else
+					i.uDodge = false
+			end
+		elseif i.safe and i.spell.type == "Circle" then
+			if GetDistance(i.caster)/i.spell.speed + ((i.spell.killTime or 0)+i.spell.delay) < GetDistance(i.safe)/myHero.ms then
+					i.uDodge = true 
+				else
+					i.uDodge = false
+			end
+		end
 	end
 end
 
@@ -617,13 +621,15 @@ function SLEvade:Drawings()
 	for _,i in pairs(self.obj) do
       if EMenu.Spells[_]["Draw".._]:Value() then
 		if i.spell.type == "Line" and not EMenu.Keys.DDraws:Value() then
-			local endPos = Vector(i.p.startPos)+Vector(Vector(i.p.endPos)-i.p.startPos):normalized()*(i.spell.range+i.spell.radius)
-			local sPos = Vector(i.p.startPos)
+			if EMenu.Draws.DSPos:Value() and self.opos then
+				DrawCircle(self.opos, i.spell.radius, 1, 20, ARGB(145,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+			end
+			local endPos = Vector(self.endposs)
+			local sPos = Vector(self.opos)
  			local ePos = Vector(endPos)
  			local dVec = Vector(ePos - sPos)
  			local sVec = dVec:normalized():perpendicular()*((i.spell.radius+myHero.boundingRadius)*.5)
 			local sVec2 = dVec:normalized():perpendicular()*((i.spell.radius+myHero.boundingRadius)*.5+EMenu.Advanced.ew:Value())
-
  			local TopD1 = WorldToScreen(0,sPos+sVec)
  			local TopD2 = WorldToScreen(0,sPos-sVec)
  			local BotD1 = WorldToScreen(0,ePos+sVec)
@@ -836,14 +842,14 @@ function SLEvade:Dodge()
 							end
 						end
 					end
-				if self.Flash and Ready(self.Flash) and i.uDodge == true and EMenu.EvadeSpells.Flash.DodgeFlash:Value() and EMenu.Spells[i.spell.name]["d"..i.spell.name]:Value() >= EMenu.EvadeSpells.Flash.dFlash:Value() and self.ues == false and self.ut == false then
+				if self.Flash and Ready(self.Flash) and i.uDodge == true and EMenu.EvadeSpells.Flash.DodgeFlash:Value() and EMenu.Spells[_]["d".._]:Value() >= EMenu.EvadeSpells.Flash.dFlash:Value() and self.ues == false and self.ut == false then
 					self.usp = true
 					CastSkillShot(self.Flash, i.safe)
 				else
 					self.usp = false
 				end		
 				for item,c in pairs(self.SI) do
-					if c.State and Ready(GetItemSlot(myHero,item)) and EMenu.invulnerable[c.Name]["Dodge"..c.Name]:Value() and i.uDodge == true and GetPercentHP(myHero) <= EMenu.invulnerable[c.Name]["hp"..c.Name]:Value() and EMenu.Spells[i.spell.name]["d"..i.spell.name]:Value() >= EMenu.invulnerable[c.Name]["d"..c.Name]:Value() and self.ues == false and self.usp == false then
+					if c.State and Ready(GetItemSlot(myHero,item)) and EMenu.invulnerable[c.Name]["Dodge"..c.Name]:Value() and i.uDodge == true and GetPercentHP(myHero) <= EMenu.invulnerable[c.Name]["hp"..c.Name]:Value() and EMenu.Spells[_]["d".._]:Value() >= EMenu.invulnerable[c.Name]["d"..c.Name]:Value() and self.ues == false and self.usp == false then
 						self.ut = true
 						CastSpell(GetItemSlot(myHero,item))
 					else
@@ -851,7 +857,7 @@ function SLEvade:Dodge()
 					end
 				end
 				for item,c in pairs(self.D) do
-					if c.State and Ready(GetItemSlot(myHero,item)) and EMenu.EvadeSpells[c.Name]["Dodge"..c.Name]:Value() and i.uDodge == true and GetPercentHP(myHero) <= EMenu.EvadeSpells[c.Name]["hp"..c.Name]:Value() and EMenu.Spells[i.spell.name]["d"..i.spell.name]:Value() >= EMenu.EvadeSpells[c.Name]["d"..c.Name]:Value() and self.ues == false and self.usp == false then
+					if c.State and Ready(GetItemSlot(myHero,item)) and EMenu.EvadeSpells[c.Name]["Dodge"..c.Name]:Value() and i.uDodge == true and GetPercentHP(myHero) <= EMenu.EvadeSpells[c.Name]["hp"..c.Name]:Value() and EMenu.Spells[_]["d".._]:Value() >= EMenu.EvadeSpells[c.Name]["d"..c.Name]:Value() and self.ues == false and self.usp == false then
 						self.ut = true
 						CastSkillShot(GetItemSlot(myHero,item), i.safe)
 					else
@@ -879,6 +885,7 @@ function SLEvade:CreateObject(obj)
 			self.obj[obj.spellName].caster = GetObjectSpellOwner(obj)
 			self.obj[obj.spellName].mpos = nil
 			self.obj[obj.spellName].uDodge = nil
+			self.obj[obj.spellName].startTime = GetGameTimer()
 			self.obj[obj.spellName].spell = self.Spells[obj.spellName]
 		end
 	end
@@ -901,15 +908,18 @@ function SLEvade:Detection(unit,spellProc)
 			self.obj[spellProc.name].caster = unit
 			self.obj[spellProc.name].mpos = nil
 			self.obj[spellProc.name].uDodge = nil
+			self.obj[spellProc.name].startTime = GetGameTimer()
 			DelayAction(function() self.obj[spellProc.name] = nil end, self.Spells[spellProc.name].delay*.001 + 1.3*GetDistance(myHero.pos,spellProc.startPos)/self.Spells[spellProc.name].speed)
 		end
 	end
 end
 
 function SLEvade:DeleteObject(obj)
-	if obj and obj.isSpell and self.obj[obj.spellName] then
-		self.obj[obj.spellName] = nil
-	end	
+	DelayAction(function()
+		if obj and obj.isSpell and self.obj[obj.spellName] then
+			self.obj[obj.spellName] = nil
+		end	
+	end, .001)	
 end
 
 class 'SLEAutoUpdater'
