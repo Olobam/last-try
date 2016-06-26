@@ -668,7 +668,12 @@ function SLEvade:Drawings()
 						DrawLine(TopD1.x,TopD1.y,BotD1.x,BotD1.y,1.5,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
 						DrawLine(TopD2.x,TopD2.y,BotD2.x,BotD2.y,1.5,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
 						DrawLine(BotD1.x,BotD1.y,BotD2.x,BotD2.y,1.5,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-					end
+					elseif EMenu.Spells[_]["d".._]:Value() == 5 then
+						DrawLine(TopD1.x,TopD1.y,TopD2.x,TopD2.y,1.75,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						DrawLine(TopD1.x,TopD1.y,BotD1.x,BotD1.y,1.75,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						DrawLine(TopD2.x,TopD2.y,BotD2.x,BotD2.y,1.75,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						DrawLine(BotD1.x,BotD1.y,BotD2.x,BotD2.y,1.75,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						end
 					if EMenu.Draws.DSEW:Value() then
 						if EMenu.Spells[_]["d".._]:Value() == 1 then
 							DrawLine(TopD3.x,TopD3.y,TopD4.x,TopD4.y,1.5,ARGB(145,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
@@ -690,6 +695,11 @@ function SLEvade:Drawings()
 							DrawLine(TopD3.x,TopD3.y,BotD3.x,BotD3.y,3,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
 							DrawLine(TopD4.x,TopD4.y,BotD4.x,BotD4.y,3,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
 							DrawLine(BotD3.x,BotD3.y,BotD4.x,BotD4.y,3,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						elseif EMenu.Spells[_]["d".._]:Value() == 5 then
+							DrawLine(TopD3.x,TopD3.y,TopD4.x,TopD4.y,3.5,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+							DrawLine(TopD3.x,TopD3.y,BotD3.x,BotD3.y,3.5,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+							DrawLine(TopD4.x,TopD4.y,BotD4.x,BotD4.y,3.5,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+							DrawLine(BotD3.x,BotD3.y,BotD4.x,BotD4.y,3.5,ARGB(175,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
 						end
 					end
 				else
@@ -713,6 +723,11 @@ function SLEvade:Drawings()
 						DrawLine(TopD1.x,TopD1.y,BotD1.x,BotD1.y,1.5,GoS.Red)
 						DrawLine(TopD2.x,TopD2.y,BotD2.x,BotD2.y,1.5,GoS.Red)
 						DrawLine(BotD1.x,BotD1.y,BotD2.x,BotD2.y,1.5,GoS.Red)
+					elseif EMenu.Spells[_]["d".._]:Value() == 5 then
+						DrawLine(TopD1.x,TopD1.y,TopD2.x,TopD2.y,1.75,GoS.Red)
+						DrawLine(TopD1.x,TopD1.y,BotD1.x,BotD1.y,1.75,GoS.Red)
+						DrawLine(TopD2.x,TopD2.y,BotD2.x,BotD2.y,1.75,GoS.Red)
+						DrawLine(BotD1.x,BotD1.y,BotD2.x,BotD2.y,1.75,GoS.Red)
 					end
 					if EMenu.Draws.DSEW:Value() then
 						if EMenu.Spells[_]["d".._]:Value() == 1 then
@@ -735,6 +750,11 @@ function SLEvade:Drawings()
 							DrawLine(TopD3.x,TopD3.y,BotD3.x,BotD3.y,3,GoS.Red)
 							DrawLine(TopD4.x,TopD4.y,BotD4.x,BotD4.y,3,GoS.Red)
 							DrawLine(BotD3.x,BotD3.y,BotD4.x,BotD4.y,3,GoS.Red)
+						elseif EMenu.Spells[_]["d".._]:Value() == 5 then
+							DrawLine(TopD3.x,TopD3.y,TopD4.x,TopD4.y,3.5,GoS.Red)
+							DrawLine(TopD3.x,TopD3.y,BotD3.x,BotD3.y,3.5,GoS.Red)
+							DrawLine(TopD4.x,TopD4.y,BotD4.x,BotD4.y,3.5,GoS.Red)
+							DrawLine(BotD3.x,BotD3.y,BotD4.x,BotD4.y,3.5,GoS.Red)
 						end
 					end
 				end
@@ -751,7 +771,9 @@ function SLEvade:Drawings()
 						DrawCircle(i.p.endPos,i.spell.radius,1.25,EMenu.Draws.SQ:Value(),ARGB(255,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
 					elseif EMenu.Spells[_]["d".._]:Value() == 4 then
 						DrawCircle(i.p.endPos,i.spell.radius,1.5,EMenu.Draws.SQ:Value(),ARGB(255,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-					end
+					elseif EMenu.Spells[_]["d".._]:Value() == 5 then
+						DrawCircle(i.p.endPos,i.spell.radius,1.75,EMenu.Draws.SQ:Value(),ARGB(255,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						end
 					if EMenu.Draws.DSEW:Value() then
 						if EMenu.Spells[_]["d".._]:Value() == 1 then
 							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),1.5,EMenu.Draws.SQ:Value(),ARGB(255,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))	
@@ -761,6 +783,8 @@ function SLEvade:Drawings()
 							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),2.5,EMenu.Draws.SQ:Value(),ARGB(255,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
 						elseif EMenu.Spells[_]["d".._]:Value() == 4 then
 							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),3,EMenu.Draws.SQ:Value(),ARGB(255,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						elseif EMenu.Spells[_]["d".._]:Value() == 5 then
+							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),3.5,EMenu.Draws.SQ:Value(),ARGB(255,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
 						end
 					end
 				else
@@ -772,6 +796,8 @@ function SLEvade:Drawings()
 						DrawCircle(i.p.endPos,i.spell.radius,1.25,EMenu.Draws.SQ:Value(),GoS.Red)
 					elseif EMenu.Spells[_]["d".._]:Value() == 4 then
 						DrawCircle(i.p.endPos,i.spell.radius,1.5,EMenu.Draws.SQ:Value(),GoS.Red)
+					elseif EMenu.Spells[_]["d".._]:Value() == 5 then
+						DrawCircle(i.p.endPos,i.spell.radius,1.75,EMenu.Draws.SQ:Value(),GoS.Red)
 					end
 					if EMenu.Draws.DSEW:Value() then
 						if EMenu.Spells[_]["d".._]:Value() == 1 then
@@ -782,6 +808,8 @@ function SLEvade:Drawings()
 							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),2.5,EMenu.Draws.SQ:Value(),GoS.Red)
 						elseif EMenu.Spells[_]["d".._]:Value() == 4 then
 							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),3,EMenu.Draws.SQ:Value(),GoS.Red)
+						elseif EMenu.Spells[_]["d".._]:Value() == 5 then
+							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),3.5,EMenu.Draws.SQ:Value(),GoS.Red)						
 						end
 					end				
 				end
