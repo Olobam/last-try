@@ -425,6 +425,11 @@ end
 function SLEvade:Tickp()
 if myHero.dead then return end
 	for _,i in pairs(self.obj) do
+		if not i.jp or not i.safe then
+			self.asd = false
+			DisableHoldPosition(false)
+			BlockInput(false)
+		end
 		if i.o then
 			i.p = {}
 			i.p.startPos = Vector(i.o.startPos)
@@ -458,6 +463,16 @@ end
 
 function SLEvade:Position()
 return Vector(myHero) + Vector(Vector(self.mV) - myHero.pos):normalized() * myHero.ms/2
+end
+
+function SLEvade:ascad()
+	for _,i in pairs(self.obj) do
+		if i.jp then
+			return i.jp 
+		else
+			return Vector(self.opos)
+		end
+	end
 end
 
 function SLEvade:prwp(unit, wp)
@@ -647,7 +662,7 @@ function SLEvade:Drawings()
  			local BotD4 = WorldToScreen(0,ePos-sVec2)
 			
 			if EMenu.Draws.DSPath:Value() then
-				if (GetDistance(self:Position(),(i.jp or Vector(self.endposs))) > i.spell.radius + myHero.boundingRadius) or (GetDistance(myHero,(i.jp or Vector(self.endposs))) > i.spell.radius + myHero.boundingRadius) then
+				if (GetDistance(self:Position(),self:ascad()) > i.spell.radius + myHero.boundingRadius) or (GetDistance(myHero,self:ascad()) > i.spell.radius + myHero.boundingRadius) then
 					if EMenu.Spells[_]["d".._]:Value() == 1 then
 						DrawLine(TopD1.x,TopD1.y,TopD2.x,TopD2.y,0.75,ARGB(145,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
 						DrawLine(TopD1.x,TopD1.y,BotD1.x,BotD1.y,0.75,ARGB(145,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
