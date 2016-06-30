@@ -56,10 +56,6 @@ function SLEvade:__init()
 	self.endposs = nil --endpos
 	self.mV = nil -- wp
 	self.cCreep = {} --collision creep
-	self.vI = nil --vector intersection
-	self.helperVec = nil --helperVector
-	self.cDist = math.huge --creep distance
-	self.closest = nil --closest creep
 	
 	self.D = { --Dash items
 	[3152] = {Name = "Hextech Protobelt", State = false}
@@ -459,22 +455,24 @@ if myHero.dead then return end
 			start = Vector(i.p.startPos)
 			for m,p in pairs(minionManager.objects) do
 				if p and p.alive and p.team ~= MINION_ENEMY and GetDistance(p.pos,start) < i.spell.range then
-					self.helperVec = Vector(endpos - start):perpendicular()
-					self.vI = Vector(VectorIntersection(endpos,start,p.pos,self.helperVec).x,myHero.pos.y,VectorIntersection(endpos,start,p.pos,self.helperVec).y)
-					if (i.spell.radius and GetDistance(self.vI,p.pos) < i.spell.radius) or (i.spell.width and GetDistance(self.vI,p.pos) < i.spell.width) then
+					local helperVec = Vector(endpos - start):perpendicular()
+					local vI = Vector(VectorIntersection(endpos,start,p.pos,helperVec).x,myHero.pos.y,VectorIntersection(endpos,start,p.pos,helperVec).y)
+					if (i.spell.radius and GetDistance(vI,p.pos) < i.spell.radius) or (i.spell.width and GetDistance(vI,p.pos) < i.spell.width) then
 						self.cCreep[p.networkID] = p
 					end
 				end								
 			end
+			local cDist = math.huge
+			local closest = nil
 			for m,p in pairs(self.cCreep) do
-				if GetDistance(start,p) < self.cDist then
-					self.closest = p
-					self.cDist = GetDistance(start,p)
+				if GetDistance(start,p) < cDist then
+					closest = p
+					cDist = GetDistance(start,p)
 				end
 			end
-			if self.closest then
+			if closest then
 				i.ccoll = true
-				i.p.endPos = self.closest.pos 
+				i.p.endPos = closest.pos 
 				--print("Collision")
 			end
 		end
@@ -492,6 +490,7 @@ if myHero.dead then return end
 		if i.p then
 			self.Spells[_].range = GetDistance(i.p.startPos,i.p.endPos)
 			self.Spells[_].delay = i.p.windUpTime or self.Spells[_].delay
+			self.Spells[_].speed = self.Spells[_].speed --calculation missing
 			if i.ccoll then
 				self.endposs = Vector(i.p.endPos)
 			else
