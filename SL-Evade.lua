@@ -55,7 +55,11 @@ function SLEvade:__init()
 	self.opos = nil --simulated obj pos
 	self.endposs = nil --endpos
 	self.mV = nil -- wp
-	self.cCreep = {} --collision creep
+	--collision creep [local]
+	--vector intersection [local]
+	--helperVector [local]
+	--creep distance [local]
+	--closest creep [local]
 	
 	self.D = { --Dash items
 	[3152] = {Name = "Hextech Protobelt", State = false}
@@ -451,29 +455,27 @@ if myHero.dead then return end
 			-- print("speed :"..self.Spells[_].speed)
 		end
 		if i.spell.type == "Line" and i.spell.mcollision and i.p then
+			local vI = nil 
+			local helperVec = nil
+			local cDist = math.huge 			
+			local cCreep = {}
 			endpos = Vector(i.p.endPos)
 			start = Vector(i.p.startPos)
 			for m,p in pairs(minionManager.objects) do
 				if p and p.alive and p.team ~= MINION_ENEMY and GetDistance(p.pos,start) < i.spell.range then
-					local helperVec = Vector(endpos - start):perpendicular()
-					local vI = Vector(VectorIntersection(endpos,start,p.pos,helperVec).x,myHero.pos.y,VectorIntersection(endpos,start,p.pos,helperVec).y)
+					helperVec = Vector(endpos - start):perpendicular()
+					vI = Vector(VectorIntersection(endpos,start,p.pos,helperVec).x,myHero.pos.y,VectorIntersection(endpos,start,p.pos,helperVec).y)
 					if (i.spell.radius and GetDistance(vI,p.pos) < i.spell.radius) or (i.spell.width and GetDistance(vI,p.pos) < i.spell.width) then
-						self.cCreep[p.networkID] = p
+						if GetDistance(vI,start) < cDist then
+							cDist = GetDistance(start,vI)
+						end
 					end
 				end								
 			end
-			local cDist = math.huge
-			local closest = nil
-			for m,p in pairs(self.cCreep) do
-				if GetDistance(start,p) < cDist then
-					closest = p
-					cDist = GetDistance(start,p)
-				end
-			end
-			if closest then
+			if cDist < i.spell.range then
 				i.ccoll = true
-				i.p.endPos = closest.pos 
-				--print("Collision")
+				i.p.endPos = vI 
+				print("Collision")
 			end
 		end
 	end
