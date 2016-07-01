@@ -76,6 +76,7 @@ function SLEvade:__init()
 	EMenu:SubMenu("Draws", "Drawing Settings")
 	EMenu:SubMenu("Advanced", "Dodge Settings")
 	EMenu.Advanced:Slider("ew", "Extra Spell Width", 30, 0, 100, 5)
+	EMenu.Advanced:Boolean("EMC", "Enable Minion Collision", true)
 	EMenu.Draws:Boolean("DSPath", "Draw SkillShot Path", true)
 	EMenu.Draws:Boolean("DSEW", "Draw SkillShot Extra Width", true)
 	EMenu.Draws:Boolean("DSPos", "Draw SkillShot Position", true)
@@ -100,10 +101,10 @@ function SLEvade:__init()
 						EMenu.Spells[_]:Boolean("Draw".._, "Enable Draw", true)
 						EMenu.Spells[_]:Boolean("Dashes".._, "Enable Dashes", true)
 						EMenu.Spells[_]:Info("Empty12".._, "")			
+						EMenu.Spells[_]:Slider("radius".._,"Radius",(i.radius or 150), ((i.radius-50) or 50),((i.radius+100) or 250), 5)
 						EMenu.Spells[_]:Slider("d".._,"Danger",(i.danger or 1), 1, 5, 1)
-						EMenu.Spells[_]:Boolean("IsD".._,"Dangerous", i.dangerous or false)
 						EMenu.Spells[_]:Info("Empty123".._, "")
-						EMenu.Spells[_]:Boolean("FoW".._,"FoW Dodge", i.FoW or true)		
+						EMenu.Spells[_]:Boolean("IsD".._,"Dangerous", i.dangerous or false)		
 				end
 			end
 		end
@@ -157,7 +158,7 @@ self.Spells = {
 	["CaitlynEntrapment"]={charName="Caitlyn",slot=2,type="Line",delay=0.125,range=1000,radius=70,speed=1600,addHitbox=true,danger=1,dangerous=false,proj="CaitlynEntrapmentMissile",killTime=0,displayname="90 Caliber Net",mcollision=true},
 	["CassiopeiaNoxiousBlast"]={charName="Cassiopeia",slot=0,type="Circle",delay=0.75,range=850,radius=150,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="CassiopeiaNoxiousBlast",killTime=0.2,displayname="Noxious Blast",mcollision=false},
 	["CassiopeiaPetrifyingGaze"]={charName="Cassiopeia",slot=3,type="Cone",delay=0.6,range=825,radius=80,speed=math.huge,addHitbox=false,danger=5,dangerous=true,proj="CassiopeiaPetrifyingGaze",killTime=0,displayname="Petrifying Gaze",mcollision=false},
-	["Rupture"]={charName="Chogath",slot=0,type="Circle",delay=1.2,range=950,radius=250,speed=math.huge,addHitbox=true,danger=3,dangerous=false,proj="Rupture",killTime=0.45,displayname="Rupture",mcollision=false},
+	["Rupture"]={charName="Chogath",slot=0,type="Circle",delay=1.2,range=950,radius=250,speed=math.huge,addHitbox=true,danger=3,dangerous=false,proj="Rupture",killTime=0.8,displayname="Rupture",mcollision=false},
 	["PhosphorusBomb"]={charName="Corki",slot=0,type="Circle",delay=0.3,range=825,radius=250,speed=1000,addHitbox=true,danger=2,dangerous=false,proj="PhosphorusBombMissile",killTime=0.35,displayname="Phosphorus Bomb",mcollision=false},
 	["MissileBarrage"]={charName="Corki",slot=3,type="Line",delay=0.2,range=1300,radius=40,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="MissileBarrageMissile",killTime=0,displayname="Missile Barrage",mcollision=true},
 	["MissileBarrage2"]={charName="Corki",slot=3,type="Line",delay=0.2,range=1500,radius=40,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="MissileBarrageMissile2",killTime=0,displayname="Missile Barrage big",mcollision=true},
@@ -446,6 +447,7 @@ if myHero.dead then return end
 			end
 			self.Spells[_].delay = i.p.windUpTime or self.Spells[_].delay
 			self.Spells[_].speed = self.Spells[_].speed --calculation missing
+			self.Spells[_].radius = EMenu.Spells[_]["radius".._]:Value()
 			self:CleanObj() 
 			self:Dodge()
 			self:Others() 
@@ -454,7 +456,7 @@ if myHero.dead then return end
 			-- print("delay :"..self.Spells[_].delay)
 			-- print("speed :"..self.Spells[_].speed)
 		end
-		if i.spell.type == "Line" and i.spell.mcollision and i.p then
+		if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EMC:Value() then
 			local vI = nil 
 			local helperVec = nil
 			local cDist = math.huge 			
@@ -493,6 +495,7 @@ if myHero.dead then return end
 			self.Spells[_].range = GetDistance(i.p.startPos,i.p.endPos)
 			self.Spells[_].delay = i.p.windUpTime or self.Spells[_].delay
 			self.Spells[_].speed = self.Spells[_].speed --calculation missing
+			self.Spells[_].radius = EMenu.Spells[_]["radius".._]:Value()
 			if i.ccoll then
 				self.endposs = Vector(i.p.endPos)
 			else
@@ -1069,10 +1072,8 @@ function SLEvade:Detection(unit,spellProc)
 			self.obj[spellProc.name].uDodge = nil
 			self.obj[spellProc.name].startTime = os.clock()
 			self.obj[spellProc.name].ccoll = false
-			if self.Spells[spellProc.name].killTime == 0 then
-				DelayAction(function() self.obj[spellProc.name] = nil end, self.Spells[spellProc.name].delay*.001 + 1.3*GetDistance(myHero.pos,spellProc.startPos)/self.Spells[spellProc.name].speed)
-			else
-				DelayAction(function() self.obj[spellProc.name] = nil end, self.Spells[spellProc.name].killTime + GetDistance(unit,spellProc.endPos)/self.Spells[spellProc.name].speed + self.Spells[spellProc.name].delay*.001)
+			if self.Spells[spellProc.name].killTime and self.Spells[spellProc.name].type == "Circle" then
+				DelayAction(function() self.obj[spellProc.name] = nil end, self.Spells[spellProc.name].killTime + GetDistance(unit,spellProc.endPos)/self.Spells[spellProc.name].speed + self.Spells[spellProc.name].delay)
 			end
 		end
 	end
