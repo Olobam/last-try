@@ -38,6 +38,7 @@ class 'SLEvade'
 
 function SLEvade:__init()
 
+	self.globalults = {["LuxMaliceCannon"]={name="LuxMaliceCannon",range=3500},["EzrealTrueshotBarrage"]={name="EzrealTrueshotBarrage",range=20000},["DravenRCast"]={name="DravenRCast",range=20000},["EnchantedCrystalArrow"]={name="EnchantedCrystalArrow",range=20000},["JinxR"]={name="JinxR",range=20000}}
 	self.obj = {}
 	self.str = {[-1]="P",[0]="Q",[1]="W",[2]="E",[3]="R"}
 	self.Flash = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerflash") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonerflash") and SUMMONER_2 or nil))
@@ -443,8 +444,10 @@ function SLEvade:Tickp()
 			i.p.endPos = Vector(i.o.endPos)
 		end
 		if i.p then
-			if i.spell.type == "Line" then 
+			if i.spell.type == "Line" and not self.globalults[_] then 
 				self.Spells[_].range = GetDistance(i.p.startPos,i.p.endPos)
+			elseif i.spell.type == "Line" and self.globalults[_] and _ == self.globalults[_].name then
+				self.Spells[_].range = self.globalults[_].range
 			end
 			self.Spells[_].delay = i.p.windUpTime or self.Spells[_].delay
 			self.Spells[_].radius = EMenu.Spells[_]["radius".._]:Value()
@@ -516,8 +519,10 @@ function SLEvade:Drawp()
 			i.p.endPos = Vector(i.o.endPos)
 		end
 		if i.p then
-			if i.spell.type == "Line" then 
+			if i.spell.type == "Line" and not self.globalults[_] then 
 				self.Spells[_].range = GetDistance(i.p.startPos,i.p.endPos)
+			elseif i.spell.type == "Line" and self.globalults[_] and _ == self.globalults[_].name then
+				self.Spells[_].range = self.globalults[_].range
 			end
 			self.Spells[_].delay = i.p.windUpTime or self.Spells[_].delay
 			self.Spells[_].radius = EMenu.Spells[_]["radius".._]:Value()
@@ -530,6 +535,54 @@ function SLEvade:Drawp()
 			self.opos = self:sObjpos()
 			self:Drawings()
 			self:Drawings2()
+		end
+		if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EMC:Value() then
+			local vI = nil 
+			local helperVec = nil
+			local cDist = math.huge 			
+			local cCreep = {}
+			endpos = Vector(i.p.endPos)
+			start = Vector(i.p.startPos)
+			for m,p in pairs(minionManager.objects) do
+				if p and p.alive and p.team ~= MINION_ENEMY and GetDistance(p.pos,start) < i.spell.range then
+					helperVec = Vector(endpos - start):perpendicular()
+					vI = Vector(VectorIntersection(endpos,start,p.pos,helperVec).x,myHero.pos.y,VectorIntersection(endpos,start,p.pos,helperVec).y)
+					if (i.spell.radius and GetDistance(vI,p.pos) < i.spell.radius) or (i.spell.width and GetDistance(vI,p.pos) < i.spell.width) then
+						if GetDistance(vI,start) < cDist then
+							cDist = GetDistance(start,vI)
+						end
+					end
+				end								
+			end
+			if cDist < i.spell.range then
+				i.ccoll = true
+				i.p.endPos = vI 
+				--print("Minion Collision")
+			end
+		end
+		if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EHC:Value() then
+			local vI = nil 
+			local helperVec = nil
+			local cDist = math.huge 			
+			local cHero = {}
+			endpos = Vector(i.p.endPos)
+			start = Vector(i.p.startPos)
+			for m,p in pairs(heroes) do
+				if p and p.team ~= MINION_ENEMY and p.alive and GetDistance(p.pos,start) < i.spell.range then
+					helperVec = Vector(endpos - start):perpendicular()
+					vI = Vector(VectorIntersection(endpos,start,p.pos,helperVec).x,myHero.pos.y,VectorIntersection(endpos,start,p.pos,helperVec).y)
+					if (i.spell.radius and GetDistance(vI,p.pos) < i.spell.radius) or (i.spell.width and GetDistance(vI,p.pos) < i.spell.width) then
+						if GetDistance(vI,start) < cDist then
+							cDist = GetDistance(start,vI)
+						end
+					end
+				end	
+			end
+			if cDist < i.spell.range then
+				i.ccoll = true
+				i.p.endPos = vI 
+				--print("Hero Collision ")
+			end
 		end
 	end
 end
@@ -870,7 +923,7 @@ function SLEvade:Drawings()
 					elseif EMenu.Spells[_]["d".._]:Value() == 5 then
 						DrawCircle(i.p.endPos,i.spell.radius,1.75,EMenu.Draws.SQ:Value(),ARGB(230,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
 					end
-					DrawCircle(i.p.endPos,(i.spell.radius*(os.clock()+i.spell.delay-i.startTime)-i.spell.killTime),1.5,EMenu.Draws.SQ:Value(),ARGB(255,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+					-- DrawCircle(i.p.endPos,(i.spell.radius*(os.clock()+i.spell.delay-i.startTime)-i.spell.killTime),1.5,EMenu.Draws.SQ:Value(),ARGB(255,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
 					if EMenu.Draws.DSEW:Value() then
 						if EMenu.Spells[_]["d".._]:Value() == 1 then
 							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),1.5,EMenu.Draws.SQ:Value(),ARGB(255,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))	
@@ -896,7 +949,7 @@ function SLEvade:Drawings()
 					elseif EMenu.Spells[_]["d".._]:Value() == 5 then
 						DrawCircle(i.p.endPos,i.spell.radius,1.75,EMenu.Draws.SQ:Value(),GoS.Red)
 					end
-					DrawCircle(i.p.endPos,(i.spell.radius*(os.clock()+i.spell.delay-i.startTime)-i.spell.killTime),1.5,EMenu.Draws.SQ:Value(),GoS.Red)
+					-- DrawCircle(i.p.endPos,(i.spell.radius*(os.clock()+i.spell.delay-i.startTime)-i.spell.killTime),1.5,EMenu.Draws.SQ:Value(),GoS.Red)
 					if EMenu.Draws.DSEW:Value() then
 						if EMenu.Spells[_]["d".._]:Value() == 1 then
 							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),1.5,EMenu.Draws.SQ:Value(),GoS.Red)	
