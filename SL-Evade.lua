@@ -581,7 +581,7 @@ function SLEvade:Others()
 			if not c.State and not EMenu.invulnerable[c.Name] then
 				EMenu.invulnerable:Menu(c.Name,""..myHero.charName.." | Item - "..c.Name)
 				EMenu.invulnerable[c.Name]:Boolean("Dodge"..c.Name, "Enable Dodge", true)
-				EMenu.invulnerable[c.Name]:Slider("d"..c.Name,"Danger", 4, 1, 4, 1)
+				EMenu.invulnerable[c.Name]:Slider("d"..c.Name,"Danger", 5, 1, 5, 1)
 			end
 			c.State = true
 		else
@@ -593,7 +593,7 @@ function SLEvade:Others()
 			if not c.State and not EMenu.EvadeSpells[c.Name] then
 				EMenu.EvadeSpells:Menu(c.Name,""..myHero.charName.." | Item - "..c.Name)
 				EMenu.EvadeSpells[c.Name]:Boolean("Dodge"..c.Name, "Enable Dodge", true)
-				EMenu.EvadeSpells[c.Name]:Slider("d"..c.Name,"Danger", 2, 1, 4, 1)
+				EMenu.EvadeSpells[c.Name]:Slider("d"..c.Name,"Danger", 3, 1, 5, 1)
 			end
 			c.State = true
 		else
