@@ -536,11 +536,11 @@ end
 
 function SLEvade:sObjpos()
 	for _,i in pairs(self.obj) do
-		if self.Spells[_].speed ~= math.huge then
-			return Vector(i.p.endPos)-Vector(Vector(i.p.endPos)-i.p.startPos):normalized()*i.spell.range*(((i.startTime+i.spell.delay)+(i.spell.range/i.spell.speed)-os.clock())/(i.spell.range/i.spell.speed))--Vector(i.p.startPos)+Vector(Vector(self.endposs)-i.p.startPos):normalized()* (i.spell.speed*(GetGameTimer()+i.spell.delay-i.startTime)-i.spell.radius+EMenu.Advanced.ew:Value())
-		else
+		--if self.Spells[_].speed ~= math.huge then
+			--return Vector(i.p.endPos)-Vector(Vector(i.p.endPos)-i.p.startPos):normalized()*i.spell.range*(((i.startTime+i.spell.delay)+(i.spell.range/i.spell.speed)-os.clock())/(i.spell.range/i.spell.speed))--Vector(i.p.startPos)+Vector(Vector(self.endposs)-i.p.startPos):normalized()* (i.spell.speed*(GetGameTimer()+i.spell.delay-i.startTime)-i.spell.radius+EMenu.Advanced.ew:Value())
+		--else
 			return Vector(i.p.startPos)
-		end
+		--end
 	end
 end
 
