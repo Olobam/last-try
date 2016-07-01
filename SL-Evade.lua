@@ -657,11 +657,9 @@ function SLEvade:Pathfinding()
 					i.jp = jp
 				else
 					i.jp = nil
-					jp = nil
 				end
 				if GetDistance(i.p.endPos) > i.spell.range + myHero.boundingRadius + 20 then
 					i.jp = nil
-					jp = nil
 				end
 				if i.jp and (GetDistance(self:Position(),i.jp) < i.spell.radius + myHero.boundingRadius) or (GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius) and not i.safe and i.mpos then
 					--if GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular(),jp) >= GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular2(),jp) then
