@@ -336,7 +336,14 @@ function Activator:__init()
 	[3137] = {Name = "Dervish Blade"},
 	[3139] = {Name = "Mercurial Scimitar"},
 	[3222] = {Name = "Crucible", Allies = true},
-
+	}
+	
+	self.Da = { --dash
+	[3152] = {Name = "Protobelt"}
+	}
+	
+	self.Sks = { --skillshot
+	[3030] = {Name = "Hextech GLP 800"}
 	}
 	
 	self.SU = {		--Shield Units
@@ -478,6 +485,33 @@ function Activator:Check()
 			end
 		end
 		
+		for i,c in pairs(self.Da) do
+			if GetItemSlot(myHero,i)>0 then
+				if not c.State and not M[c.Name] then
+					M:Menu(c.Name,c.Name)
+					M[c.Name]:Boolean("u","Use "..c.Name,true)
+					M[c.Name]:Slider("hp","%EnemyHp to use", 100, 10, 100, 5)
+					M[c.Name]:DropDown("m", "Mode", 2, {"Mousepos","Sideways","Target"})
+				end
+				c.State = true
+			else
+				c.State = false
+			end
+		end
+		
+		for i,c in pairs(self.Sks) do
+			if GetItemSlot(myHero,i)>0 then
+				if not c.State and not M[c.Name] then
+					M:Menu(c.Name,c.Name)
+					M[c.Name]:Boolean("u","Use "..c.Name,true)
+					M[c.Name]:Slider("hp","%EnemyHp to use", 100, 10, 100, 5)
+				end
+				c.State = true
+			else
+				c.State = false
+			end
+		end
+		
 		for i,c in pairs(self.SU) do
 			if GetItemSlot(myHero,i)>0 then
 				if not c.State and not M[c.Name] then
@@ -536,6 +570,21 @@ function Activator:Use(target)
 					end
 				end
 			end
+		end
+	end
+	for i,c in pairs(self.Sks) do
+		if c.State and CanUseSpell(myHero,GetItemSlot(myHero,i)) and M[c.Name].u:Value() and ValidTarget(target,c.Range) and GetPercentHP(target) <= M[c.Name].hp:Value() then
+			CastSkillShot(GetItemSlot(myHero,i),GetOrigin(target))
+		end
+	end
+	for i,c in pairs(self.Da) do
+		if c.State and CanUseSpell(myHero,GetItemSlot(myHero,i)) and M[c.Name].u:Value() and ValidTarget(target,c.Range) and GetPercentHP(target) <= M[c.Name].hp:Value() and M[c.Name].m:Value() == 1 then
+			CastSkillShot(GetItemSlot(myHero,i),GetMousePos())
+		elseif c.State and CanUseSpell(myHero,GetItemSlot(myHero,i)) and M[c.Name].u:Value() and ValidTarget(target,c.Range) and GetPercentHP(target) <= M[c.Name].hp:Value() and M[c.Name].m:Value() == 2 then
+			local position = Vector(target) - (Vector(target) - Vector(myHero)):perpendicular():normalized() * ( GetDistance(myHero,target) * 1.2 )
+			CastSkillShot(GetItemSlot(myHero,i),position)
+		elseif c.State and CanUseSpell(myHero,GetItemSlot(myHero,i)) and M[c.Name].u:Value() and ValidTarget(target,c.Range) and GetPercentHP(target) <= M[c.Name].hp:Value() and M[c.Name].m:Value() == 3 then
+			CastSkillShot(GetItemSlot(myHero,i),GetOrigin(target))
 		end
 	end
 	for i,c in pairs(self.HP) do
