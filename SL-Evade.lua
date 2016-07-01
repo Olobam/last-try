@@ -269,7 +269,7 @@ self.Spells = {
 	["SionE"]={charName="Sion",slot=2,type="Line",delay=0.25,range=800,radius=80,speed=1800,addHitbox=true,danger=3,dangerous=true,proj="SionEMissile",killTime=0,displayname="",mcollision=false},
 	["SionR"]={charName="Sion",slot=3,type="Line",delay=0.5,range=800,radius=120,speed=1000,addHitbox=true,danger=3,dangerous=true,proj="nil",killTime=0,displayname="",mcollision=false},
 	["SorakaQ"]={charName="Soraka",slot=0,type="Circle",delay=0.5,range=950,radius=300,speed=1750,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=0.275,displayname="",mcollision=false},
-	["SorakaE"]={charName="Soraka",slot=2,type="Circle",delay=1.75,range=925,radius=275,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=0.8,displayname="",mcollision=false},
+	["SorakaE"]={charName="Soraka",slot=2,type="Circle",delay=0,range=925,radius=275,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=1,displayname="",mcollision=false},
 	["ShenE"]={charName="Shen",slot=2,type="Line",delay=0,range=650,radius=50,speed=1600,addHitbox=true,danger=3,dangerous=true,proj="ShenE",killTime=0,displayname="Shadow Dash",mcollision=false},
 	["ShyvanaFireball"]={charName="Shyvana",slot=2,type="Line",delay=0.25,range=950,radius=60,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="ShyvanaFireballMissile",killTime=0,displayname="Fireball",mcollision=false},
 	["ShyvanaTransformCast"]={charName="Shyvana",slot=3,type="Line",delay=0.25,range=1000,radius=150,speed=1500,addHitbox=true,danger=3,dangerous=true,proj="ShyvanaTransformCast",killTime=0,displayname="Transform Cast",mcollision=false},
@@ -873,7 +873,8 @@ function SLEvade:Drawings()
 						DrawCircle(i.p.endPos,i.spell.radius,1.5,EMenu.Draws.SQ:Value(),ARGB(230,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
 					elseif EMenu.Spells[_]["d".._]:Value() == 5 then
 						DrawCircle(i.p.endPos,i.spell.radius,1.75,EMenu.Draws.SQ:Value(),ARGB(230,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
-						end
+					end
+					DrawCircle(i.p.endPos,(i.spell.radius*(os.clock()+i.spell.delay-i.startTime)-i.spell.killTime),1.5,EMenu.Draws.SQ:Value(),ARGB(255,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
 					if EMenu.Draws.DSEW:Value() then
 						if EMenu.Spells[_]["d".._]:Value() == 1 then
 							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),1.5,EMenu.Draws.SQ:Value(),ARGB(255,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))	
@@ -899,6 +900,7 @@ function SLEvade:Drawings()
 					elseif EMenu.Spells[_]["d".._]:Value() == 5 then
 						DrawCircle(i.p.endPos,i.spell.radius,1.75,EMenu.Draws.SQ:Value(),GoS.Red)
 					end
+					DrawCircle(i.p.endPos,(i.spell.radius*(os.clock()+i.spell.delay-i.startTime)-i.spell.killTime),1.5,EMenu.Draws.SQ:Value(),GoS.Red)
 					if EMenu.Draws.DSEW:Value() then
 						if EMenu.Spells[_]["d".._]:Value() == 1 then
 							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),1.5,EMenu.Draws.SQ:Value(),GoS.Red)	
