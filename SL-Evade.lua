@@ -229,7 +229,7 @@ self.Spells = {
 	["LeonaZenithBlade"]={charName="Leona",slot=2,type="Line",delay=0.25,range=905,radius=70,speed=1750,addHitbox=true,danger=3,dangerous=true,proj="LeonaZenithBladeMissile",killTime=0,displayname="Zenith Blade",mcollision=false},
 	["LeonaSolarFlare"]={charName="Leona",slot=3,type="Circle",delay=1,range=1200,radius=300,speed=math.huge,addHitbox=true,danger=5,dangerous=true,proj="LeonaSolarFlare",killTime=0.5,displayname="Solar Flare",mcollision=false},
 	["LissandraQ"]={charName="Lissandra",slot=0,type="Line",delay=0.25,range=700,radius=75,speed=2200,addHitbox=true,danger=2,dangerous=false,proj="LissandraQMissile",killTime=0,displayname="Ice Shard",mcollision=false},
-	["LissandraQShards"]={charName="Lissandra",slot=0,type="Line",delay=0.25,range=700,radius=90,speed=2200,addHitbox=true,danger=2,dangerous=false,proj="lissandraqshards",killTime=0,displayname="Ice Shard2",mcollision=false},
+	--["LissandraQShards"]={charName="Lissandra",slot=0,type="Line",delay=0.25,range=700,radius=90,speed=2200,addHitbox=true,danger=2,dangerous=false,proj="lissandraqshards",killTime=0,displayname="Ice Shard2",mcollision=false},
 	["LissandraE"]={charName="Lissandra",slot=2,type="Line",delay=0.25,range=1025,radius=125,speed=850,addHitbox=true,danger=2,dangerous=false,proj="LissandraEMissile",killTime=0,displayname="",mcollision=false},
 	["LucianQ"]={charName="Lucian",slot=0,type="Line",delay=0.5,range=1300,radius=65,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="LucianQ",killTime=0,displayname="",mcollision=false},
 	["LucianW"]={charName="Lucian",slot=1,type="Line",delay=0.25,range=1000,radius=55,speed=1600,addHitbox=true,danger=2,dangerous=false,proj="lucianwmissile",killTime=0,displayname="",mcollision=true},
@@ -1072,7 +1072,7 @@ function SLEvade:Detection(unit,spellProc)
 			self.obj[spellProc.name].uDodge = nil
 			self.obj[spellProc.name].startTime = os.clock()
 			self.obj[spellProc.name].ccoll = false
-			if self.Spells[spellProc.name].killTime and self.Spells[spellProc.name].type == "Circle" then
+			if self.Spells[spellProc.name].killTime then
 				DelayAction(function() self.obj[spellProc.name] = nil end, self.Spells[spellProc.name].killTime + GetDistance(unit,spellProc.endPos)/self.Spells[spellProc.name].speed + self.Spells[spellProc.name].delay)
 			end
 		end
