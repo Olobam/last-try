@@ -650,17 +650,11 @@ function SLEvade:Pathfinding()
 		if i.spell.type == "Line" then
 				i.p.startPos = Vector(i.p.startPos)
 				i.p.endPos = Vector(i.p.endPos)
-				S1 = GetOrigin(myHero)+(Vector(i.p.startPos)-Vector(i.p.endPos)):perpendicular()
-				S2 = GetOrigin(myHero)
-				jp = Vector(VectorIntersection(i.p.startPos,i.p.endPos,S1,S2).x,i.p.endPos.y,VectorIntersection(i.p.startPos,i.p.endPos,S1,S2).y)
-				if GetDistance(i.p.startPos) < i.spell.range + myHero.boundingRadius + 20 then
-					i.jp = jp
-				else
-					i.jp = nil
-				end
-				if GetDistance(i.p.endPos) > i.spell.range + myHero.boundingRadius + 20 then
-					i.jp = nil
-				end
+			if GetDistance(i.p.startPos) < i.spell.range + myHero.boundingRadius + 100 then
+				local v3 = Vector(myHero.pos)
+				local v4 = Vector(i.p.startPos-i.p.endPos):perpendicular()
+				local jp = Vector(VectorIntersection(i.p.startPos,i.p.endPos,v3,v4).x,myHero.pos.y,VectorIntersection(i.p.startPos,i.p.endPos,v3,v4).y)
+				i.jp = jp
 				if i.jp and (GetDistance(self:Position(),i.jp) < i.spell.radius + myHero.boundingRadius) or (GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius) and not i.safe and i.mpos then
 					--if GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular(),jp) >= GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular2(),jp) then
 						self.asd = true
@@ -690,6 +684,10 @@ function SLEvade:Pathfinding()
 					DisableHoldPosition(false)
 					--BlockInput(false)
 				end
+			end
+			if GetDistance(i.p.endPos) > i.spell.range + myHero.boundingRadius + 100 then
+				i.jp = nil
+			end
 		elseif i.spell.type == "Circle" then
 			if (GetDistance(self:Position(),i.p.endPos) < i.spell.radius + myHero.boundingRadius) or (GetDistance(myHero,i.p.endPos) < i.spell.radius + myHero.boundingRadius) and not i.safe and i.mpos then
 				self.asd = true
