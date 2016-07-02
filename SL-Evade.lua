@@ -7,12 +7,50 @@ if GetGameVersion():sub(3,4) >= "10" then
 		SLEPatchnew = GetGameVersion():sub(1,3)
 end
 
-local t = {_G.HoldPosition, _G.AttackUnit,_G.MoveToXYZ}
+local t = {_G.HoldPosition, _G.AttackUnit}
 local function DisableHoldPosition(boolean)
 	if boolean then
-		_G.HoldPosition, _G.AttackUnit, _G.MoveToXYZ = function() end, function() end, function() end
+		_G.HoldPosition, _G.AttackUnit = function() end, function() end, function() end
 	else
-		_G.HoldPosition, _G.AttackUnit, _G.MoveToXYZ = t[1], t[2], t[3]
+		_G.HoldPosition, _G.AttackUnit = t[1], t[2]
+	end
+end
+
+local function DisableAll(b)
+	if b then
+		if _G.IOW then
+			IOW.movementEnabled = false
+			IOW.attacksEnabled = false
+		elseif _G.PW then
+			PW.movementEnabled = false
+			PW.attacksEnabled = false
+		elseif _G.GoSWalkLoaded then
+			_G.GoSWalk:EnableMovement(false)
+			_G.GoSWalk:EnableAttack(false)
+		elseif _G.DAC_Loaded then
+			DAC:MovementEnabled(false)
+			DAC:AttacksEnabled(false)
+		elseif _G.AutoCarry_Loaded then
+			DACR.movementEnabled = false
+			DACR.attacksEnabled = false
+		end
+	else
+		if _G.IOW then
+			IOW.movementEnabled = true
+			IOW.attacksEnabled = true
+		elseif _G.PW then
+			PW.movementEnabled = true
+			PW.attacksEnabled = true
+		elseif _G.GoSWalkLoaded then
+			_G.GoSWalk:EnableMovement(true)
+			_G.GoSWalk:EnableAttack(true)
+		elseif _G.DAC_Loaded then
+			DAC:MovementEnabled(true)
+			DAC:AttacksEnabled(true)
+		elseif _G.AutoCarry_Loaded then
+			DACR.movementEnabled = true
+			DACR.attacksEnabled = true
+		end
 	end
 end
 
@@ -436,7 +474,7 @@ function SLEvade:Tickp()
 		if not i.jp or not i.safe then
 			self.asd = false
 			DisableHoldPosition(false)
-			--BlockInput(false)
+			DisableAll(false)
 		end
 		if i.o then
 			i.p = {}
@@ -735,7 +773,7 @@ function SLEvade:Pathfinding()
 					i.safe = nil
 					i.isEvading = false
 					DisableHoldPosition(false)
-					--BlockInput(false)
+					DisableAll(false)
 				end
 			end
 			if GetDistance(i.p.endPos) > i.spell.range + myHero.boundingRadius + 100 then
@@ -767,7 +805,7 @@ function SLEvade:Pathfinding()
 				i.safe = nil
 				i.isEvading = false
 				DisableHoldPosition(false)
-				--BlockInput(false)
+				DisableAll(false)
 			end
 		end
 	end
@@ -999,10 +1037,10 @@ function SLEvade:Dodge()
 			if i.safe and ((not self.DodgeOnlyDangerous and EMenu.d:Value() <= EMenu.Spells[_]["d".._]:Value()) or (self.DodgeOnlyDangerous and EMenu.Spells[_]["IsD".._]:Value())) and EMenu.Spells[_]["Dodge".._]:Value() then
 				if self.asd == true then 
 					DisableHoldPosition(true)
-					--BlockInput(true) 
+					DisableAll(true) 
 				else 
 					DisableHoldPosition(false)
-					--BlockInput(false) 
+					DisableAll(false) 
 				end
 				MoveToXYZ(i.safe)
 				if EMenu.Spells[_]["Dashes".._]:Value() then
@@ -1097,7 +1135,7 @@ function SLEvade:Dodge()
 			end
 		else
 			DisableHoldPosition(false)
-			--BlockInput(false)
+			DisableAll(false)
 		end
 	end
 end
