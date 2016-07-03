@@ -556,7 +556,6 @@ function SLEvade:CalcRange(unit)
 	for _,i in pairs(self.obj) do
 		if self.Spells[_].type == "Line" and not self.globalults[_] then
 			return GetDistance(i.p.startPos,i.p.endPos)
-		end
 		elseif self.Spells[_].type == "Line" and self.globalults[_] and _ == self.globalults[_].name then
 			return self.globalults[_].range
 		elseif self.Spells[_].type == "Circle" then
