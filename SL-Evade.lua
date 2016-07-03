@@ -485,7 +485,7 @@ function SLEvade:Tickp()
 				i.p.endPos = Vector(i.o.endPos)
 			end
 			if i.p then
-				self.Spells[_].range = self:CalcRange(k)
+				self.Spells[_].range = self:CalcRange()
 				self.Spells[_].delay = self:CalcDelay()
 				self.Spells[_].radius = self:CalcRadius()
 				self.Spells[_].speed = self:CalcSpeed()
@@ -512,7 +512,7 @@ function SLEvade:Drawp()
 				i.p.endPos = Vector(i.o.endPos)
 			end
 			if i.p then
-				self.Spells[_].range = self:CalcRange(k)
+				self.Spells[_].range = self:CalcRange()
 				self.Spells[_].delay = self:CalcDelay()
 				self.Spells[_].radius = self:CalcRadius()
 				self.Spells[_].speed = self:CalcSpeed()
@@ -533,7 +533,7 @@ end
 
 function SLEvade:CalcSpeed()
 	for _,i in pairs(self.obj) do
-		if i.o and self.Spells[_].type == "Line" then
+		if i.o and i.spell.type == "Line" then
 				local sample = Sample(i.o)
 				table.insert(i.samples, sample)
 			if i.samples then
@@ -544,23 +544,25 @@ function SLEvade:CalcSpeed()
 				local time = last.time-first.time
 				return distance/time 
 			end
-		elseif not i.o and self.Spells[_].type == "Line" then
+		elseif not i.o and i.spell.type == "Line" then
 			return self.Spells[_].speed
-		elseif self.Spells[_].type == "Circle" then
+		end
+		if i.spell.type == "Circle" then
 			return self.Spells[_].speed
 		end
 	end
 end
 
-function SLEvade:CalcRange(unit)
+function SLEvade:CalcRange()
 	for _,i in pairs(self.obj) do
-		if self.Spells[_].type == "Line" and not self.globalults[_] then
-			return GetDistance(i.p.startPos,i.p.endPos)
-		elseif self.Spells[_].type == "Line" and self.globalults[_] and _ == self.globalults[_].name then
-			return self.globalults[_].range
-		elseif self.Spells[_].type == "Circle" then
+		if i.spell.type == "Line" and not self.globalults[_] then 
+			self.Spells[_].range = GetDistance(i.p.startPos,i.p.endPos)
+		elseif i.spell.type == "Line" and self.globalults[_] and _ == self.globalults[_].name then
+			self.Spells[_].range = self.globalults[_].range
+		end
+		if i.spell.type == "Circle" then
 			return self.Spells[_].range
-		end		
+		end
 	end
 end
 
