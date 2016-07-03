@@ -974,7 +974,7 @@ function SLEvade:Drawings()
 					elseif EMenu.Spells[_]["d".._]:Value() == 5 then
 						DrawCircle(i.p.endPos,i.spell.radius,1.75,EMenu.Draws.SQ:Value(),ARGB(230,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
 					end
-					DrawCircle(i.p.endPos,self:sCircpos(),1.5,EMenu.Draws.SQ:Value(),ARGB(255,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+					-- DrawCircle(i.p.endPos,self:sCircpos(),1.5,EMenu.Draws.SQ:Value(),ARGB(255,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
 					if EMenu.Draws.DSEW:Value() then
 						if EMenu.Spells[_]["d".._]:Value() == 1 then
 							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),1.5,EMenu.Draws.SQ:Value(),ARGB(255,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))	
@@ -1000,7 +1000,7 @@ function SLEvade:Drawings()
 					elseif EMenu.Spells[_]["d".._]:Value() == 5 then
 						DrawCircle(i.p.endPos,i.spell.radius,1.75,EMenu.Draws.SQ:Value(),GoS.Red)
 					end
-					DrawCircle(i.p.endPos,self:sCircpos(),1.5,EMenu.Draws.SQ:Value(),GoS.Red)
+					-- DrawCircle(i.p.endPos,self:sCircpos(),1.5,EMenu.Draws.SQ:Value(),GoS.Red)
 					if EMenu.Draws.DSEW:Value() then
 						if EMenu.Spells[_]["d".._]:Value() == 1 then
 							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),1.5,EMenu.Draws.SQ:Value(),GoS.Red)	
@@ -1028,7 +1028,7 @@ function SLEvade:Drawings2()
 				DrawCircle(i.jp,50,1,20,GoS.Red) 
 			end 
 		end
-		if EMenu.Draws.DEPos:Value() and myHero.alive and not EMenu.Keys.DDraws:Value() and i.safe and ((not self.DodgeOnlyDangerous and EMenu.d:Value() <= EMenu.Spells[_]["d".._]:Value()) or (self.DodgeOnlyDangerous and EMenu.Spells[_]["IsD".._]:Value())) and EMenu.Spells[_]["Dodge".._]:Value() and EMenu.Spells[_]["Draw".._]:Value() then	
+		if EMenu.Draws.DEPos:Value() and not myHero.dead and not EMenu.Keys.DDraws:Value() and i.safe and ((not self.DodgeOnlyDangerous and EMenu.d:Value() <= EMenu.Spells[_]["d".._]:Value()) or (self.DodgeOnlyDangerous and EMenu.Spells[_]["IsD".._]:Value())) and EMenu.Spells[_]["Dodge".._]:Value() and EMenu.Spells[_]["Draw".._]:Value() then	
 			if i.uDodge then 
 				dArrow(myHero.pos,i.safe,3,GoS.Red)
 			else		
@@ -1169,7 +1169,6 @@ function SLEvade:CreateObject(obj)
 			self.obj[obj.spellName].uDodge = nil
 			self.obj[obj.spellName].startTime = os.clock()
 			self.obj[obj.spellName].spell = self.Spells[obj.spellName]
-			self.obj[obj.spellName].ccoll = false
 			self.obj[obj.spellName].samples = {}
 		end
 	end
@@ -1193,7 +1192,6 @@ function SLEvade:Detection(unit,spellProc)
 			self.obj[spellProc.name].mpos = nil
 			self.obj[spellProc.name].uDodge = nil
 			self.obj[spellProc.name].startTime = os.clock()
-			self.obj[spellProc.name].ccoll = false
 			if self.Spells[spellProc.name].killTime then
 				DelayAction(function() self.obj[spellProc.name] = nil end, self.Spells[spellProc.name].killTime + GetDistance(unit,spellProc.endPos)/self.Spells[spellProc.name].speed + self.Spells[spellProc.name].delay)
 			end
