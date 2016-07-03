@@ -546,6 +546,8 @@ function SLEvade:CalcSpeed()
 			end
 		elseif not i.o and self.Spells[_].type == "Line" then
 			return self.Spells[_].speed
+		elseif self.Spells[_].type == "Circle" then
+			return self.Spells[_].speed
 		end
 	end
 end
@@ -553,14 +555,13 @@ end
 function SLEvade:CalcRange(unit)
 	for _,i in pairs(self.obj) do
 		if self.Spells[_].type == "Line" and not self.globalults[_] then
-			if GetCastRange(unit,self.Spells[_].slot) >= 250 then 
-				return GetCastRange(unit,self.Spells[_].slot)
-			else
-				return GetDistance(i.p.startPos,i.p.endPos)
-			end
+			return GetDistance(i.p.startPos,i.p.endPos)
+		end
 		elseif self.Spells[_].type == "Line" and self.globalults[_] and _ == self.globalults[_].name then
 			return self.globalults[_].range
-		end			
+		elseif self.Spells[_].type == "Circle" then
+			return self.Spells[_].range
+		end		
 	end
 end
 
