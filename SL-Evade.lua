@@ -693,34 +693,10 @@ function SLEvade:Tickp()
 				i.p.endPos = Vector(i.o.endPos)
 			end
 			if i.p then
-				self.Spells[_].range = self.Spells[_].range
-				self.Spells[_].delay = self.Spells[_].delay
-				self.Spells[_].radius = EMenu.Spells[_]["radius".._]:Value()
-				if self.Spells[_].type == "Line" then
-					if i.o then
-						local sample = Sample(i.o)
-						table.insert(i.samples, sample)
-						if i.samples then
-							local n = #i.samples
-							local first = i.samples[1]
-							local last = i.samples[n]
-							local distance = math.sqrt((first.x - last.x)*(first.x - last.x) + (first.y - last.y)*(first.y - last.y) + (first.z - last.z)*(first.z - last.z))
-							local time = last.time-first.time
-							self.Spells[_].speed = distance/time 
-						end
-					else 
-						self.Spells[_].speed = self.Spelldatasave[_].speed
-					end
-				end
-				if self.Spells[_].type == "Circle" then
-					self.Spells[_].speed = self.Spelldatasave[_].speed
-				end
 				self:CleanObj() 
 				self:Dodge()
 				self:Others() 
 				self:Pathfinding()
-				self:MinionCollision()
-				self:HeroCollsion()
 			end
 		end
 	end
@@ -735,7 +711,19 @@ function SLEvade:Drawp()
 				i.p.endPos = Vector(i.o.endPos)
 			end
 			if i.p then
-				self.Spells[_].range = self.Spells[_].range
+				self:MinionCollision()
+				self:HeroCollsion()
+				if i.coll then
+					self.endposs = Vector(i.p.endPos)
+					if self.Spells[_].type == "Line" then
+						self.Spells[_].range = GetDistance(i.p.startPos,i.p.endPos)
+					else
+						self.Spells[_].range = self.Spelldatasave[_].range
+					end
+				else
+					self.endposs = Vector(i.p.startPos)+Vector(Vector(i.p.endPos)-i.p.startPos):normalized()*(i.spell.range+i.spell.radius)
+					self.Spells[_].range = self.Spelldatasave[_].range
+				end
 				self.Spells[_].delay = self.Spells[_].delay
 				self.Spells[_].radius = EMenu.Spells[_]["radius".._]:Value()
 				if self.Spells[_].type == "Line" then
@@ -757,12 +745,9 @@ function SLEvade:Drawp()
 				if self.Spells[_].type == "Circle" then
 					self.Spells[_].speed = self.Spelldatasave[_].speed
 				end
-				self.endposs = Vector(i.p.startPos)+Vector(Vector(i.p.endPos)-i.p.startPos):normalized()*(i.spell.range+i.spell.radius)
 				self.opos = self:sObjpos()
 				self:Drawings()
 				self:Drawings2()
-				self:MinionCollision()
-				self:HeroCollsion()
 			end
 		end
 	end
@@ -789,6 +774,7 @@ function SLEvade:MinionCollision()
 				end								
 			end
 			if cDist < i.spell.range then
+				i.coll = true
 				i.p.endPos = vI 
 				--print("Minion Collision")
 			end
@@ -817,6 +803,7 @@ function SLEvade:HeroCollsion()
 				end	
 			end
 			if cDist < i.spell.range then
+				i.coll = true
 				i.p.endPos = vI  
 				--print("Hero Collision ")
 			end
@@ -1366,6 +1353,7 @@ function SLEvade:CreateObject(obj)
 			self.obj[obj.spellName].startTime = os.clock()
 			self.obj[obj.spellName].spell = self.Spells[obj.spellName]
 			self.obj[obj.spellName].samples = {}
+			self.obj[obj.spellName].coll = false
 		end
 	end
 end
@@ -1385,6 +1373,7 @@ function SLEvade:Detection(unit,spellProc)
 			self.obj[spellProc.name].mpos = nil
 			self.obj[spellProc.name].uDodge = nil
 			self.obj[spellProc.name].startTime = os.clock()
+			self.obj[spellProc.name].coll = false
 			if self.Spells[spellProc.name].killTime then
 				DelayAction(function() self.obj[spellProc.name] = nil end, self.Spells[spellProc.name].killTime + GetDistance(unit,spellProc.endPos)/self.Spells[spellProc.name].speed + self.Spells[spellProc.name].delay)
 			end
