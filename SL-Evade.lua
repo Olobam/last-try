@@ -595,21 +595,21 @@ self.EvadeSpells = {
 	["Kassadin"] = { 
 		[3] = {dl = 1,name = "RiftWalk",speed = math.huge,range = 450,spellDelay = 250,spellKey = 3,evadeType = "DashP",castType = "Position",},
 	},	
-	["Kayle"] = { 
-		[3] = {dl = 4,name = "Intervention",speed = math.huge,range = 0,spellDelay = 250,spellKey = 3,evadeType = "SpellShieldT",castType = "Target",},
-	},	
+	-- ["Kayle"] = { 
+		-- [3] = {dl = 4,name = "Intervention",speed = math.huge,range = 0,spellDelay = 250,spellKey = 3,evadeType = "SpellShieldT",castType = "Target",},
+	-- },	
 	["LeBlanc"] = { 
 		[1] = {dl = 2,name = "Distortion",range = 600,spellDelay = 50,speed = 1600,spellKey = 1,evadeType = "DashP",castType = "Position",},
 	},	
-	["LeeSin"] = { 
-		[1] = {dl = 3,name = "Safeguard",range = 700,speed = 1400,spellDelay = 50,spellKey = 1,evadeType = "DashT",castType = "Target",},
-	},
+	-- ["LeeSin"] = { 
+		-- [1] = {dl = 3,name = "Safeguard",range = 700,speed = 1400,spellDelay = 50,spellKey = 1,evadeType = "DashT",castType = "Target",},
+	-- },
 	["Lucian"] = { 
 		[2] = {dl = 1,name = "RelentlessPursuit",range = 425,spellDelay = 50,speed = 1350,spellKey = 2,evadeType = "DashP",castType = "Position",},
 	},	
-	["Morgana"] = {
-		[2] = {dl = 3,name = "BlackShield",speed = math.huge,range = 650,spellDelay = 50,spellKey = 2,evadeType = "SpellShieldT",castType = "Target",},
-	},	
+	-- ["Morgana"] = {
+		-- [2] = {dl = 3,name = "BlackShield",speed = math.huge,range = 650,spellDelay = 50,spellKey = 2,evadeType = "SpellShieldT",castType = "Target",},
+	-- },	
 	["Nocturne"] = { 
 		[1] = {dl = 3,name = "ShroudofDarkness",speed = math.huge,range = 0,spellDelay = 50,spellKey = 1,evadeType = "SpellShieldS",castType = "Self",},
 	},	
@@ -618,7 +618,7 @@ self.EvadeSpells = {
 	},	
 	["Fiora"] = {
 		[0] = {dl = 3,name = "FioraQ",range = 340,speed = 1100,spellDelay = 50,spellKey = 0,evadeType = "DashP",castType = "Position",},
-		[1] = {dl = 3,name = "FioraW",range = 750,spellDelay = 100,spellKey = 1,evadeType = "WindWallP",castType = "Position",},
+		--[1] = {dl = 3,name = "FioraW",range = 750,spellDelay = 100,spellKey = 1,evadeType = "WindWallP",castType = "Position",},
 	},
 	["Fizz"] = { 
 		[2] = {dl = 3,name = "FizzJump",range = 400,speed = 1400,spellDelay = 50,spellKey = 2,evadeType = "DashP",castType = "Position",},
@@ -632,7 +632,7 @@ self.EvadeSpells = {
 	},	
 	["Shaco"] = {
 		[0] = {dl = 3,name = "Deceive",range = 400,spellDelay = 250,spellKey = 0,evadeType = "DashP",castType = "Position",},
-		[1] = {dl = 3,name = "JackInTheBox",range = 425,spellDelay = 250,spellKey = 1,evadeType = "WindWallP",castType = "Position",},
+		--[1] = {dl = 3,name = "JackInTheBox",range = 425,spellDelay = 250,spellKey = 1,evadeType = "WindWallP",castType = "Position",},
 	},
 	["Tristana"] = { 
 		[1] = {dl = 3,name = "RocketJump",range = 900,spellDelay = 500,speed = 1100,spellKey = 1,evadeType = "DashP",castType = "Position",},       
@@ -643,25 +643,25 @@ self.EvadeSpells = {
 	["Vayne"] = { 
 		[0] = {dl = 2,name = "Tumble",range = 300,speed = 900,spellDelay = 50,spellKey = 0,evadeType = "DashP",castType = "Position",},
 	},	
-	["Yasuo"] = {
-		[1] = {dl = 3,name = "WindWall",range = 400,spellDelay = 250,spellKey = 1,evadeType = "WindWallP",castType = "Position",},
-		[2] = {dl = 2,name = "SweepingBlade",range = 475,speed = 1000,spellDelay = 50,spellKey = 2,evadeType = "DashT",castType = "Target",},
-	 },
+	--["Yasuo"] = {
+		--[1] = {dl = 3,name = "WindWall",range = 400,spellDelay = 250,spellKey = 1,evadeType = "WindWallP",castType = "Position",},
+		--[2] = {dl = 2,name = "SweepingBlade",range = 475,speed = 1000,spellDelay = 50,spellKey = 2,evadeType = "DashT",castType = "Target",},
+	-- },
 	["Vladimir"] = { 
 		[1] = {dl = 4,name = "Sanguine Pool",range = 350,spellDelay = 50,spellKey = 1,evadeType = "SpellShieldS",castType = "Self",	},
 	},	
-	["MasterYi"] = { 
-		[0] = {dl = 3,name = "AlphaStrike",range = 600,speed = math.huge,spellDelay = 100,spellKey = 0,evadeType = "DashT",castType = "Target",},
-	},	
-	["Katarina"] = { 
-		[2] = {dl = 3,name = "KatarinaE",range = 700,speed = math.huge,spellKey = 2,evadeType = "DashT",castType = "Target",	},
-	},	
+	-- ["MasterYi"] = { 
+		-- [0] = {dl = 3,name = "AlphaStrike",range = 600,speed = math.huge,spellDelay = 100,spellKey = 0,evadeType = "DashT",castType = "Target",},
+	-- },	
+	-- ["Katarina"] = { 
+		-- [2] = {dl = 3,name = "KatarinaE",range = 700,speed = math.huge,spellKey = 2,evadeType = "DashT",castType = "Target",	},
+	-- },	
 	["Kindred"] = { 
 		[0] = {dl = 1,name = "KindredQ",range = 300,speed = 733,spellDelay = 50,spellKey = 0,evadeType = "DashP",castType = "Position",},
 	},	
-	["Talon"] = { 
-		[2] = {dl = 3,name = "Cutthroat",range = 700,speed = math.huge,spellDelay = 50,spellKey = 2,evadeType = "DashT",castType = "Target",},
-	},
+	-- ["Talon"] = { 
+		-- [2] = {dl = 3,name = "Cutthroat",range = 700,speed = math.huge,spellDelay = 50,spellKey = 2,evadeType = "DashT",castType = "Target",},
+	-- },
 }
 DelayAction(function()
 	for _,i in pairs(self.Spells) do
@@ -1249,36 +1249,8 @@ function SLEvade:Dodge()
 									else
 										self.ues = false
 								end	
-								if self.EvadeSpells[GetObjectName(myHero)][op].evadeType == "DashT" then
-									for pp,ally in pairs(GetAllyHeroes()) do
-										if ally ~= nil then
-											if GetDistance(myHero,ally) < self.EvadeSpells[GetObjectName(myHero)][op].range and not ally.dead and CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].spellKey) == READY then	
-													self.ues = true							
-													CastTargetSpell(ally, self.EvadeSpells[GetObjectName(myHero)][op].spellKey)
-												else
-													self.ues = false
-											end
-										end
-									end
-									for _,minion in pairs(minionManager.objects) do
-										if GetTeam(minion) == MINION_ALLY then 
-											if GetDistance(myHero,minion) < self.EvadeSpells[GetObjectName(myHero)][op].range and not minion.dead and CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].spellKey) == READY then
-													self.ues = true																						
-													CastTargetSpell(minion, self.EvadeSpells[GetObjectName(myHero)][op].spellKey)
-												else
-													self.ues = false
-											end
-										end
-										if GetTeam(minion) == MINION_JUNGLE then 
-											if GetDistance(myHero,minion) < self.EvadeSpells[GetObjectName(myHero)][op].range and not minion.dead and CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].spellKey) == READY then
-													self.ues = true
-													CastTargetSpell(minion, self.EvadeSpells[GetObjectName(myHero)].spellKey)
-												else
-													self.ues = false
-											end
-										end
-									end
-								end
+								-- if self.EvadeSpells[GetObjectName(myHero)][op].evadeType == "DashT" then--logic needed
+								-- end
 								-- if self.EvadeSpells[GetObjectName(myHero)][op].evadeType == "WindWallP" and CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].spellKey) == READY then --logic needed
 										-- self.ues = true
 									-- else
