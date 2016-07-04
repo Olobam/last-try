@@ -1224,7 +1224,7 @@ function SLEvade:Drawings2()
 				DrawCircle(i.jp,50,1,20,GoS.Red) 
 			end 
 		end
-		if EMenu.Draws.DEPos:Value() and not myHero.dead and not EMenu.Keys.DDraws:Value() and i.safe and ((not self.DodgeOnlyDangerous and EMenu.d:Value() <= EMenu.Spells[_]["d".._]:Value()) or (self.DodgeOnlyDangerous and EMenu.Spells[_]["IsD".._]:Value())) and EMenu.Spells[_]["Dodge".._]:Value() and EMenu.Spells[_]["Draw".._]:Value() then	
+		if EMenu.Draws.DEPos:Value() and not EMenu.Keys.DDraws:Value() and i.safe and ((not self.DodgeOnlyDangerous and EMenu.d:Value() <= EMenu.Spells[_]["d".._]:Value()) or (self.DodgeOnlyDangerous and EMenu.Spells[_]["IsD".._]:Value())) and EMenu.Spells[_]["Dodge".._]:Value() and EMenu.Spells[_]["Draw".._]:Value() then	
 			if i.uDodge then 
 				dArrow(myHero.pos,i.safe,3,GoS.Red)
 			else		
