@@ -1,5 +1,5 @@
 local SLEAutoUpdate = true
-local Stage, SLEvadeVer = "Alpha", "0.01"
+local Stage, SLEvadeVer = "Alpha", "0.02"
 local SLEPatchnew = nil
 if GetGameVersion():sub(3,4) >= "10" then
 		SLEPatchnew = GetGameVersion():sub(1,4)
@@ -971,9 +971,6 @@ function SLEvade:Pathfinding()
 					DisableHoldPosition(false)
 					DisableAll(false)
 				end
-			end
-			if GetDistance(i.p.endPos) > i.spell.range + myHero.boundingRadius + 100 then
-				i.jp = nil
 			end
 		elseif i.spell.type == "Circle" then
 			if (GetDistance(self:Position(),i.p.endPos) < i.spell.radius + myHero.boundingRadius) or (GetDistance(myHero,i.p.endPos) < i.spell.radius + myHero.boundingRadius) and not i.safe and i.mpos then
