@@ -1,5 +1,5 @@
 local SLEAutoUpdate = true
-local Stage, SLEvadeVer = "Alpha", "0.02"
+local Stage, SLEvadeVer = "Alpha", "0.03"
 local SLEPatchnew = nil
 if GetGameVersion():sub(3,4) >= "10" then
 		SLEPatchnew = GetGameVersion():sub(1,4)
@@ -117,6 +117,7 @@ function SLEvade:__init()
 	EMenu:SubMenu("Draws", "Drawing Settings")
 	EMenu:SubMenu("Advanced", "Dodge Settings")
 	EMenu.Advanced:Slider("ew", "Extra Spell Width", 30, 0, 100, 5)
+	EMenu.Advanced:Boolean("LDR", "Limit detection range", true)
 	EMenu.Advanced:Boolean("EMC", "Enable Minion Collision", true)
 	EMenu.Advanced:Boolean("EHC", "Enable Hero Collision", true)
 	EMenu.Draws:Boolean("DSPath", "Draw SkillShot Path", true)
@@ -138,15 +139,29 @@ function SLEvade:__init()
 				if not self.Spells[_] then return end
 				if i.charName == k.charName and self.supportedtypes[i.type].supported then
 					if i.displayname == "" then i.displayname = _ end
+					if i.danger == 0 then i.danger = 1 end
 					if not EMenu.Spells[_] then EMenu.Spells:Menu(_,""..i.charName.." | "..(self.str[i.slot] or "?").." - "..i.displayname) end
 						EMenu.Spells[_]:Boolean("Dodge".._, "Enable Dodge", true)
 						EMenu.Spells[_]:Boolean("Draw".._, "Enable Draw", true)
 						EMenu.Spells[_]:Boolean("Dashes".._, "Enable Dashes", true)
 						EMenu.Spells[_]:Info("Empty12".._, "")			
 						EMenu.Spells[_]:Slider("radius".._,"Radius",(i.radius or 150), ((i.radius-50) or 50),((i.radius+100) or 250), 5)
+						if i.danger == 1 then EMenu.Spells[_]:Slider("hp".._, "HP to Dodge", 80, 1, 100, 5)
+						elseif i.danger == 2 then EMenu.Spells[_]:Slider("hp".._, "HP to Dodge", 85, 1, 100, 5)
+						elseif i.danger == 3 then EMenu.Spells[_]:Slider("hp".._, "HP to Dodge", 90, 1, 100, 5)
+						elseif i.danger == 4 then EMenu.Spells[_]:Slider("hp".._, "HP to Dodge", 95, 1, 100, 5)
+						elseif i.danger == 5 then EMenu.Spells[_]:Slider("hp".._, "HP to Dodge", 100, 1, 100, 5)
+						end
 						EMenu.Spells[_]:Slider("d".._,"Danger",(i.danger or 1), 1, 5, 1)
 						EMenu.Spells[_]:Info("Empty123".._, "")
-						EMenu.Spells[_]:Boolean("IsD".._,"Dangerous", i.dangerous or false)		
+						EMenu.Spells[_]:Boolean("IsD".._,"Dangerous", i.dangerous or false)
+						if i.mcollision then
+							EMenu.Spells[_]:Boolean("hColl".._, "Hero Collision", true)
+							EMenu.Spells[_]:Boolean("mColl".._, "Minion Collision", true)
+						else
+							EMenu.Spells[_]:Info("nohColl".._, "No Hero Collision available")
+							EMenu.Spells[_]:Info("nomColl".._, "No Minion Collision available")
+						end							
 				end
 			end
 		end
@@ -217,7 +232,7 @@ self.Spells = {
 	["EliseHumanE"]={charName="Elise",slot=2,type="Line",delay=0.25,range=925,radius=55,speed=1600,addHitbox=true,danger=4,dangerous=true,proj="EliseHumanE",killTime=0,displayname="Cocoon",mcollision=true},
 	["EvelynnR"]={charName="Evelynn",slot=3,type="Circle",delay=0.25,range=650,radius=350,speed=math.huge,addHitbox=true,danger=5,dangerous=true,proj="EvelynnR",killTime=0.2,displayname="Agony's Embrace"},
 	["EzrealMysticShot"]={charName="Ezreal",slot=0,type="Line",delay=0.25,range=1200,radius=50,speed=1975,addHitbox=true,danger=2,dangerous=false,proj="EzrealMysticShotMissile",killTime=0,displayname="Mystic Shot",mcollision=true},
-	["EzrealEssenceFlux"]={charName="Ezreal",slot=1,type="Line",delay=0.25,range=900,radius=80,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="EzrealEssenceFluxMissile",killTime=0,displayname="Essence Flux",mcollision=true},
+	["EzrealEssenceFlux"]={charName="Ezreal",slot=1,type="Line",delay=0.25,range=900,radius=80,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="EzrealEssenceFluxMissile",killTime=0,displayname="Essence Flux",mcollision=false},
 	["EzrealTrueshotBarrage"]={charName="Ezreal",slot=3,type="Line",delay=1,range=20000,radius=150,speed=2000,addHitbox=true,danger=3,dangerous=true,proj="EzrealTrueshotBarrage",killTime=0,displayname="Trueshot Barrage",mcollision=false},
 	["FioraW"]={charName="Fiora",slot=1,type="Line",delay=0.5,range=800,radius=70,speed=3200,addHitbox=true,danger=2,dangerous=false,proj="FioraWMissile",killTime=0,displayname="Riposte",mcollision=false},
 	["FizzMarinerDoom"]={charName="Fizz",slot=3,type="Line",delay=0.25,range=1150,radius=120,speed=1350,addHitbox=true,danger=5,dangerous=true,proj="FizzMarinerDoomMissile",killTime=0,displayname="Chum the Waters",mcollision=false},
@@ -681,6 +696,8 @@ end
 function SLEvade:Tickp()
 	heroes[myHero.networkID] = myHero
 	for _,i in pairs(self.obj) do
+		if i.o and EMenu.Advanced.LDR:Value() and i.spell.type == "Line" and GetDistance(myHero,i.o) >= 3000 then return end
+		if i.p and EMenu.Advanced.LDR:Value() and i.spell.type == "Circle" and GetDistance(myHero,i.p.endPos) >= 3000 then return end
 		for kk,k in pairs(GetEnemyHeroes()) do
 			if not i.jp or not i.safe then
 				self.asd = false
@@ -704,6 +721,8 @@ end
 
 function SLEvade:Drawp()
 	for _,i in pairs(self.obj) do
+		if i.o and EMenu.Advanced.LDR:Value() and i.spell.type == "Line" and GetDistance(myHero,i.o) >= 3000 then return end
+		if i.p and EMenu.Advanced.LDR:Value() and i.spell.type == "Circle" and GetDistance(myHero,i.p.endPos) >= 3000 then return end
 		for kk,k in pairs(GetEnemyHeroes()) do
 			if i.o then
 				i.p = {}
@@ -714,16 +733,15 @@ function SLEvade:Drawp()
 				self:MinionCollision()
 				self:HeroCollsion()
 				if i.coll then
-					self.endposs = Vector(i.p.endPos)
 					if self.Spells[_].type == "Line" then
 						self.Spells[_].range = GetDistance(i.p.startPos,i.p.endPos)
 					else
 						self.Spells[_].range = self.Spelldatasave[_].range
 					end
 				else
-					self.endposs = Vector(i.p.startPos)+Vector(Vector(i.p.endPos)-i.p.startPos):normalized()*(i.spell.range+i.spell.radius)
 					self.Spells[_].range = self.Spelldatasave[_].range
 				end
+				self.endposs = Vector(i.p.startPos)+Vector(Vector(i.p.endPos)-i.p.startPos):normalized()*(i.spell.range+i.spell.radius)
 				self.Spells[_].delay = self.Spells[_].delay
 				self.Spells[_].radius = EMenu.Spells[_]["radius".._]:Value()
 				if self.Spells[_].type == "Line" then
@@ -755,7 +773,7 @@ end
 
 function SLEvade:MinionCollision()
 	for _,i in pairs(self.obj) do
-		if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EMC:Value() then
+		if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EMC:Value() and EMenu.Spells[_]["mColl".._]:Value() then
 			local vI = nil 
 			local helperVec = nil
 			local cDist = math.huge 			
@@ -774,9 +792,10 @@ function SLEvade:MinionCollision()
 				end								
 			end
 			if cDist < i.spell.range then
-				i.coll = true
-				i.p.endPos = vI 
-				--print("Minion Collision")
+				i.p.endPos = vI  
+					if not i.coll then
+						i.coll = true
+					end
 			end
 		end
 	end
@@ -784,7 +803,7 @@ end
 
 function SLEvade:HeroCollsion()
 	for _,i in pairs(self.obj) do
-		if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EHC:Value() then
+		if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EHC:Value() and EMenu.Spells[_]["hColl".._]:Value() then
 			local vI = nil 
 			local helperVec = nil
 			local cDist = math.huge 			
@@ -803,8 +822,10 @@ function SLEvade:HeroCollsion()
 				end	
 			end
 			if cDist < i.spell.range then
-				i.coll = true
 				i.p.endPos = vI  
+					if not i.coll then
+						i.coll = true
+					end
 				--print("Hero Collision ")
 			end
 		end
@@ -1195,7 +1216,7 @@ function SLEvade:Drawings()
 						end
 					end				
 				end
-			end
+			end	
 		end
 	  end
 	end
@@ -1227,7 +1248,7 @@ function SLEvade:Dodge()
 	  local fT = .75
 				--DashP = Dash - Position, DashS = Dash - Self, DashT = Dash - Targeted, SpellShieldS = SpellShield - Self, SpellShieldT = SpellShield - Targeted, WindWallP = WindWall - Position, 
 		if EMenu.Keys.DD:Value() then return end
-			if i.safe and ((not self.DodgeOnlyDangerous and EMenu.d:Value() <= EMenu.Spells[_]["d".._]:Value()) or (self.DodgeOnlyDangerous and EMenu.Spells[_]["IsD".._]:Value())) and EMenu.Spells[_]["Dodge".._]:Value() then
+			if i.safe and ((not self.DodgeOnlyDangerous and EMenu.d:Value() <= EMenu.Spells[_]["d".._]:Value()) or (self.DodgeOnlyDangerous and EMenu.Spells[_]["IsD".._]:Value())) and EMenu.Spells[_]["Dodge".._]:Value() and GetPercentHP(myHero) <= EMenu.Spells[_]["hp".._]:Value() then
 				if self.asd == true then 
 					DisableHoldPosition(true)
 					DisableAll(true) 
