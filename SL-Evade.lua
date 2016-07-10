@@ -115,7 +115,8 @@ function SLEvade:__init()
 	EMenu:SubMenu("EvadeSpells", "EvadeSpell Settings")
 	EMenu:SubMenu("invulnerable", "Invulnerable Settings")
 	EMenu:SubMenu("Draws", "Drawing Settings")
-	EMenu:SubMenu("Advanced", "Dodge Settings")
+	EMenu:SubMenu("Advanced", "Advanced Settings")
+	EMenu.Advanced:DropDown("dm", "Draw Mode", 1,{"New","Old"})
 	EMenu.Advanced:Slider("ew", "Extra Spell Width", 30, 0, 100, 5)
 	EMenu.Advanced:Boolean("LDR", "Limit detection range", true)
 	EMenu.Advanced:Boolean("EMC", "Enable Minion Collision", true)
@@ -733,6 +734,7 @@ function SLEvade:Drawp()
 				self:MinionCollision()
 				self:HeroCollsion()
 				if i.coll then
+					self.endposs = Vector(i.p.endPos)
 					if self.Spells[_].type == "Line" then
 						self.Spells[_].range = GetDistance(i.p.startPos,i.p.endPos)
 					else
@@ -740,8 +742,8 @@ function SLEvade:Drawp()
 					end
 				else
 					self.Spells[_].range = self.Spelldatasave[_].range
+					self.endposs = Vector(i.p.startPos)+Vector(Vector(i.p.endPos)-i.p.startPos):normalized()*(i.spell.range+i.spell.radius)
 				end
-				self.endposs = Vector(i.p.startPos)+Vector(Vector(i.p.endPos)-i.p.startPos):normalized()*(i.spell.range+i.spell.radius)
 				self.Spells[_].delay = self.Spells[_].delay
 				self.Spells[_].radius = EMenu.Spells[_]["radius".._]:Value()
 				if self.Spells[_].type == "Line" then
@@ -859,7 +861,7 @@ function SLEvade:ascad()
 		if i.jp then
 			return i.jp 
 		else
-			return Vector(self.opos)
+			return self.opos
 		end
 	end
 end
@@ -937,8 +939,8 @@ function SLEvade:Others()
 				i.mpos = nil
 			end
 		end
-		if i.safe and i.spell.type == "Line" and i.p then
-			if GetDistance(self.opos)/i.spell.speed + i.spell.delay < GetDistance(i.safe)/myHero.ms then 
+		if i.safe and i.spell.type == "Line" and i.p and i.o then
+			if GetDistance(i.o)/i.spell.speed + i.spell.delay < GetDistance(i.safe)/myHero.ms then 
 					i.uDodge = true 
 				else
 					i.uDodge = false
@@ -1036,8 +1038,15 @@ function SLEvade:Drawings()
 			local sPos = Vector(self.opos)
  			local ePos = Vector(endPos)
  			local dVec = Vector(ePos - sPos)
- 			local sVec = dVec:normalized():perpendicular()*((i.spell.radius+myHero.boundingRadius)*.5)
-			local sVec2 = dVec:normalized():perpendicular()*((i.spell.radius+myHero.boundingRadius)*.5+EMenu.Advanced.ew:Value())
+			local sVec = nil
+			local sVec = nil
+			if EMenu.Advanced.dm:Value() == 1 then
+				sVec = dVec:normalized():perpendicular()*((i.spell.radius+myHero.boundingRadius)*.5)
+				sVec2 = dVec:normalized():perpendicular()*((i.spell.radius+myHero.boundingRadius))
+			elseif EMenu.Advanced.dm:Value() == 2 then
+				sVec = dVec:normalized():perpendicular()*((i.spell.radius+myHero.boundingRadius)*.5)
+				sVec2 = dVec:normalized():perpendicular()*((i.spell.radius+myHero.boundingRadius)*.5+EMenu.Advanced.ew:Value())
+			end
  			local TopD1 = WorldToScreen(0,sPos+sVec)
  			local TopD2 = WorldToScreen(0,sPos-sVec)
  			local BotD1 = WorldToScreen(0,ePos+sVec)
