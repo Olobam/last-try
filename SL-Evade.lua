@@ -1,5 +1,5 @@
 local SLEAutoUpdate = true
-local Stage, SLEvadeVer = "Alpha", "0.05"
+local Stage, SLEvadeVer = "Alpha", "0.06"
 local SLEPatchnew = nil
 if GetGameVersion():sub(3,4) >= "10" then
 		SLEPatchnew = GetGameVersion():sub(1,4)
@@ -964,13 +964,13 @@ function SLEvade:Others()
 			end
 		end
 		if i.safe and i.spell.type == "Line" and i.p and i.o then
-			if GetDistance(i.o)/i.spell.speed + i.spell.delay < GetDistance(i.safe)/myHero.ms then 
+			if GetDistance(i.o)/i.spell.speed + i.spell.killTime + i.spell.delay < GetDistance(i.safe)/myHero.ms then 
 					i.uDodge = true 
 				else
 					i.uDodge = false
 			end
-		elseif i.safe and i.spell.type == "Circle" then
-			if GetDistance(i.caster)/i.spell.speed + ((i.spell.killTime or 0)+i.spell.delay) < GetDistance(i.safe)/myHero.ms then
+		elseif i.safe and i.spell.type == "Circle" and i.p then
+			if GetDistance(i.p.endPos)/i.spell.speed + i.spell.killTime + i.spell.delay < GetDistance(i.safe)/myHero.ms then
 					i.uDodge = true 
 				else
 					i.uDodge = false
