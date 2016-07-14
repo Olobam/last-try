@@ -1,5 +1,5 @@
 local SLEAutoUpdate = true
-local Stage, SLEvadeVer = "Alpha", "0.07"
+local Stage, SLEvadeVer = "Alpha", "0.08"
 local SLEPatchnew = nil
 if GetGameVersion():sub(3,4) >= "10" then
 		SLEPatchnew = GetGameVersion():sub(1,4)
@@ -59,6 +59,8 @@ local function DisableAll(b)
 			DACR.movementEnabled = false
 			DACR.attacksEnabled = false
 		end
+		BlockF7OrbWalk(true)
+		BlockF7Dodge(true)
 	else
 		if _G.IOW then
 			IOW.movementEnabled = true
@@ -76,6 +78,8 @@ local function DisableAll(b)
 			DACR.movementEnabled = true
 			DACR.attacksEnabled = true
 		end
+		BlockF7OrbWalk(false)
+		BlockF7Dodge(false)
 	end
 end
 
@@ -104,6 +108,7 @@ class 'SLEvade'
 function SLEvade:__init()
 
 	self.supportedtypes = {["Line"]={supported=true},["Circle"]={supported=true},["Cone"]={supported=false},["Rectangle"]={supported=false},["Arc"]={supported=false},["Ring"]={supported=false},["Threeway"]={supported=false},["Sevenway"]={supported=false}}
+	self.globalults = {["EzrealTrueshotBarrage"]={s=true},["EnchantedCrystalArrow"]={s=true},["DravenRCast"]={s=true},["JinxR"]={s=true}}
 	self.obj = {}
 	self.str = {[-1]="P",[0]="Q",[1]="W",[2]="E",[3]="R"}
 	self.Flash = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerflash") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonerflash") and SUMMONER_2 or nil))
@@ -343,8 +348,8 @@ self.Spells = {
 	["RivenIzunaBlade"]={charName="Riven",slot=3,type="Line",delay=0.25,range=1100,radius=125,speed=1600,addHitbox=false,danger=5,dangerous=true,proj="RivenLightsaberMissile",killTime=0,displayname="WindSlash",mcollision=false},
 	["RumbleGrenade"]={charName="Rumble",slot=2,type="Line",delay=0.25,range=850,radius=60,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="RumbleGrenade",killTime=0,displayname="Grenade",mcollision=true},
 	--["RumbleCarpetBombM"]={charName="Rumble",slot=3,type="Line",delay=0.4,range=1700,radius=200,speed=1600,addHitbox=true,danger=4,dangerous=false,proj="RumbleCarpetBombMissile",killTime=0,displayname="Carpet Bomb",mcollision=false}, --doesnt work
-	["RyzeQ"]={charName="Ryze",slot=0,type="Line",delay=0.25,range=900,radius=50,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="RyzeQ",killTime=0,displayname="",mcollision=true},
-	["ryzerq"]={charName="Ryze",slot=0,type="Line",delay=0.25,range=900,radius=50,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="ryzerq",killTime=0,displayname="RyzeQ R",mcollision=true},
+	["RyzeQ"]={charName="Ryze",slot=0,type="Line",delay=0,range=900,radius=50,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="RyzeQ",killTime=0,displayname="",mcollision=true},
+	["ryzerq"]={charName="Ryze",slot=0,type="Line",delay=0,range=900,radius=50,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="ryzerq",killTime=0,displayname="RyzeQ R",mcollision=true},
 	["SejuaniArcticAssault"]={charName="Sejuani",slot=0,type="Line",delay=0,range=900,radius=70,speed=1600,addHitbox=true,danger=3,dangerous=true,proj="nil",killTime=0,displayname="ArcticAssault",mcollision=true},
 	["SejuaniGlacialPrisonStart"]={charName="Sejuani",slot=3,type="Line",delay=0.25,range=1200,radius=110,speed=1600,addHitbox=true,danger=3,dangerous=true,proj="sejuaniglacialprison",killTime=0,displayname="GlacialPrisonStart",mcollision=false},
 	["SionE"]={charName="Sion",slot=2,type="Line",delay=0.25,range=800,radius=80,speed=1800,addHitbox=true,danger=3,dangerous=true,proj="SionEMissile",killTime=0,displayname="",mcollision=false},
@@ -674,6 +679,9 @@ self.EvadeSpells = {
 		[0] = {dl = 3,name = "Deceive",range = 400,spellDelay = 250,spellKey = 0,evadeType = "DashP",castType = "Position",},
 		--[1] = {dl = 3,name = "JackInTheBox",range = 425,spellDelay = 250,spellKey = 1,evadeType = "WindWallP",castType = "Position",},
 	},
+	["Shen"] = { 
+		[2] = {dl = 4,name = "Shadow Dash",spellDelay = 0,spellKey = 2,evadeType = "DashP",castType = "Position"},
+	},
 	["Tristana"] = { 
 		[1] = {dl = 3,name = "RocketJump",range = 900,spellDelay = 500,speed = 1100,spellKey = 1,evadeType = "DashP",castType = "Position",},       
 	},
@@ -721,8 +729,8 @@ end
 function SLEvade:Tickp()
 	heroes[myHero.networkID] = myHero
 	for _,i in pairs(self.obj) do
-		if i.o and EMenu.Advanced.LDR:Value() and i.spell.type == "Line" and GetDistance(myHero,i.o) >= 3000 then return end
-		if i.p and EMenu.Advanced.LDR:Value() and i.spell.type == "Circle" and GetDistance(myHero,i.p.endPos) >= 3000 then return end
+		if i.o and EMenu.Advanced.LDR:Value() and i.spell.type == "Line" and GetDistance(myHero,i.o) >= 3000 and not self.globalults[_] then return end
+		if i.p and EMenu.Advanced.LDR:Value() and i.spell.type == "Circle" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.globalults[_] then return end
 		for kk,k in pairs(GetEnemyHeroes()) do
 			if not i.jp or not i.safe then
 				self.asd = false
@@ -746,8 +754,8 @@ end
 
 function SLEvade:Drawp()
 	for _,i in pairs(self.obj) do
-		if i.o and EMenu.Advanced.LDR:Value() and i.spell.type == "Line" and GetDistance(myHero,i.o) >= 3000 then return end
-		if i.p and EMenu.Advanced.LDR:Value() and i.spell.type == "Circle" and GetDistance(myHero,i.p.endPos) >= 3000 then return end
+		if i.o and EMenu.Advanced.LDR:Value() and i.spell.type == "Line" and GetDistance(myHero,i.o) >= 3000 and not self.globalults[_] then return end
+		if i.p and EMenu.Advanced.LDR:Value() and i.spell.type == "Circle" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.globalults[_] then return end
 		for kk,k in pairs(GetEnemyHeroes()) do
 			if i.o then
 				i.p = {}
@@ -1302,7 +1310,7 @@ function SLEvade:Detection(unit,spellProc)
 				end
 				if l.killName and l.killName == spellProc.name then
 					self.obj[spellProc.name] = nil
-				end
+				end				
 			end
 		end
 	end
