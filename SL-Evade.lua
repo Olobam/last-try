@@ -119,13 +119,14 @@ function SLEvade:__init()
 	self.pathb2 = nil -- wallcheck circ2
 	self.asd = false -- blockinput
 	self.mposs = nil -- self.mousepos circ
-	self.ues = false --self.usingevadespells
-	self.ut = false --self.usingitems
-	self.usp = false --self.usingsummonerspells
+	self.ues = false -- self.usingevadespells
+	self.ut = false -- self.usingitems
+	self.usp = false -- self.usingsummonerspells
 	self.mposs2 = nil -- self.mousepos line
-	self.opos = nil --simulated obj pos
-	self.endposs = nil --endpos
+	self.opos = nil -- simulated obj pos
+	self.endposs = nil -- endpos
 	self.mV = nil -- wp
+	self.YasuoWall = {} --yasuowall
 	--collision creep [local]
 	--vector intersection [local]
 	--helperVector [local]
@@ -150,6 +151,7 @@ function SLEvade:__init()
 	EMenu.Advanced:Boolean("LDR", "Limit detection range", true)
 	EMenu.Advanced:Boolean("EMC", "Enable Minion Collision", true)
 	EMenu.Advanced:Boolean("EHC", "Enable Hero Collision", true)
+	EMenu.Advanced:Boolean("EWC", "Enable Wall Collision", true)
 	EMenu.Draws:Boolean("DSPath", "Draw SkillShot Path", true)
 	EMenu.Draws:Boolean("DSEW", "Draw SkillShot Extra Width", true)
 	EMenu.Draws:Boolean("DSPos", "Draw SkillShot Position", true)
@@ -188,9 +190,11 @@ function SLEvade:__init()
 						if i.mcollision then
 							EMenu.Spells[_]:Boolean("hColl".._, "Hero Collision", true)
 							EMenu.Spells[_]:Boolean("mColl".._, "Minion Collision", true)
+							EMenu.Spells[_]:Boolean("wColl".._, "Wall Collision", true)
 						else
 							EMenu.Spells[_]:Info("nohColl".._, "No Hero Collision available")
 							EMenu.Spells[_]:Info("nomColl".._, "No Minion Collision available")
+							EMenu.Spells[_]:Info("nowColl".._, "No Wall Collision available")
 						end	
 				end
 			end
@@ -281,7 +285,7 @@ self.Spells = {
 	["GragasR"]={charName="Gragas",slot=3,type="Circle",delay=0.25,range=1050,radius=375,speed=1800,addHitbox=true,danger=5,dangerous=true,proj="GragasRBoom",killTime=0.3,displayname="Explosive Cask",mcollision=false},
 	["GravesQLineSpell"]={charName="Graves",slot=0,type="Line",delay=0.2,range=750,radius=40,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="GravesQLineMis",killTime=0,displayname="Buckshot",mcollision=false},
 	["GravesChargeShot"]={charName="Graves",slot=3,type="Line",delay=0.2,range=1000,radius=100,speed=2100,addHitbox=true,danger=5,dangerous=true,proj="GravesChargeShotShot",killTime=0,displayname="Collateral Damage",mcollision=false},
-	["Heimerdingerwm"]={charName="Heimerdinger",slot=1,type="Line",delay=0.25,range=1500,radius=70,speed=1800,addHitbox=true,danger=2,dangerous=false,proj="HeimerdingerWAttack2",killTime=0,displayname="HeimerdingerUltW",mcollision=true},
+	["HeimerdingerW"]={charName="Heimerdinger",slot=1,type="Line",delay=0.25,range=1500,radius=70,speed=1800,addHitbox=true,danger=2,dangerous=false,proj="HeimerdingerWAttack2",killTime=0,displayname="HeimerdingerUltW",mcollision=true},
 	["HeimerdingerE"]={charName="Heimerdinger",slot=2,type="Circle",delay=0.25,range=925,radius=100,speed=1200,addHitbox=true,danger=2,dangerous=false,proj="heimerdingerespell",killTime=0.3,displayname="HeimerdingerE",mcollision=false},
 	["IllaoiQ"]={charName="Illaoi",slot=0,type="Line",delay=0.75,range=750,radius=160,speed=math.huge,addHitbox=true,danger=3,dangerous=true,proj="illaoiemis",killTime=0,displayname="",mcollision=false},
 	["IllaoiE"]={charName="Illaoi",slot=2,type="Line",delay=0.25,range=1100,radius=50,speed=1900,addHitbox=true,danger=3,dangerous=true,proj="illaoiemis",killTime=0,displayname="",mcollision=true},
@@ -312,7 +316,7 @@ self.Spells = {
 	["LeblancSlideM"]={charName="Leblanc",slot=3,type="Circle",delay=0,range=600,radius=220,speed=1450,addHitbox=true,danger=2,dangerous=false,proj="LeblancSlideM",killTime=0.2,displayname="Slide R",mcollision=false},
 	["LeblancSoulShackle"]={charName="Leblanc",slot=2,type="Line",delay=0,range=950,radius=70,speed=1750,addHitbox=true,danger=3,dangerous=true,proj="LeblancSoulShackle",killTime=0,displayname="Ethereal Chains R",mcollision=true},
 	["LeblancSoulShackleM"]={charName="Leblanc",slot=3,type="Line",delay=0,range=950,radius=70,speed=1750,addHitbox=true,danger=3,dangerous=true,proj="LeblancSoulShackleM",killTime=0,displayname="Ethereal Chains",mcollision=true},
-	["BlindMonkQOne"]={charName="LeeSin",slot=0,type="Line",delay=0.25,range=1000,radius=65,speed=1800,addHitbox=true,danger=3,dangerous=true,proj="BlindMonkQOne",killTime=0,displayname="Sonic Wave",mcollision=true},
+	["BlindMonkQOne"]={charName="LeeSin",slot=0,type="Line",delay=0.1,range=1000,radius=65,speed=1800,addHitbox=true,danger=3,dangerous=true,proj="BlindMonkQOne",killTime=0,displayname="Sonic Wave",mcollision=true},
 	["LeonaZenithBlade"]={charName="Leona",slot=2,type="Line",delay=0.25,range=875,radius=70,speed=1750,addHitbox=true,danger=3,dangerous=true,proj="LeonaZenithBladeMissile",killTime=0,displayname="Zenith Blade",mcollision=false},
 	["LeonaSolarFlare"]={charName="Leona",slot=3,type="Circle",delay=1,range=1200,radius=300,speed=math.huge,addHitbox=true,danger=5,dangerous=true,proj="LeonaSolarFlare",killTime=0.5,displayname="Solar Flare",mcollision=false},
 	["LissandraQ"]={charName="Lissandra",slot=0,type="Line",delay=0.25,range=700,radius=75,speed=2200,addHitbox=true,danger=2,dangerous=false,proj="LissandraQMissile",killTime=0,displayname="Ice Shard",mcollision=false},
@@ -397,22 +401,21 @@ self.Spells = {
 	["XerathArcaneBarrage2"]={charName="Xerath",slot=1,type="Circle",delay=0.7,range=1000,radius=200,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="XerathArcaneBarrage2",killTime=0.3,displayname="ArcaneBarrage",mcollision=false},
 	["XerathMageSpear"]={charName="Xerath",slot=2,type="Line",delay=0.2,range=1050,radius=60,speed=1400,addHitbox=true,danger=2,dangerous=true,proj="XerathMageSpearMissile",killTime=0,displayname="MageSpear",mcollision=true},
 	["xerathrmissilewrapper"]={charName="Xerath",slot=3,type="Circle",delay=0.7,range=5600,radius=130,speed=math.huge,addHitbox=true,danger=3,dangerous=true,proj="xerathrmissilewrapper",killTime=0.4,displayname="XerathLocusPulse",mcollision=false},
-	["yasuoq"]={charName="Yasuo",slot=0,type="Line",delay=0.4,range=550,radius=20,speed=math.huge,addHitbox=true,danger=2,dangerous=true,proj="yasuoq",killTime=0,displayname="Steel Tempest 1",mcollision=false},
+	["yasuoqw"]={charName="Yasuo",slot=0,type="Line",delay=0.4,range=550,radius=20,speed=math.huge,addHitbox=true,danger=2,dangerous=true,proj="yasuoq",killTime=0,displayname="Steel Tempest 1",mcollision=false},
 	["yasuoq2"]={charName="Yasuo",slot=0,type="Line",delay=0.4,range=550,radius=20,speed=math.huge,addHitbox=true,danger=2,dangerous=true,proj="yasuoq2",killTime=0,displayname="Steel Tempest 2",mcollision=false},
-	["yasuoq3w"]={charName="Yasuo",slot=0,type="Line",delay=0.5,range=1200,radius=90,speed=1500,addHitbox=true,danger=3,dangerous=true,proj="yasuoq3w",killTime=0,displayname="Steel Tempest 3",mcollision=false},
+	["yasuoq3"]={charName="Yasuo",slot=0,type="Line",delay=0.5,range=1200,radius=90,speed=1500,addHitbox=true,danger=3,dangerous=true,proj="yasuoq3w",killTime=0,displayname="Steel Tempest 3",mcollision=false},
 	["ZacQ"]={charName="Zac",slot=0,type="Line",delay=0.5,range=550,radius=120,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="ZacQ",killTime=0,displayname="",mcollision=false},
 	["ZedQ"]={charName="Zed",slot=0,type="Line",delay=0.25,range=925,radius=50,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="ZedQMissile",killTime=0,displayname="",mcollision=false},
-	["ZiggsQ"]={charName="Ziggs",slot=0,type="Circle",delay=0.25,range=850,radius=140,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="ZiggsQSpell",killTime=0.2,displayname="",mcollision=true},
-	["ZiggsQBounce1"]={charName="Ziggs",slot=0,type="Circle",delay=0.25,range=850,radius=140,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="ZiggsQSpell2",killTime=0.2,displayname="",mcollision=true},
-	["ZiggsQBounce2"]={charName="Ziggs",slot=0,type="Circle",delay=0.25,range=850,radius=160,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="ZiggsQSpell3",killTime=0.2,displayname="",mcollision=true},
-	["ZiggsW"]={charName="Ziggs",slot=1,type="Circle",delay=0.25,range=1000,radius=275,speed=1750,addHitbox=true,danger=2,dangerous=false,proj="ZiggsW",killTime=2.25,displayname="",mcollision=false,killName="ZiggsWToggle"},
-	["ZiggsE"]={charName="Ziggs",slot=2,type="Circle",delay=0.5,range=900,radius=235,speed=1750,addHitbox=true,danger=2,dangerous=false,proj="ZiggsE",killTime=2.5,displayname="",mcollision=false},
+	["ZiggsQ"]={charName="Ziggs",slot=0,type="Line",delay=0.5,range=1100,radius=100,speed=1750,addHitbox=true,danger=2,dangerous=false,proj="ZiggsQSpell",killTime=0.2,displayname="",mcollision=true},
+	["ZiggsW"]={charName="Ziggs",slot=1,type="Circle",delay=0.25,range=1000,radius=275,speed=1750,addHitbox=true,danger=2,dangerous=false,proj="ZiggsW",killTime=3,displayname="",mcollision=false,killName="ZiggsWToggle"},
+	["ZiggsE"]={charName="Ziggs",slot=2,type="Circle",delay=0.5,range=900,radius=235,speed=1750,addHitbox=true,danger=2,dangerous=false,proj="ZiggsE",killTime=3.25,displayname="",mcollision=false},
 	["ZiggsR"]={charName="Ziggs",slot=3,type="Circle",delay=0,range=5300,radius=500,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="ZiggsR",killTime=1.25,displayname="",mcollision=false},
 	["ZileanQ"]={charName="Zilean",slot=0,type="Circle",delay=0.3,range=900,radius=210,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="ZileanQMissile",killTime=1.5,displayname="",mcollision=false},
 	["ZyraQ"]={charName="Zyra",slot=0,type="Rectangle",delay=0.25,range=800,radius=140,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="ZyraQ",killTime=0.3,displayname="",mcollision=false},
 	["ZyraE"]={charName="Zyra",slot=2,type="Line",delay=0.25,range=1100,radius=70,speed=1300,addHitbox=true,danger=3,dangerous=true,proj="ZyraE",killTime=0,displayname="Grasping Roots",mcollision=false},
-	--["ZyraRSplash"]={charName="Zyra",slot=3,type="Circle",delay=0.7,range=700,radius=550,speed=math.huge,addHitbox=true,danger=4,dangerous=false,proj="ZyraRSplash",killTime=1,displayname="Splash",mcollision=false},
+	["ZyraRSplash"]={charName="Zyra",slot=3,type="Circle",delay=0.7,range=700,radius=550,speed=math.huge,addHitbox=true,danger=4,dangerous=false,proj="ZyraRSplash",killTime=1,displayname="Splash",mcollision=false},
 }
+
 
 self.Spelldatasave = {
 	["AatroxQ"]={charName="Aatrox",slot=0,type="Circle",delay=0.6,range=650,radius=250,speed=2000,addHitbox=true,danger=3,dangerous=true,proj="nil",killTime=0.225,displayname="Dark Flight",mcollision=false},
@@ -477,7 +480,7 @@ self.Spelldatasave = {
 	["GragasR"]={charName="Gragas",slot=3,type="Circle",delay=0.25,range=1050,radius=375,speed=1800,addHitbox=true,danger=5,dangerous=true,proj="GragasRBoom",killTime=0.3,displayname="Explosive Cask",mcollision=false},
 	["GravesQLineSpell"]={charName="Graves",slot=0,type="Line",delay=0.2,range=750,radius=40,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="GravesQLineMis",killTime=0,displayname="Buckshot",mcollision=false},
 	["GravesChargeShot"]={charName="Graves",slot=3,type="Line",delay=0.2,range=1000,radius=100,speed=2100,addHitbox=true,danger=5,dangerous=true,proj="GravesChargeShotShot",killTime=0,displayname="Collateral Damage",mcollision=false},
-	["Heimerdingerwm"]={charName="Heimerdinger",slot=1,type="Line",delay=0.25,range=1500,radius=70,speed=1800,addHitbox=true,danger=2,dangerous=false,proj="HeimerdingerWAttack2",killTime=0,displayname="HeimerdingerUltW",mcollision=true},
+	["HeimerdingerW"]={charName="Heimerdinger",slot=1,type="Line",delay=0.25,range=1500,radius=70,speed=1800,addHitbox=true,danger=2,dangerous=false,proj="HeimerdingerWAttack2",killTime=0,displayname="HeimerdingerUltW",mcollision=true},
 	["HeimerdingerE"]={charName="Heimerdinger",slot=2,type="Circle",delay=0.25,range=925,radius=100,speed=1200,addHitbox=true,danger=2,dangerous=false,proj="heimerdingerespell",killTime=0.3,displayname="HeimerdingerE",mcollision=false},
 	["IllaoiQ"]={charName="Illaoi",slot=0,type="Line",delay=0.75,range=750,radius=160,speed=math.huge,addHitbox=true,danger=3,dangerous=true,proj="illaoiemis",killTime=0,displayname="",mcollision=false},
 	["IllaoiE"]={charName="Illaoi",slot=2,type="Line",delay=0.25,range=1100,radius=50,speed=1900,addHitbox=true,danger=3,dangerous=true,proj="illaoiemis",killTime=0,displayname="",mcollision=true},
@@ -508,7 +511,7 @@ self.Spelldatasave = {
 	["LeblancSlideM"]={charName="Leblanc",slot=3,type="Circle",delay=0,range=600,radius=220,speed=1450,addHitbox=true,danger=2,dangerous=false,proj="LeblancSlideM",killTime=0.2,displayname="Slide R",mcollision=false},
 	["LeblancSoulShackle"]={charName="Leblanc",slot=2,type="Line",delay=0,range=950,radius=70,speed=1750,addHitbox=true,danger=3,dangerous=true,proj="LeblancSoulShackle",killTime=0,displayname="Ethereal Chains R",mcollision=true},
 	["LeblancSoulShackleM"]={charName="Leblanc",slot=3,type="Line",delay=0,range=950,radius=70,speed=1750,addHitbox=true,danger=3,dangerous=true,proj="LeblancSoulShackleM",killTime=0,displayname="Ethereal Chains",mcollision=true},
-	["BlindMonkQOne"]={charName="LeeSin",slot=0,type="Line",delay=0.25,range=1000,radius=65,speed=1800,addHitbox=true,danger=3,dangerous=true,proj="BlindMonkQOne",killTime=0,displayname="Sonic Wave",mcollision=true},
+	["BlindMonkQOne"]={charName="LeeSin",slot=0,type="Line",delay=0.1,range=1000,radius=65,speed=1800,addHitbox=true,danger=3,dangerous=true,proj="BlindMonkQOne",killTime=0,displayname="Sonic Wave",mcollision=true},
 	["LeonaZenithBlade"]={charName="Leona",slot=2,type="Line",delay=0.25,range=875,radius=70,speed=1750,addHitbox=true,danger=3,dangerous=true,proj="LeonaZenithBladeMissile",killTime=0,displayname="Zenith Blade",mcollision=false},
 	["LeonaSolarFlare"]={charName="Leona",slot=3,type="Circle",delay=1,range=1200,radius=300,speed=math.huge,addHitbox=true,danger=5,dangerous=true,proj="LeonaSolarFlare",killTime=0.5,displayname="Solar Flare",mcollision=false},
 	["LissandraQ"]={charName="Lissandra",slot=0,type="Line",delay=0.25,range=700,radius=75,speed=2200,addHitbox=true,danger=2,dangerous=false,proj="LissandraQMissile",killTime=0,displayname="Ice Shard",mcollision=false},
@@ -526,7 +529,7 @@ self.Spelldatasave = {
 	["MalzaharQ"]={charName="Malzahar",slot=0,type="Line",delay=0.75,range=900,radius=85,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="MalzaharQ",killTime=0,displayname="",mcollision=false},
 	["DarkBindingMissile"]={charName="Morgana",slot=0,type="Line",delay=0.2,range=1300,radius=80,speed=1200,addHitbox=true,danger=3,dangerous=true,proj="DarkBindingMissile",killTime=0,displayname="Dark Binding",mcollision=true},
 	["NamiQ"]={charName="Nami",slot=0,type="Circle",delay=0.95,range=1625,radius=150,speed=math.huge,addHitbox=true,danger=3,dangerous=true,proj="namiqmissile",killTime=0.35,displayname="",mcollision=false},
-	["NamiR"]={charName="Nami",slot=3,type="Line",delay=0.5,range=2750,radius=260,speed=850,addHitbox=true,danger=2,dangerous=false,proj="NamiRMissile",killTime=0,displayname="",mcollision=false},
+	["NamiR"]={charName="Nami",slot=3,type="Line",delay=1,range=2750,radius=260,speed=850,addHitbox=true,danger=2,dangerous=false,proj="NamiRMissile",killTime=0,displayname="",mcollision=false},
 	["NautilusAnchorDrag"]={charName="Nautilus",slot=0,type="Line",delay=0.25,range=1080,radius=90,speed=2000,addHitbox=true,danger=3,dangerous=true,proj="NautilusAnchorDragMissile",killTime=0,displayname="Anchor Drag",mcollision=true},
 	["NocturneDuskbringer"]={charName="Nocturne",slot=0,type="Line",delay=0.25,range=1125,radius=60,speed=1400,addHitbox=true,danger=2,dangerous=false,proj="NocturneDuskbringer",killTime=0,displayname="Duskbringer",mcollision=false},
 	["JavelinToss"]={charName="Nidalee",slot=0,type="Line",delay=0.25,range=1500,radius=40,speed=1300,addHitbox=true,danger=3,dangerous=true,proj="JavelinToss",killTime=0,displayname="JavelinToss",mcollision=true},
@@ -544,8 +547,8 @@ self.Spelldatasave = {
 	["RivenIzunaBlade"]={charName="Riven",slot=3,type="Line",delay=0.25,range=1100,radius=125,speed=1600,addHitbox=false,danger=5,dangerous=true,proj="RivenLightsaberMissile",killTime=0,displayname="WindSlash",mcollision=false},
 	["RumbleGrenade"]={charName="Rumble",slot=2,type="Line",delay=0.25,range=850,radius=60,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="RumbleGrenade",killTime=0,displayname="Grenade",mcollision=true},
 	--["RumbleCarpetBombM"]={charName="Rumble",slot=3,type="Line",delay=0.4,range=1700,radius=200,speed=1600,addHitbox=true,danger=4,dangerous=false,proj="RumbleCarpetBombMissile",killTime=0,displayname="Carpet Bomb",mcollision=false}, --doesnt work
-	["RyzeQ"]={charName="Ryze",slot=0,type="Line",delay=0.25,range=900,radius=50,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="RyzeQ",killTime=0,displayname="",mcollision=true},
-	["ryzerq"]={charName="Ryze",slot=0,type="Line",delay=0.25,range=900,radius=50,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="ryzerq",killTime=0,displayname="RyzeQ R",mcollision=true},
+	["RyzeQ"]={charName="Ryze",slot=0,type="Line",delay=0,range=900,radius=50,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="RyzeQ",killTime=0,displayname="",mcollision=true},
+	["ryzerq"]={charName="Ryze",slot=0,type="Line",delay=0,range=900,radius=50,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="ryzerq",killTime=0,displayname="RyzeQ R",mcollision=true},
 	["SejuaniArcticAssault"]={charName="Sejuani",slot=0,type="Line",delay=0,range=900,radius=70,speed=1600,addHitbox=true,danger=3,dangerous=true,proj="nil",killTime=0,displayname="ArcticAssault",mcollision=true},
 	["SejuaniGlacialPrisonStart"]={charName="Sejuani",slot=3,type="Line",delay=0.25,range=1200,radius=110,speed=1600,addHitbox=true,danger=3,dangerous=true,proj="sejuaniglacialprison",killTime=0,displayname="GlacialPrisonStart",mcollision=false},
 	["SionE"]={charName="Sion",slot=2,type="Line",delay=0.25,range=800,radius=80,speed=1800,addHitbox=true,danger=3,dangerous=true,proj="SionEMissile",killTime=0,displayname="",mcollision=false},
@@ -593,21 +596,19 @@ self.Spelldatasave = {
 	["XerathArcaneBarrage2"]={charName="Xerath",slot=1,type="Circle",delay=0.7,range=1000,radius=200,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="XerathArcaneBarrage2",killTime=0.3,displayname="ArcaneBarrage",mcollision=false},
 	["XerathMageSpear"]={charName="Xerath",slot=2,type="Line",delay=0.2,range=1050,radius=60,speed=1400,addHitbox=true,danger=2,dangerous=true,proj="XerathMageSpearMissile",killTime=0,displayname="MageSpear",mcollision=true},
 	["xerathrmissilewrapper"]={charName="Xerath",slot=3,type="Circle",delay=0.7,range=5600,radius=130,speed=math.huge,addHitbox=true,danger=3,dangerous=true,proj="xerathrmissilewrapper",killTime=0.4,displayname="XerathLocusPulse",mcollision=false},
-	["yasuoq"]={charName="Yasuo",slot=0,type="Line",delay=0.4,range=550,radius=20,speed=math.huge,addHitbox=true,danger=2,dangerous=true,proj="yasuoq",killTime=0,displayname="Steel Tempest 1",mcollision=false},
+	["yasuoqw"]={charName="Yasuo",slot=0,type="Line",delay=0.4,range=550,radius=20,speed=math.huge,addHitbox=true,danger=2,dangerous=true,proj="yasuoq",killTime=0,displayname="Steel Tempest 1",mcollision=false},
 	["yasuoq2"]={charName="Yasuo",slot=0,type="Line",delay=0.4,range=550,radius=20,speed=math.huge,addHitbox=true,danger=2,dangerous=true,proj="yasuoq2",killTime=0,displayname="Steel Tempest 2",mcollision=false},
-	["yasuoq3w"]={charName="Yasuo",slot=0,type="Line",delay=0.5,range=1200,radius=90,speed=1500,addHitbox=true,danger=3,dangerous=true,proj="yasuoq3w",killTime=0,displayname="Steel Tempest 3",mcollision=false},
+	["yasuoq3"]={charName="Yasuo",slot=0,type="Line",delay=0.5,range=1200,radius=90,speed=1500,addHitbox=true,danger=3,dangerous=true,proj="yasuoq3w",killTime=0,displayname="Steel Tempest 3",mcollision=false},
 	["ZacQ"]={charName="Zac",slot=0,type="Line",delay=0.5,range=550,radius=120,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="ZacQ",killTime=0,displayname="",mcollision=false},
 	["ZedQ"]={charName="Zed",slot=0,type="Line",delay=0.25,range=925,radius=50,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="ZedQMissile",killTime=0,displayname="",mcollision=false},
-	["ZiggsQ"]={charName="Ziggs",slot=0,type="Circle",delay=0.25,range=850,radius=140,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="ZiggsQSpell",killTime=0.2,displayname="",mcollision=true},
-	["ZiggsQBounce1"]={charName="Ziggs",slot=0,type="Circle",delay=0.25,range=850,radius=140,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="ZiggsQSpell2",killTime=0.2,displayname="",mcollision=true},
-	["ZiggsQBounce2"]={charName="Ziggs",slot=0,type="Circle",delay=0.25,range=850,radius=160,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="ZiggsQSpell3",killTime=0.2,displayname="",mcollision=true},
-	["ZiggsW"]={charName="Ziggs",slot=1,type="Circle",delay=0.25,range=1000,radius=275,speed=1750,addHitbox=true,danger=2,dangerous=false,proj="ZiggsW",killTime=2.25,displayname="",mcollision=false,killName="ZiggsWToggle"},
-	["ZiggsE"]={charName="Ziggs",slot=2,type="Circle",delay=0.5,range=900,radius=235,speed=1750,addHitbox=true,danger=2,dangerous=false,proj="ZiggsE",killTime=2.5,displayname="",mcollision=false},
+	["ZiggsQ"]={charName="Ziggs",slot=0,type="Line",delay=0.5,range=1100,radius=100,speed=1750,addHitbox=true,danger=2,dangerous=false,proj="ZiggsQSpell",killTime=0.2,displayname="",mcollision=true},
+	["ZiggsW"]={charName="Ziggs",slot=1,type="Circle",delay=0.25,range=1000,radius=275,speed=1750,addHitbox=true,danger=2,dangerous=false,proj="ZiggsW",killTime=3,displayname="",mcollision=false,killName="ZiggsWToggle"},
+	["ZiggsE"]={charName="Ziggs",slot=2,type="Circle",delay=0.5,range=900,radius=235,speed=1750,addHitbox=true,danger=2,dangerous=false,proj="ZiggsE",killTime=3.25,displayname="",mcollision=false},
 	["ZiggsR"]={charName="Ziggs",slot=3,type="Circle",delay=0,range=5300,radius=500,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="ZiggsR",killTime=1.25,displayname="",mcollision=false},
 	["ZileanQ"]={charName="Zilean",slot=0,type="Circle",delay=0.3,range=900,radius=210,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="ZileanQMissile",killTime=1.5,displayname="",mcollision=false},
 	["ZyraQ"]={charName="Zyra",slot=0,type="Rectangle",delay=0.25,range=800,radius=140,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="ZyraQ",killTime=0.3,displayname="",mcollision=false},
 	["ZyraE"]={charName="Zyra",slot=2,type="Line",delay=0.25,range=1100,radius=70,speed=1300,addHitbox=true,danger=3,dangerous=true,proj="ZyraE",killTime=0,displayname="Grasping Roots",mcollision=false},
-	--["ZyraRSplash"]={charName="Zyra",slot=3,type="Circle",delay=0.7,range=700,radius=550,speed=math.huge,addHitbox=true,danger=4,dangerous=false,proj="ZyraRSplash",killTime=1,displayname="Splash",mcollision=false},
+	["ZyraRSplash"]={charName="Zyra",slot=3,type="Circle",delay=0.7,range=700,radius=550,speed=math.huge,addHitbox=true,danger=4,dangerous=false,proj="ZyraRSplash",killTime=1,displayname="Splash",mcollision=false},
 }
 
 self.EvadeSpells = {
@@ -637,6 +638,9 @@ self.EvadeSpells = {
 	["Graves"] = { 
 		[2] = {dl = 2,name = "QuickDraw",range = 425,spellDelay = 50,speed = 1250,spellKey = 2,evadeType = "DashP",castType = "Position",},
 	},	
+	["Heimerdinger"] = {
+		[0] = {dl = 3,name = "Turret",range = 425,spellDelay = 50,speed = 1250,spellKey = 0,evadeType = "WindWallP",castType = "Position",}
+	},
 	["Kassadin"] = { 
 		[3] = {dl = 1,name = "RiftWalk",speed = math.huge,range = 450,spellDelay = 250,spellKey = 3,evadeType = "DashP",castType = "Position",},
 	},	
@@ -677,7 +681,7 @@ self.EvadeSpells = {
 	},	
 	["Shaco"] = {
 		[0] = {dl = 3,name = "Deceive",range = 400,spellDelay = 250,spellKey = 0,evadeType = "DashP",castType = "Position",},
-		--[1] = {dl = 3,name = "JackInTheBox",range = 425,spellDelay = 250,spellKey = 1,evadeType = "WindWallP",castType = "Position",},
+		[1] = {dl = 3,name = "JackInTheBox",range = 425,spellDelay = 250,spellKey = 1,evadeType = "WindWallP",castType = "Position",},
 	},
 	["Shen"] = { 
 		[2] = {dl = 4,name = "Shadow Dash",spellDelay = 0,spellKey = 2,evadeType = "DashP",castType = "Position"},
@@ -691,10 +695,10 @@ self.EvadeSpells = {
 	["Vayne"] = { 
 		[0] = {dl = 2,name = "Tumble",range = 300,speed = 900,spellDelay = 50,spellKey = 0,evadeType = "DashP",castType = "Position",},
 	},	
-	--["Yasuo"] = {
-		--[1] = {dl = 3,name = "WindWall",range = 400,spellDelay = 250,spellKey = 1,evadeType = "WindWallP",castType = "Position",},
+	["Yasuo"] = {
+		[1] = {dl = 3,name = "WindWall",range = 400,spellDelay = 250,spellKey = 1,evadeType = "WindWallP",castType = "Position",},
 		--[2] = {dl = 2,name = "SweepingBlade",range = 475,speed = 1000,spellDelay = 50,spellKey = 2,evadeType = "DashT",castType = "Target",},
-	-- },
+	},
 	["Vladimir"] = { 
 		[1] = {dl = 4,name = "Sanguine Pool",range = 350,spellDelay = 50,spellKey = 1,evadeType = "SpellShieldS",castType = "Self",	},
 	},	
@@ -765,6 +769,7 @@ function SLEvade:Drawp()
 			if i.p then
 				self:MinionCollision()
 				self:HeroCollsion()
+				self:WallCollision()
 				if i.coll then
 					self.endposs = Vector(i.p.endPos)
 					if self.Spells[_].type == "Line" then
@@ -830,6 +835,7 @@ function SLEvade:MinionCollision()
 					if not i.coll then
 						i.coll = true
 					end
+				--print("Minion Collision ")
 			end
 		end
 	end
@@ -861,6 +867,39 @@ function SLEvade:HeroCollsion()
 						i.coll = true
 					end
 				--print("Hero Collision ")
+			end
+		end
+	end
+end
+
+function SLEvade:WallCollision()
+	for _,i in pairs(self.obj) do
+		if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EWC:Value() and EMenu.Spells[_]["wColl".._]:Value() then
+			local vI = nil 
+			local helperVec = nil
+			local cDist = math.huge 			
+			local cWall = {}
+			endpos = Vector(i.p.endPos)
+			start = Vector(i.p.startPos)
+			if self.YasuoWall then
+				for m,p in pairs(self.YasuoWall) do
+					if p.obj.spellOwner.team == myHero.team and p.obj and GetDistance(p.obj.pos,start) < i.spell.range then
+						helperVec = Vector(endpos - start):perpendicular()
+						vI = Vector(VectorIntersection(endpos,start,p.obj.pos,helperVec).x,myHero.pos.y,VectorIntersection(endpos,start,p.obj.pos,helperVec).y)
+						if (i.spell.radius and GetDistance(vI,p.obj.pos) < i.spell.radius) or (i.spell.width and GetDistance(vI,p.obj.pos) < i.spell.width) then
+							if GetDistance(vI,start) < cDist then
+								cDist = GetDistance(start,vI)
+							end
+						end
+					end								
+				end
+				if cDist < i.spell.range then
+					i.p.endPos = vI  
+						if not i.coll then
+							i.coll = true
+						end
+					--print("Wall Collision ")
+				end
 			end
 		end
 	end
@@ -1217,11 +1256,12 @@ function SLEvade:Dodge()
 								end	
 								-- if self.EvadeSpells[GetObjectName(myHero)][op].evadeType == "DashT" then--logic needed
 								-- end
-								-- if self.EvadeSpells[GetObjectName(myHero)][op].evadeType == "WindWallP" and CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].spellKey) == READY then --logic needed
-										-- self.ues = true
-									-- else
-										-- self.ues = false
-								-- end		
+								if self.EvadeSpells[GetObjectName(myHero)][op].evadeType == "WindWallP" and CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].spellKey) == READY then
+										self.ues = true
+										CastSkillShot(self.EvadeSpells[GetObjectName(myHero)][op].spellKey,myHero.pos + (i.p.startPos - myHero.pos)*50)
+									else
+										self.ues = false
+								end		
 								if self.EvadeSpells[GetObjectName(myHero)][op].evadeType == "SpellShieldS" and CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].spellKey) == 0 then
 										self.ues = true
 										DelayAction(function()
@@ -1291,6 +1331,10 @@ function SLEvade:CreateObject(obj)
 			end
 		end
 	end
+	if (obj.spellName == "YasuoWMovingWallR" or obj.spellName == "YasuoWMovingWallL" or obj.spellName == "YasuoWMovingWallMisVis") and obj and obj.isSpell and obj.spellOwner.isHero and obj.spellOwner.team == myHero.team then
+		if not self.YasuoWall[obj.spellName] then self.YasuoWall[obj.spellName] = {} end
+		self.YasuoWall[obj.spellName].obj = obj
+	end
 end
 
 function SLEvade:Detection(unit,spellProc)
@@ -1317,11 +1361,12 @@ function SLEvade:Detection(unit,spellProc)
 end
 
 function SLEvade:DeleteObject(obj)
-	DelayAction(function()
-		if obj and obj.isSpell and self.obj[obj.spellName] then
+	if obj and obj.isSpell and self.obj[obj.spellName] then
 			self.obj[obj.spellName] = nil
-		end	
-	end, .001)	
+	end	
+	if (obj.spellName == "YasuoWMovingWallR" or obj.spellName == "YasuoWMovingWallL" or obj.spellName == "YasuoWMovingWallMisVis") and obj and obj.isSpell and obj.spellOwner.isHero and obj.spellOwner.team == MINION_ALLY then
+		self.YasuoWall[obj.spellName] = nil
+	end
 end
 
 class 'SLEAutoUpdater'
