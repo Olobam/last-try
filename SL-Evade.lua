@@ -1,5 +1,5 @@
 local SLEAutoUpdate = true
-local Stage, SLEvadeVer = "Alpha", "0.10"
+local Stage, SLEvadeVer = "Alpha", "0.11"
 local SLEPatchnew = nil
 if GetGameVersion():sub(3,4) >= "10" then
 		SLEPatchnew = GetGameVersion():sub(1,4)
@@ -944,9 +944,6 @@ function SLEvade:CleanObj()
 end
 
 function SLEvade:Others()
-	-- local mpads2 = Vector(myHero.pos) - Vector(Vector(myHero.pos)-GetMousePos()):normalized() * 170
-	-- DrawCircle(mpads2,50,1,20,GoS.Green)
-	-- print(mpads2)
 	for item,c in pairs(self.SI) do
 		if GetItemSlot(myHero,item)>0 then
 			if not c.State and not EMenu.invulnerable[c.Name] then
@@ -982,7 +979,7 @@ function SLEvade:Others()
 		if i.spell.type == "Circle" then 
 			if (GetDistance(self:Position(),i.p.endPos) < i.spell.radius + myHero.boundingRadius + 10) or (GetDistance(myHero,i.p.endPos) < i.spell.radius + myHero.boundingRadius + 10) and not i.safe then
 				if not i.mpos and not self.mposs then
-					i.mpos = Vector(myHero.pos) - Vector(Vector(myHero.pos)-GetMousePos()):normalized() * ((i.spell.radius+myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
+					i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * ((i.spell.radius+myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
 					self.mposs = GetMousePos()
 				end
 			else
@@ -993,7 +990,7 @@ function SLEvade:Others()
 			if i.jp and (GetDistance(self:Position(),i.jp) < i.spell.radius + myHero.boundingRadius + 10) or (GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius + 10) and not i.safe then
 				--if GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular(),jp) >= GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular2(),jp) then
 					if not i.mpos and not self.mposs2 then
-						i.mpos = Vector(myHero.pos) - Vector(Vector(myHero.pos)-GetMousePos()):normalized() * ((i.spell.radius+myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
+						i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * ((i.spell.radius+myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
 						self.mposs2 = GetMousePos()
 					end	
 				--end
@@ -1032,10 +1029,10 @@ function SLEvade:Pathfinding()
 					--if GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular(),jp) >= GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular2(),jp) then
 						self.asd = true
 						self.patha = jp + Vector(i.p.startPos - i.p.endPos):perpendicular():normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
-						self.patha2 = Vector(i.mpos) + Vector(Vector(i.mpos) - i.p.endPos):perpendicular():normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
+						self.patha2 = Vector(i.mpos) + Vector(i.p.startPos - i.p.endPos):perpendicular():normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
 						if self.mposs2 and GetDistance(self.mposs2,self.patha) > GetDistance(self.mposs2,self.patha2) then
 							if not MapPosition:inWall(self.patha2) then
-									i.safe = Vector(i.mpos) + Vector(Vector(i.mpos) - i.p.endPos):perpendicular():normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
+									i.safe = Vector(i.mpos) + Vector(i.p.startPos - i.p.endPos):perpendicular():normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
 								else 
 									i.safe = jp + Vector(jp - self.patha2) + Vector(i.p.startPos - i.p.endPos):perpendicular2():normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
 							end
