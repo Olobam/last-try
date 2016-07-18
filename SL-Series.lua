@@ -1,4 +1,4 @@
-local SLSeries = 1.19
+local SLSeries = 1.2
 local SLPatchnew = nil
 if GetGameVersion():sub(3,4) >= "10" then
 		SLPatchnew = GetGameVersion():sub(1,4)
@@ -2413,14 +2413,14 @@ function Vladimir:__init()
 	
 	Vladimir.Spell = {
 	[0] = { range = 600 },
-	[1] = { range = 350 },
-	[2] = { range = 610 },
+	[1] = { range = 150 },
+	[2] = { range = 600 },
 	[3] = { delay = 0.25, speed = math.huge, range = 700, radius = 175},
 	}
 	
 	Dmg = {
-	[0] = function(unit) return CalcDamage(myHero, unit, 0, 35 * GetCastLevel(myHero,0) + 55 + GetBonusAP(myHero) * .6) end,
-	[2] = function(unit) return CalcDamage(myHero, unit, 0, 25 * GetCastLevel(myHero,2) + 35 + GetBonusAP(myHero) * 0.45)  end,
+	[0] = function(unit) return CalcDamage(myHero, unit, 0, 15 * GetCastLevel(myHero,0) + 60 + GetBonusAP(myHero) * .55)*(GetCurrentMana(myHero)<2 and 1 or 2) end,
+	[2] = function(unit) return CalcDamage(myHero, unit, 0, 15 * GetCastLevel(myHero,2) + 15 + GetBonusAP(myHero) * 0.35 + GetMaxHP(myHero)*.025) end,
 	[3] = function(unit) return CalcDamage(myHero, unit, 0, 100 * GetCastLevel(myHero,3) + 50 + GetBonusAP(myHero) * .7) end,
 	}
 	
@@ -2429,6 +2429,7 @@ function Vladimir:__init()
 	BM.C:Boolean("E", "Use E", true)
 	BM.C:Boolean("R", "Use R", true)
 	BM.C:Boolean("REA", "Use if R will hit > x enemies", 2, 1, 5, 1)
+	BM.C:Boolean("DP", "Draw exact Passive", true)
 	
 	BM:Menu("H", "Harass")
 	BM.H:Boolean("Q", "Use Q", true)
@@ -2451,13 +2452,13 @@ function Vladimir:__init()
 	BM.p:Slider("hR", "HitChance R", 40, 0, 100, 1)
 	
 	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("Draw", function() self:Draw() end)
 	Callback.Add("UpdateBuff", function(unit,buff) self:UpdateBuff(unit,buff) end)
 	Callback.Add("RemoveBuff", function(unit,buff) self:RemoveBuff(unit,buff) end)
 	HitMe()
 	
-	self.EStacks = 0
-	self.ETime = 0
-
+	self.ECharge = nil
+	self.AA = AttackUnit
 end
 
 function Vladimir:HitMe(k,pos,dt,ty)
@@ -2466,16 +2467,24 @@ function Vladimir:HitMe(k,pos,dt,ty)
  end,dt)
 end
 
+function Vladimir:Draw()
+	if not myHero.dead and BM.C.DP:Value() then 
+		DrawText(math.round(GetCurrentMana(myHero),2),20,myHero.pos2D.x,myHero.pos2D.y,GoS.White)
+	end
+end
+
 function Vladimir:Tick()
 	if myHero.dead then return end
-	
-		
+
 	GetReady()
 	
 	self:KS()
 	
 	local target = GetCurrentTarget()
 
+	if self.ECharge and GetGameTimer() - self.ECharge > 1 then
+		CastSkillShot2(2,myHero.pos)
+	end
 
     if Mode == "Combo" then
 		self:Combo(target)
@@ -2493,8 +2502,8 @@ function Vladimir:Combo(target)
 	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() then
 		CastTargetSpell(target,0)
 	end
-	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() then
-		CastSpell(2)
+	if SReady[2] or self.ECharge and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() then
+		CastSkillShot(2,myHero.pos)
 	end
 	if SReady[3] and ValidTarget(target, self.Spell[3].range) and BM.C.R:Value() and EnemiesAround(GetOrigin(target), self.Spell[3].radius) >= BM.C.REA:Value() then
 		local Pred = GetCircularAOEPrediction(target, self.Spell[3])
@@ -2508,8 +2517,8 @@ function Vladimir:Harass(target)
 	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.H.Q:Value() then
 		CastTargetSpell(target,0)
 	end
-	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.H.E:Value() then
-		CastSpell(2)
+	if (SReady[2] or (self.ECharge and GetGameTimer() - self.ECharge < 1)) and ValidTarget(target, self.Spell[2].range) and BM.H.E:Value() then
+		CastSkillShot(2,myHero.pos)
 	end
 end
 
@@ -2519,8 +2528,8 @@ function Vladimir:LaneClear()
 			if SReady[0] and ValidTarget(minion, self.Spell[0].range) and BM.LC.Q:Value() then
 				CastTargetSpell(minion,0)
 			end
-			if SReady[2] and ValidTarget(minion, self.Spell[2].range) and BM.LC.E:Value() then
-				CastSpell(2)
+			if (SReady[2] or (self.ECharge and GetGameTimer() - self.ECharge < 1)) and ValidTarget(minion, self.Spell[2].range) and BM.LC.E:Value() then
+				CastSkillShot(2,myHero.pos)
 			end
 		end
 	end
@@ -2532,8 +2541,8 @@ function Vladimir:JungleClear()
 			if SReady[0] and ValidTarget(mob, self.Spell[0].range) and BM.JC.Q:Value() then
 				CastTargetSpell(mob,0)
 			end
-			if SReady[2] and ValidTarget(mob, self.Spell[2].range) and BM.JC.E:Value() then
-				CastSpell(2)
+			if (SReady[2] or (self.ECharge and GetGameTimer() - self.ECharge < 1)) and ValidTarget(mob, self.Spell[2].range) and BM.JC.E:Value() then
+				CastSkillShot(2,myHero.pos)
 			end
 		end
 	end
@@ -2544,8 +2553,8 @@ function Vladimir:KS()
 		if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.KS.Q:Value() and GetAPHP(target) < Dmg[0](target) then
 			CastTargetSpell(target,0)
 		end
-		if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.KS.E:Value() and GetAPHP(target) < Dmg[2](target) then
-			CastSpell(2)
+		if (SReady[2] or (self.ECharge and GetGameTimer() - self.ECharge < 1)) and ValidTarget(target, self.Spell[2].range) and BM.KS.E:Value() and GetAPHP(target) < Dmg[2](target) then
+			CastSkillShot(2,myHero.pos)
 		end
 		if SReady[3] and ValidTarget(target, self.Spell[3].range) and BM.KS.R:Value() and GetAPHP(target) < Dmg[3](target) then
 			local Pred = GetCircularAOEPrediction(target, self.Spell[3])
@@ -2557,15 +2566,20 @@ function Vladimir:KS()
 end
 
 function Vladimir:UpdateBuff(unit,buff)
-	if unit == myHero and buff.Name == "vladimirtidesofbloodcost" then
-		self.EStacks = buff.Count
-		self.ETime = buff.ExpireTime
+	if unit.isMe and buff.Name == "VladimirE" then 
+		self.ECharge = GetGameTimer()
+		AttackUnit = function () end
+	elseif unit.isMe and buff.Name == "VladimirSanguinePool" then
+		AttackUnit = function () end
 	end
 end
 
 function Vladimir:RemoveBuff(unit,buff)
-	if unit == myHero and buff.Name == "vladimirtidesofbloodcost" then
-		self.EStacks = 0
+	if unit.isMe and buff.Name == "VladimirE" then 
+		self.ECharge = nil
+		AttackUnit = self.AA
+	elseif unit.isMe and buff.Name == "VladimirSanguinePool" then
+		AttackUnit = self.AA
 	end
 end
 
@@ -3249,7 +3263,6 @@ function AntiGapCloser:__init()
     ["JaxLeapStrike"]               = {charName = "Jax",		slot="Q"		},
     ["JayceToTheSkies"]             = {charName = "Jayce",		slot="Q"		},
     ["blindmonkqtwo"]               = {charName = "LeeSin",		slot="Q"		},
-    ["MaokaiUnstableGrowth"]        = {charName = "Maokai",		slot="E"		},
     ["MonkeyKingNimbus"]            = {charName = "MonkeyKing",	slot="E"		},
     ["Pantheon_LeapBash"]           = {charName = "Pantheon",	slot="W"		},
     ["PoppyHeroicCharge"]           = {charName = "Poppy",		slot="E"		},
