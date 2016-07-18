@@ -1,4 +1,4 @@
-local SLSeries = 1.17
+local SLSeries = 1.18
 local SLPatchnew = nil
 if GetGameVersion():sub(3,4) >= "10" then
 		SLPatchnew = GetGameVersion():sub(1,4)
@@ -1325,13 +1325,13 @@ end
 
 function Velkoz:AntiChannel(unit,range)
 	if BM.AC.E:Value() and range < Velkoz.Spell[2].range and SReady[2] then
-		CastSkillShot(_E,unit.pos)then
+		CastSkillShot(_E,unit.pos)
 	end
 end
 
 function Velkoz:AntiGapCloser(unit,range)
 	if BM.AGC.E:Value() and range < Velkoz.Spell[2].range and SReady[2] then
-		CastSkillShot(_E,unit.pos)then
+		CastSkillShot(_E,unit.pos)
 	end
 end
 
