@@ -1,4 +1,4 @@
-local SLSeries = 1.16
+local SLSeries = 1.17
 local SLPatchnew = nil
 if GetGameVersion():sub(3,4) >= "10" then
 		SLPatchnew = GetGameVersion():sub(1,4)
@@ -28,9 +28,11 @@ if not FileExist(COMMON_PATH.. "Analytics.lua") then
   DownloadFileAsync("https://raw.githubusercontent.com/LoggeL/GoS/master/Analytics.lua", COMMON_PATH .. "Analytics.lua", function() end)
 end
 
-require("Analytics")
+if SLSChamps[myHero.charName] then
+	require("Analytics")
 
-Analytics("SL-Series", "SL-Team", true)
+	Analytics("SL-Series", "SL-Team", true)
+end
 
 local Name = GetMyHero()
 local ChampName = myHero.charName
@@ -251,14 +253,22 @@ function Vayne:__init()
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("ProcessSpellComplete", function(unit, spell) self:AAReset(unit, spell) end)
 	AntiChannel()
+	AntiGapCloser()
 	DelayAction( function ()
-	if BM["AC"] then BM.AC:Boolean("E","Use E", true) end
+	if BM["AC"] then BM.AC:Info("ad", "Use Spell(s) : ") BM.AC:Boolean("E","Use E", true) end
+	if BM["AGC"] then BM.AGC:Info("ad", "Use Spell(s) : ") BM.AGC:Boolean("E","Use E", true) end
 	end,.001)
-	
+
 end
 
 function Vayne:AntiChannel(unit,range)
 	if BM.AC.E:Value() and range < Vayne.Spell[2].range and SReady[2] then
+		CastTargetSpell(unit,2)
+	end
+end
+
+function Vayne:AntiGapCloser(unit,range)
+	if BM.AGC.E:Value() and range < Vayne.Spell[2].range and SReady[2] then
 		CastTargetSpell(unit,2)
 	end
 end
@@ -446,6 +456,7 @@ function Blitzcrank:__init()
 	AntiChannel()
 	DelayAction( function ()
 	if BM["AC"] then
+	BM.AC:Info("ad", "Use Spell(s) : ")
 	BM.AC:Boolean("Q","Use Q", true)
 	BM.AC:Boolean("R","Use R", true)
 	end
@@ -642,7 +653,7 @@ function Soraka:__init()
 	Callback.Add("Tick", function() self:Tick() end)
 	AntiChannel()
 	DelayAction( function ()
-	if BM["AC"] then BM.AC:Boolean("E","Use E", true) end
+	if BM["AC"] then BM.AC:Info("ad", "Use Spell(s) : ") BM.AC:Boolean("E","Use E", true) end
 	end,.001)
 end
 
@@ -1302,6 +1313,26 @@ function Velkoz:__init()
 	Callback.Add("UpdateBuff", function(unit,buffProc) self:UpdateBuff(unit,buffProc) end)
 	Callback.Add("RemoveBuff", function(unit,buffProc) self:RemoveBuff(unit,buffProc) end)
 	Callback.Add("Draw", function() self:Split() end)
+	
+	AntiChannel()
+	AntiGapCloser()
+	DelayAction( function ()
+	if BM["AC"] then BM.AC:Info("ad", "Use Spell(s) : ") BM.AC:Boolean("E","Use E", true) end
+	if BM["AGC"] then BM.AGC:Info("ad", "Use Spell(s) : ") BM.AGC:Boolean("E","Use E", true) end
+	end,.001)
+
+end
+
+function Velkoz:AntiChannel(unit,range)
+	if BM.AC.E:Value() and range < Velkoz.Spell[2].range and SReady[2] then
+		CastSkillShot(_E,unit.pos)then
+	end
+end
+
+function Velkoz:AntiGapCloser(unit,range)
+	if BM.AGC.E:Value() and range < Velkoz.Spell[2].range and SReady[2] then
+		CastSkillShot(_E,unit.pos)then
+	end
 end
 
 
@@ -3262,7 +3293,6 @@ self.s = {
 			[_R] = { name = "ZyraBrambleZone", speed = math.huge, delay = 1, range = 1100, width = 500, collision=false, aoe = true, type = "circular", danger = 4, type2 = "nuke"}
 		}
 	}
-	--Table End
 	
 	SLS.SB:Menu("Spells", "Spells")
     SLS.SB:Slider("hV","Humanize Value",50,0,100,1)
@@ -3365,38 +3395,39 @@ class 'AntiChannel'
 
 function AntiChannel:__init()
 	self.CSpell = {
-    ["CaitlynAceintheHole"]         = {charName = "Caitlyn"		},
-    ["Crowstorm"]                   = {charName = "FiddleSticks"},
-    ["Drain"]                       = {charName = "FiddleSticks"},
-    ["GalioIdolOfDurand"]           = {charName = "Galio"		},
-    ["ReapTheWhirlwind"]            = {charName = "Janna"		},
-	["JhinR"]						= {charName = "Jhin"		},
-    ["KarthusFallenOne"]            = {charName = "Karthus"     },
-    ["KatarinaR"]                   = {charName = "Katarina"    },
-    ["LucianR"]                     = {charName = "Lucian"		},
-    ["AlZaharNetherGrasp"]          = {charName = "Malzahar"	},
-    ["MissFortuneBulletTime"]       = {charName = "MissFortune"	},
-    ["AbsoluteZero"]                = {charName = "Nunu"		},                       
-    ["PantheonRJump"]               = {charName = "Pantheon"	},
-    ["ShenStandUnited"]             = {charName = "Shen"		},
-    ["Destiny"]                     = {charName = "TwistedFate"	},
-    ["UrgotSwap2"]                  = {charName = "Urgot"		},
-    ["VarusQ"]                      = {charName = "Varus"		},
-    ["VelkozR"]                     = {charName = "Velkoz"		},
-    ["InfiniteDuress"]              = {charName = "Warwick"		},
-    ["XerathLocusOfPower2"]         = {charName = "Xerath"		},
+    ["CaitlynAceintheHole"]         = {charName = "Caitlyn"		,slot="R"},
+    ["Crowstorm"]                   = {charName = "FiddleSticks",slot="R"},
+    ["Drain"]                       = {charName = "FiddleSticks",slot="W"},
+    ["GalioIdolOfDurand"]           = {charName = "Galio"		,slot="R"},
+    ["ReapTheWhirlwind"]            = {charName = "Janna"		,slot="R"},
+	["JhinR"]						= {charName = "Jhin"		,slot="R"},
+    ["KarthusFallenOne"]            = {charName = "Karthus"     ,slot="R"},
+    ["KatarinaR"]                   = {charName = "Katarina"    ,slot="R"},
+    ["LucianR"]                     = {charName = "Lucian"		,slot="R"},
+    ["AlZaharNetherGrasp"]          = {charName = "Malzahar"	,slot="R"},
+    ["MissFortuneBulletTime"]       = {charName = "MissFortune"	,slot="R"},
+    ["AbsoluteZero"]                = {charName = "Nunu"		,slot="R"},                       
+    ["PantheonRJump"]               = {charName = "Pantheon"	,slot="R"},
+    ["ShenStandUnited"]             = {charName = "Shen"		,slot="R"},
+    ["Destiny"]                     = {charName = "TwistedFate"	,slot="R"},
+    ["UrgotSwap2"]                  = {charName = "Urgot"		,slot="R"},
+    ["VarusQ"]                      = {charName = "Varus"		,slot="Q"},
+    ["VelkozR"]                     = {charName = "Velkoz"		,slot="R"},
+    ["InfiniteDuress"]              = {charName = "Warwick"		,slot="R"},
+    ["XerathLocusOfPower2"]         = {charName = "Xerath"		,slot="R"},
 	}
 	
 	DelayAction(function ()
-		for _,i in pairs(GetEnemyHeroes()) do
+		for k,i in pairs(GetEnemyHeroes()) do
 			for _,n in pairs(self.CSpell) do
-				if GetObjectName(i) == n.charName then
+				if i.charName == n.charName then
 					if not BM["AC"] then
 						BM:Menu("AC","AntiChannel")
-						Callback.Add("ProcessSpell", function(unit,spellProc) self:Check(unit,spellProc) end)
+						BM.AC:Info("as", "Stop Channels for : ")
+						Callback.Add("ProcessSpell", function(unit,spellProc) self:CheckAC(unit,spellProc) end)
 					end
-					if not BM.AC[GetObjectName(i)] then
-						BM.AC:Boolean(GetObjectName(i),"Stop "..GetObjectName(i).." Channels", true)
+					if not BM.AC[_] then
+						BM.AC:Boolean(_,n.charName.." | "..n.slot, true)
 					end
 				end
 			end
@@ -3404,8 +3435,68 @@ function AntiChannel:__init()
 	end, .001)
 end
 
-function AntiChannel:Check(unit,spellProc)
-	if GetTeam(unit) == MINION_ENEMY and self.CSpell[spellProc.name] and BM.AC[GetObjectName(unit)]:Value() then
+function AntiChannel:CheckAC(unit,spellProc)
+	if GetTeam(unit) == MINION_ENEMY and self.CSpell[spellProc.name] and BM.AC[spellProc.name]:Value() then
 		_G[ChampName]:AntiChannel(unit,GetDistance(myHero,unit))
+	end
+end
+
+class 'AntiGapCloser'
+
+function AntiGapCloser:__init()
+	self.GSpells = {
+    ["AkaliShadowDance"]            = {charName = "Akali",		slot="R"		},
+    ["Headbutt"]                    = {charName = "Alistar",	slot="Q"		},
+    ["DianaTeleport"]               = {charName = "Diana",		slot="R"		},
+    ["FizzPiercingStrike"]          = {charName = "Fizz",		slot="Q"		},
+    ["IreliaGatotsu"]               = {charName = "Irelia",		slot="Q"		},
+    ["JaxLeapStrike"]               = {charName = "Jax",		slot="Q"		},
+    ["JayceToTheSkies"]             = {charName = "Jayce",		slot="Q"		},
+    ["blindmonkqtwo"]               = {charName = "LeeSin",		slot="Q"		},
+    ["MaokaiUnstableGrowth"]        = {charName = "Maokai",		slot="E"		},
+    ["MonkeyKingNimbus"]            = {charName = "MonkeyKing",	slot="E"		},
+    ["Pantheon_LeapBash"]           = {charName = "Pantheon",	slot="W"		},
+    ["PoppyHeroicCharge"]           = {charName = "Poppy",		slot="E"		},
+    ["QuinnE"]                      = {charName = "Quinn",		slot="E"		},
+    ["RengarLeap"]                  = {charName = "Rengar",		slot="Passive"	},
+    ["XenZhaoSweep"]                = {charName = "XinZhao",	slot="E"		},
+    ["AatroxQ"]                     = {charName = "Aatrox",		slot="Q"		},
+    ["GragasE"]                     = {charName = "Gragas",		slot="E"		},
+    ["GravesMove"]                  = {charName = "Graves",		slot="E"		},
+    ["JarvanIVDragonStrike"]        = {charName = "JarvanIV",	slot="Q"		},
+    ["JarvanIVCataclysm"]           = {charName = "JarvanIV",	slot="R"		},
+    ["KhazixE"]                     = {charName = "Khazix",		slot="E"		},
+    ["khazixelong"]                 = {charName = "Khazix",		slot="E"		},
+    ["LeblancSlide"]                = {charName = "Leblanc",	slot="W"		},
+    ["LeblancSlideM"]               = {charName = "Leblanc",	slot="W"		},
+    ["LeonaZenithBlade"]            = {charName = "Leona",		slot="E"		},
+    ["RenektonSliceAndDice"]        = {charName = "Renekton",	slot="E"		},
+    ["SejuaniArcticAssault"]        = {charName = "Sejuani",	slot="E"		},
+    ["ShenShadowDash"]              = {charName = "Shen",		slot="E"		},
+    ["RocketJump"]                  = {charName = "Tristana",	slot="W"		},
+    ["slashCast"]                   = {charName = "Tryndamere",	slot="E"		},
+	}
+	
+	DelayAction(function ()
+		for k,i in pairs(GetEnemyHeroes()) do
+			for _,n in pairs(self.GSpells) do
+				if i.charName == n.charName then
+					if not BM["AGC"] then
+						BM:Menu("AGC","AntiGapCloser")
+						BM.AGC:Info("as", "AntiGapCloser for : ")
+						Callback.Add("ProcessSpell", function(unit,spellProc) self:CheckAGC(unit,spellProc) end)
+					end
+					if not BM.AGC[_] then
+						BM.AGC:Boolean(_,n.charName.." | "..n.slot, true)
+					end
+				end
+			end
+		end
+	end, .001)
+end
+
+function AntiGapCloser:CheckAGC(unit,spellProc)
+	if unit.team == MINION_ENEMY and self.GSpells[spellProc.name] and BM.AGC[spellProc.name]:Value() then
+		_G[ChampName]:AntiGapCloser(unit,GetDistance(myHero,unit))
 	end
 end
