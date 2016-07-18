@@ -1,5 +1,5 @@
 local SLEAutoUpdate = true
-local Stage, SLEvadeVer = "Alpha", "0.12"
+local Stage, SLEvadeVer = "Alpha", "0.13"
 local SLEPatchnew = nil
 if GetGameVersion():sub(3,4) >= "10" then
 		SLEPatchnew = GetGameVersion():sub(1,4)
@@ -156,6 +156,12 @@ function SLEvade:__init()
 	EMenu.Draws:Boolean("DSEW", "Draw SkillShot Extra Width", true)
 	EMenu.Draws:Boolean("DSPos", "Draw SkillShot Position", true)
 	EMenu.Draws:Boolean("DEPos", "Draw Evade Position", true)
+	EMenu.Draws:Menu("SD", "Spell Drawing color")
+	EMenu.Draws.SD:ColorPick("d1c", "Danger 1 color", {230,51,51,255})
+	EMenu.Draws.SD:ColorPick("d2c", "Danger 2 color", {230,102,102,255})
+	EMenu.Draws.SD:ColorPick("d3c", "Danger 3 color", {230,153,153,255})
+	EMenu.Draws.SD:ColorPick("d4c", "Danger 4 color", {230,204,204,255})
+	EMenu.Draws.SD:ColorPick("d5c", "Danger 5 color", {230,255,255,255})
 	EMenu.Draws:Boolean("DevOpt", "Draw for Devs", false)
 	EMenu.Draws:Slider("SQ", "SkillShot Quality", 5, 1, 35, 5)
 	EMenu.Draws:Info("asd", "lower = higher Quality")
@@ -178,11 +184,8 @@ function SLEvade:__init()
 						EMenu.Spells[_]:Boolean("Dashes".._, "Enable Dashes", true)
 						EMenu.Spells[_]:Info("Empty12".._, "")			
 						EMenu.Spells[_]:Slider("radius".._,"Radius",(i.radius or 150), ((i.radius-50) or 50),((i.radius+100) or 250), 5)
-						if i.danger == 1 then EMenu.Spells[_]:Slider("hp".._, "HP to Dodge", 80, 1, 100, 5)
-						elseif i.danger == 2 then EMenu.Spells[_]:Slider("hp".._, "HP to Dodge", 85, 1, 100, 5)
-						elseif i.danger == 3 then EMenu.Spells[_]:Slider("hp".._, "HP to Dodge", 90, 1, 100, 5)
-						elseif i.danger == 4 then EMenu.Spells[_]:Slider("hp".._, "HP to Dodge", 95, 1, 100, 5)
-						elseif i.danger == 5 then EMenu.Spells[_]:Slider("hp".._, "HP to Dodge", 100, 1, 100, 5)
+						if i.dangerous then EMenu.Spells[_]:Slider("hp".._, "HP to Dodge", 100, 1, 100, 5)
+						else EMenu.Spells[_]:Slider("hp".._, "HP to Dodge", 85, 1, 100, 5)
 						end
 						EMenu.Spells[_]:Slider("d".._,"Danger",(i.danger or 1), 1, 5, 1)
 						EMenu.Spells[_]:Info("Empty123".._, "")
@@ -265,8 +268,8 @@ self.Spells = {
 	["EkkoR"]={charName="Ekko",slot=3,type="Circle",delay=0.25,range=1600,radius=375,speed=1650,addHitbox=true,danger=3,dangerous=false,proj="EkkoR",killTime=0.2,displayname="Chronobreak",mcollision=false},
 	["EliseHumanE"]={charName="Elise",slot=2,type="Line",delay=0.25,range=925,radius=55,speed=1600,addHitbox=true,danger=4,dangerous=true,proj="EliseHumanE",killTime=0,displayname="Cocoon",mcollision=true},
 	["EvelynnR"]={charName="Evelynn",slot=3,type="Circle",delay=0.25,range=650,radius=350,speed=math.huge,addHitbox=true,danger=5,dangerous=true,proj="EvelynnR",killTime=0.2,displayname="Agony's Embrace"},
-	["EzrealMysticShot"]={charName="Ezreal",slot=0,type="Line",delay=0,range=1200,radius=50,speed=1975,addHitbox=true,danger=2,dangerous=false,proj="EzrealMysticShotMissile",killTime=0.25,displayname="Mystic Shot",mcollision=true},
-	["EzrealEssenceFlux"]={charName="Ezreal",slot=1,type="Line",delay=0.25,range=900,radius=80,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="EzrealEssenceFluxMissile",killTime=0,displayname="Essence Flux",mcollision=false},
+	["EzrealMysticShot"]={charName="Ezreal",slot=0,type="Line",delay=0.25,range=1300,radius=50,speed=1975,addHitbox=true,danger=2,dangerous=false,proj="EzrealMysticShotMissile",killTime=0.25,displayname="Mystic Shot",mcollision=true},
+	["EzrealEssenceFlux"]={charName="Ezreal",slot=1,type="Line",delay=0.25,range=1000,radius=80,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="EzrealEssenceFluxMissile",killTime=0,displayname="Essence Flux",mcollision=false},
 	["EzrealTrueshotBarrage"]={charName="Ezreal",slot=3,type="Line",delay=1,range=20000,radius=150,speed=2000,addHitbox=true,danger=3,dangerous=true,proj="EzrealTrueshotBarrage",killTime=0,displayname="Trueshot Barrage",mcollision=false},
 	["FioraW"]={charName="Fiora",slot=1,type="Line",delay=0.5,range=800,radius=70,speed=3200,addHitbox=true,danger=2,dangerous=false,proj="FioraWMissile",killTime=0,displayname="Riposte",mcollision=false},
 	["FizzMarinerDoom"]={charName="Fizz",slot=3,type="Line",delay=0.25,range=1150,radius=120,speed=1350,addHitbox=true,danger=5,dangerous=true,proj="FizzMarinerDoomMissile",killTime=0,displayname="Chum the Waters",mcollision=false},
@@ -460,8 +463,8 @@ self.Spelldatasave = {
 	["EkkoR"]={charName="Ekko",slot=3,type="Circle",delay=0.25,range=1600,radius=375,speed=1650,addHitbox=true,danger=3,dangerous=false,proj="EkkoR",killTime=0.2,displayname="Chronobreak",mcollision=false},
 	["EliseHumanE"]={charName="Elise",slot=2,type="Line",delay=0.25,range=925,radius=55,speed=1600,addHitbox=true,danger=4,dangerous=true,proj="EliseHumanE",killTime=0,displayname="Cocoon",mcollision=true},
 	["EvelynnR"]={charName="Evelynn",slot=3,type="Circle",delay=0.25,range=650,radius=350,speed=math.huge,addHitbox=true,danger=5,dangerous=true,proj="EvelynnR",killTime=0.2,displayname="Agony's Embrace"},
-	["EzrealMysticShot"]={charName="Ezreal",slot=0,type="Line",delay=0,range=1200,radius=50,speed=1975,addHitbox=true,danger=2,dangerous=false,proj="EzrealMysticShotMissile",killTime=0.25,displayname="Mystic Shot",mcollision=true},
-	["EzrealEssenceFlux"]={charName="Ezreal",slot=1,type="Line",delay=0.25,range=900,radius=80,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="EzrealEssenceFluxMissile",killTime=0,displayname="Essence Flux",mcollision=false},
+	["EzrealMysticShot"]={charName="Ezreal",slot=0,type="Line",delay=0.25,range=1300,radius=50,speed=1975,addHitbox=true,danger=2,dangerous=false,proj="EzrealMysticShotMissile",killTime=0.25,displayname="Mystic Shot",mcollision=true},
+	["EzrealEssenceFlux"]={charName="Ezreal",slot=1,type="Line",delay=0.25,range=1000,radius=80,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="EzrealEssenceFluxMissile",killTime=0,displayname="Essence Flux",mcollision=false},
 	["EzrealTrueshotBarrage"]={charName="Ezreal",slot=3,type="Line",delay=1,range=20000,radius=150,speed=2000,addHitbox=true,danger=3,dangerous=true,proj="EzrealTrueshotBarrage",killTime=0,displayname="Trueshot Barrage",mcollision=false},
 	["FioraW"]={charName="Fiora",slot=1,type="Line",delay=0.5,range=800,radius=70,speed=3200,addHitbox=true,danger=2,dangerous=false,proj="FioraWMissile",killTime=0,displayname="Riposte",mcollision=false},
 	["FizzMarinerDoom"]={charName="Fizz",slot=3,type="Line",delay=0.25,range=1150,radius=120,speed=1350,addHitbox=true,danger=5,dangerous=true,proj="FizzMarinerDoomMissile",killTime=0,displayname="Chum the Waters",mcollision=false},
@@ -1096,27 +1099,27 @@ function SLEvade:Drawings()
 			if EMenu.Draws.DSPath:Value() then
 				if (GetDistance(self:Position(),self:ascad()) > i.spell.radius + myHero.boundingRadius) or (GetDistance(myHero,self:ascad()) > i.spell.radius + myHero.boundingRadius) then
 					if EMenu.Spells[_]["d".._]:Value() == 1 then
-						dRectangleOutline(sPos, ePos, self.opos, i.spell.radius+myHero.boundingRadius, i.spell.radius, 0.75, ARGB(230,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						dRectangleOutline(sPos, ePos, self.opos, i.spell.radius+myHero.boundingRadius, i.spell.radius, 0.75, EMenu.Draws.SD.d1c:Value())
 					elseif EMenu.Spells[_]["d".._]:Value() == 2 then
-						dRectangleOutline(sPos, ePos, self.opos, i.spell.radius+myHero.boundingRadius, i.spell.radius, 1, ARGB(230,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						dRectangleOutline(sPos, ePos, self.opos, i.spell.radius+myHero.boundingRadius, i.spell.radius, 1, EMenu.Draws.SD.d2c:Value())
 					elseif EMenu.Spells[_]["d".._]:Value() == 3 then
-						dRectangleOutline(sPos, ePos, self.opos, i.spell.radius+myHero.boundingRadius, i.spell.radius, 1.25, ARGB(230,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						dRectangleOutline(sPos, ePos, self.opos, i.spell.radius+myHero.boundingRadius, i.spell.radius, 1.25, EMenu.Draws.SD.d3c:Value())
 					elseif EMenu.Spells[_]["d".._]:Value() == 4 then
-						dRectangleOutline(sPos, ePos, self.opos, i.spell.radius+myHero.boundingRadius, i.spell.radius, 1.5, ARGB(230,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						dRectangleOutline(sPos, ePos, self.opos, i.spell.radius+myHero.boundingRadius, i.spell.radius, 1.5, EMenu.Draws.SD.d4c:Value())
 					elseif EMenu.Spells[_]["d".._]:Value() == 5 then
-						dRectangleOutline(sPos, ePos, self.opos, i.spell.radius+myHero.boundingRadius, i.spell.radius, 1.75, ARGB(230,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						dRectangleOutline(sPos, ePos, self.opos, i.spell.radius+myHero.boundingRadius, i.spell.radius, 1.75, EMenu.Draws.SD.d5c:Value())
 					end
 					if EMenu.Draws.DSEW:Value() then
 						if EMenu.Spells[_]["d".._]:Value() == 1 then
-							dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 1.5, ARGB(230,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+							dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 1.5, EMenu.Draws.SD.d1c:Value())
 						elseif EMenu.Spells[_]["d".._]:Value() == 2 then
-							dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 2, ARGB(230,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+							dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 2, EMenu.Draws.SD.d2c:Value())
 						elseif EMenu.Spells[_]["d".._]:Value() == 3 then
-							dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 2.5, ARGB(230,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+							dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 2.5, EMenu.Draws.SD.d3c:Value())
 						elseif EMenu.Spells[_]["d".._]:Value() == 4 then
-							dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 3, ARGB(230,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+							dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 3, EMenu.Draws.SD.d4c:Value())
 						elseif EMenu.Spells[_]["d".._]:Value() == 5 then
-							dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 3.5, ARGB(230,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+							dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 3.5, EMenu.Draws.SD.d5c:Value())
 						end
 					end
 				else
@@ -1151,27 +1154,27 @@ function SLEvade:Drawings()
 			if EMenu.Draws.DSPath:Value() then
 				if (GetDistance(self:Position(),i.p.endPos) > i.spell.radius + myHero.boundingRadius) or (GetDistance(myHero,i.p.endPos) > i.spell.radius + myHero.boundingRadius) then
 					if EMenu.Spells[_]["d".._]:Value() == 1 then
-						DrawCircle(i.p.endPos,i.spell.radius,0.75,EMenu.Draws.SQ:Value(),ARGB(230,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))	
+						DrawCircle(i.p.endPos,i.spell.radius,0.75,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())	
 					elseif EMenu.Spells[_]["d".._]:Value() == 2 then
-						DrawCircle(i.p.endPos,i.spell.radius,1,EMenu.Draws.SQ:Value(),ARGB(230,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						DrawCircle(i.p.endPos,i.spell.radius,1,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
 					elseif EMenu.Spells[_]["d".._]:Value() == 3 then
-						DrawCircle(i.p.endPos,i.spell.radius,1.25,EMenu.Draws.SQ:Value(),ARGB(230,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						DrawCircle(i.p.endPos,i.spell.radius,1.25,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
 					elseif EMenu.Spells[_]["d".._]:Value() == 4 then
-						DrawCircle(i.p.endPos,i.spell.radius,1.5,EMenu.Draws.SQ:Value(),ARGB(230,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						DrawCircle(i.p.endPos,i.spell.radius,1.5,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
 					elseif EMenu.Spells[_]["d".._]:Value() == 5 then
-						DrawCircle(i.p.endPos,i.spell.radius,1.75,EMenu.Draws.SQ:Value(),ARGB(230,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+						DrawCircle(i.p.endPos,i.spell.radius,1.75,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
 					end
 					if EMenu.Draws.DSEW:Value() then
 						if EMenu.Spells[_]["d".._]:Value() == 1 then
-							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),1.5,EMenu.Draws.SQ:Value(),ARGB(255,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))	
+							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),1.5,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())	
 						elseif EMenu.Spells[_]["d".._]:Value() == 2 then
-							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),2,EMenu.Draws.SQ:Value(),ARGB(255,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),2,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
 						elseif EMenu.Spells[_]["d".._]:Value() == 3 then
-							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),2.5,EMenu.Draws.SQ:Value(),ARGB(255,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),2.5,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
 						elseif EMenu.Spells[_]["d".._]:Value() == 4 then
-							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),3,EMenu.Draws.SQ:Value(),ARGB(255,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),3,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
 						elseif EMenu.Spells[_]["d".._]:Value() == 5 then
-							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),3.5,EMenu.Draws.SQ:Value(),ARGB(255,51*EMenu.Spells[_]["d".._]:Value(),51*EMenu.Spells[_]["d".._]:Value(),255))
+							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),3.5,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
 						end
 					end
 				else
