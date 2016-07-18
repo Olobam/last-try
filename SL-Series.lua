@@ -2502,7 +2502,7 @@ function Vladimir:Combo(target)
 	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() then
 		CastTargetSpell(target,0)
 	end
-	if SReady[2] or self.ECharge and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() then
+	if (SReady[2] or (self.ECharge and GetGameTimer() - self.ECharge < 1)) and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() then
 		CastSkillShot(2,myHero.pos)
 	end
 	if SReady[3] and ValidTarget(target, self.Spell[3].range) and BM.C.R:Value() and EnemiesAround(GetOrigin(target), self.Spell[3].radius) >= BM.C.REA:Value() then
