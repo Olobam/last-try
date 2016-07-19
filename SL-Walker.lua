@@ -378,7 +378,7 @@ function SLWalker:Harass()
 		if o and o.team == MINION_ENEMY then
 			if self:CanOrb(o) and ValidTarget(o,self.aarange)then
 				if self:PredictHP(o,(1000/(myHero.attackSpeed*self.BaseAttackSpeed)*GetDistance(o)/self:aaprojectilespeed())) < CalcPhysicalDamage(myHero, o, self:Dmg(o)) then
-					return o
+					return self:GetLowestMinion(o)
 				end
 			end
 		end
