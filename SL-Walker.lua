@@ -70,6 +70,7 @@ function SLWalker:__init()
 	["MasterYi"]	= {buffname="doublestrike", dmg = function(target) return getdmg("E",target,myHero,1,GetCastLevel(myHero,2)) end},
 	["RekSai"]		= {buffname="reksaiq", dmg = function(target) return getdmg("Q",target,myHero,1,GetCastLevel(myHero,0)) end},
 	["Rengar"]		= {buffname="rengarqbase", dmg = function(target) return getdmg("Q",target,myHero,1,GetCastLevel(myHero,0)) end},
+	["Riven"]		= {buffname="rivenpassiveaaboost", dmg = function(target) return (GetBaseDamage(myHero)+GetBonusDmg(myHero))+(2.7*GetLevel(myHero)) end},
 	["Shyvana"]		= {buffname="shyvanadoubleattack", dmg = function(target) return getdmg("Q",target,myHero,1,GetCastLevel(myHero,0)) end},
 	["Talon"]		= {buffname="talonnoxiandiplomacybuff", dmg = function(target) return getdmg("Q",target,myHero,1,GetCastLevel(myHero,0)) end},
 	["Teemo"]		= {buffname="ToxicShot", dmg = function(target) return getdmg("E",target,myHero,1,GetCastLevel(myHero,2)) end},
@@ -100,11 +101,11 @@ function SLWalker:__init()
 	OMenu.TS:TargetSelector("TS", "TargetSelector", self.ts)
 	
 	OMenu:Menu("Hum", "Humanizer")
+	OMenu.Hum:Boolean("Enable", "Enable Humanizer", true)
 	OMenu.Hum:Slider("lhit", "Max. Movements in Last Hit", 6, 1, 20, 1)
 	OMenu.Hum:Slider("lclear", "Max. Movements in Lane Clear", 6, 1, 20, 1)
 	OMenu.Hum:Slider("harass", "Max. Movements in Harass", 7, 1, 20, 1)
 	OMenu.Hum:Slider("combo", "Max. Movements in Combo", 8, 1, 20, 1)
-	OMenu.Hum:Slider("perm", "Persistant Max. Movements", 7, 1, 20, 1)
 	
 	Callback.Add("ProcessSpellAttack", function(unit,spellProc) self:PrAtt(unit,spellProc) end)
 	Callback.Add("Animation", function(unit,animation) self:Animation(unit,animation) end)
@@ -133,8 +134,8 @@ if not SLW then return end
 	if OMenu.D.DHR:Value() then
 		DrawCircle(myHero.pos,myHero.boundingRadius,1,20,GoS.Blue)
 	end
-	if OMenu.D.LHM:Value() then
-		for _,i in pairs(minionManager.objects) do
+	for _,i in pairs(minionManager.objects) do
+		if OMenu.D.LHM:Value() then
 			if self:Mode() == "LaneClear" then
 				if i.distance < self.aarange and i.alive and i.team ~= MINION_ALLY and self:PredictHP(i,(1000/(myHero.attackSpeed*self.BaseAttackSpeed)*GetDistance(i)/self:aaprojectilespeed())) < CalcPhysicalDamage(myHero, i, self:Dmg(i)*2) and AllyMinionsAround(myHero.pos, self.aarange) >= 3 then
 					DrawCircle(i.pos,i.boundingRadius*1.2,1,20,ARGB(255,255,128,0))
@@ -184,13 +185,13 @@ function SLWalker:moveEvery()
 	elseif self:Mode() == "LaneClear" then
 		return 1 / OMenu.Hum.lclear:Value()
 	else
-		return 1 / OMenu.Hum.perm:Value()
+		return 0
 	end
 end
 
 function SLWalker:IssOrd(order)
 if not SLW then return end
-	if order.flag == 2 then
+	if order.flag == 2 and OMenu.Hum.Enable:Value() then
 		if os.clock() - self.LastMoveOrder < self:moveEvery() then
 		  BlockOrder()
 		else
@@ -223,7 +224,7 @@ end
 function SLWalker:PrAtt(unit, spellProc)
 if not SLW then return end
 	if unit.isMe and spellProc then
-		if self:Attack(spellProc) then
+		if self.altAANames[spellProc.name:lower()] or spellProc.name:lower():find("attack") then
 			self.LastAttack = self:Time()-GetLatency()/2
 			self.windUpTime = spellProc.windUpTime * 1000
 			self.animationTime = spellProc.animationTime * 1000
@@ -232,7 +233,7 @@ if not SLW then return end
 			self.BaseWindUp = 1 / (spellProc.windUpTime * GetAttackSpeed(myHero))
 			self.BaseAttackSpeed = 1 / (spellProc.animationTime * GetAttackSpeed(myHero))
 			
-		elseif self:AAReset(spellProc) then
+		elseif self.aaresets[spellProc.name:lower()] then
 			self:ResetAA()
 		end
 	end
@@ -248,25 +249,6 @@ end
 
 function SLWalker:ResetAA()
 	self.LastAttack = 0
-end
-
-function SLWalker:Attack(spellProc)
-	if spellProc.name:lower():find("attack") then return true end
-	for _,v in pairs(self.altAANames) do
-		if v == spellProc.name:lower() then 
-			return true 
-		end
-	end
-	return false
-end
-
-function SLWalker:AAReset(spellProc)
-	for _, v in pairs(self.aaresets) do
-		if v == spellProc.name:lower() then 
-			return true 
-		end
-	end
-	return false
 end
 
 function SLWalker:Time()
@@ -468,7 +450,7 @@ function SLWalker:GetPredictedHealth(unit, time)
 
     while i <= #self.ActiveAttacks do
         if self.ActiveAttacks[i].Attacker and not self.ActiveAttacks[i].Attacker.dead and self.ActiveAttacks[i].Target and self.ActiveAttacks[i].Target.networkID == unit.networkID then
-            local hittime = (self.ActiveAttacks[i].windUpTime + self.ActiveAttacks[i].animationTime + GetLatency()) - self.ActiveAttacks[i].starttime + GetDistance(self.ActiveAttacks[i].Attacker,self.ActiveAttacks[i].Target) / self.ActiveAttacks[i].projectilespeed
+            local hittime = (self.ActiveAttacks[i].windUpTime + self.ActiveAttacks[i].animationTime + GetLatency()*.5) - self.ActiveAttacks[i].starttime + GetDistance(self.ActiveAttacks[i].Attacker,self.ActiveAttacks[i].Target) / self.ActiveAttacks[i].projectilespeed
             if self:GetTime() < hittime and hittime < self:GetTime() + time  then
                 IncDamage = IncDamage + self.ActiveAttacks[i].damage
                 count = count + 1
