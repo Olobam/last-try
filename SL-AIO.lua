@@ -1,5 +1,6 @@
 local SLAIO = 0.01
 local SLPatchnew = nil
+local turrets = {}
 if GetGameVersion():sub(3,4) >= "10" then
 		SLPatchnew = GetGameVersion():sub(1,4)
 	else
@@ -40,6 +41,12 @@ local function DisableHoldPosition(boolean)
 		_G.HoldPosition, _G.AttackUnit = ta[1], ta[2]
 	end
 end
+
+OnObjectLoad(function(obj)
+	if obj and obj.type == Obj_AI_Turret and obj.team == MINION_ENEMY then
+		turrets[obj.networkID] = obj
+	end
+end)
 
 local function DisableAll(b)
 	if b then
@@ -2907,9 +2914,7 @@ function Drawings:__init()
 	SLS[ChampName].Dr:DropDown("DQM", "Draw Quality", 3, {"High", "Medium", "Low"})
 	SLS[ChampName].Dr:Slider("DWi", "Circle witdth", 1, 1, 5, 1)
 	for i=0,3 do
-		if _G[ChampName].Spell[i].range and _G[ChampName].Spell[i].range > 200 then
-			SLS[ChampName].Dr:Boolean("D"..self.SNames[i], "Draw "..self.SNames[i], true)
-		end
+		SLS[ChampName].Dr:Boolean("D"..self.SNames[i], "Draw "..self.SNames[i], true)
 	end
 	Callback.Add("Tick", function() self:CheckS() end)
 	Callback.Add("Draw", function() self:Draw() end)
@@ -4014,6 +4019,8 @@ function SLWalker:__init()
   
 	OMenu:Menu("FS", "Farm Settings")
 	OMenu.FS:Boolean("AJ", "Attack Jungle", true)
+	OMenu.FS:Boolean("AS", "Attack Structures", true)
+	OMenu.FS:Slider("EW", "Extra WindupTime", 50,0,250,5)
 	
 	OMenu:Menu("D", "Drawings")
 	OMenu.D:Boolean("LHM", "Lasthit Marker", true)
@@ -4038,6 +4045,7 @@ function SLWalker:__init()
 	OMenu.Hum:Slider("harass", "Max. Movements in Harass", 7, 1, 20, 1)
 	OMenu.Hum:Slider("combo", "Max. Movements in Combo", 8, 1, 20, 1)
 	
+	Callback.Add("ObjectLoad", function(obj) self:ObjectLoad(obj) end)
 	Callback.Add("ProcessSpellAttack", function(unit,spellProc) self:PrAtt(unit,spellProc) end)
 	Callback.Add("Animation", function(unit,animation) self:Animation(unit,animation) end)
 	Callback.Add("ProcessSpell", function(unit,spellProc) self:PrSp(unit,spellProc) end)
@@ -4050,6 +4058,11 @@ function SLWalker:T()
 if not SLW then return end
 self.ts.range = self.aarange
 self:Orb()
+	for t,turret in pairs(turrets) do
+		if turret.dead then
+			turrets[t] = nil		
+		end
+	end
 end
 
 function SLWalker:D()
@@ -4068,12 +4081,14 @@ if not SLW then return end
 	for _,i in pairs(minionManager.objects) do
 		if OMenu.D.LHM:Value() then
 			if self:Mode() == "LaneClear" then
-				if i.visible and i.distance < self.aarange and i.alive and i.team ~= MINION_ALLY and self:PredictHP(i,(1000/(myHero.attackSpeed*self.BaseAttackSpeed)-GetDistance(i)/self:aaprojectilespeed())) < CalcPhysicalDamage(myHero, i, self:Dmg(i)*2) and AllyMinionsAround(myHero.pos, self.aarange) >= 3 then
+				if i.visible and i.distance < self.aarange and i.alive and i.team ~= MINION_ALLY and self:PredictHP(i,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(i)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, i, self:Dmg(i)*2) and AllyMinionsAround(myHero,self.aarange-myHero.boundingRadius) > 3 then
+					DrawCircle(i.pos,i.boundingRadius*1.2,1,20,ARGB(255,255,128,0))
+				elseif i.visible and i.distance < self.aarange and i.alive and i.team ~= MINION_ALLY and self:PredictHP(i,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(i)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, i, self:Dmg(i)) and AllyMinionsAround(myHero,self.aarange-myHero.boundingRadius) < 3 then
 					DrawCircle(i.pos,i.boundingRadius*1.2,1,20,ARGB(255,255,128,0))
 				end
 			end
 			if self:Mode() == "LaneClear" or self:Mode() == "LastHit" then
-				if i.visible and i.distance < self.aarange and i.alive and i.team ~= MINION_ALLY and self:PredictHP(i,self.windUpTime +1000*(GetDistance(i)) / self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, i, self:Dmg(i)) and AllyMinionsAround(myHero.pos, self.aarange) >= 3 then
+				if i.visible and i.distance < self.aarange and i.alive and i.team ~= MINION_ALLY and self:PredictHP(i,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(i)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, i, self:Dmg(i)) then
 					DrawCircle(i.pos,i.boundingRadius*1.2,1,20,GoS.Green)
 				end
 			end
@@ -4190,14 +4205,14 @@ function SLWalker:CanMove()
 	if not self.movementEnabled then 
 		return 
 	end
-	return self:Time() + GetLatency()*.5 - self.LastAttack >= (1000/(GetAttackSpeed(myHero)*self.BaseWindUp))
+	return self:Time() - OMenu.FS.EW:Value()/20 + GetLatency()*.5 - self.LastAttack >= (1000/(GetAttackSpeed(myHero)*self.BaseWindUp))
 end
 
 function SLWalker:CanAttack()
 	if not self.attacksEnabled then 
 		return 
 	end
-	return self:Time() + 100 + GetLatency()*.5 - self.LastAttack >= (1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed))
+	return self:Time() - OMenu.FS.EW:Value() + GetLatency()*.5 - self.LastAttack >= (1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed))
 end
 
 function SLWalker:IsOrbwalking()
@@ -4232,7 +4247,7 @@ end
 function SLWalker:JungleClear()
 	for _,o in pairs(minionManager.objects) do
 		if OMenu.FS.AJ:Value() and o.team == MINION_JUNGLE and ValidTarget(o,self.aarange) and self:CanOrb(o) then
-			if self:PredictHP(o,self.windUpTime +1000*(GetDistance(o)) / self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(o)) then
+			if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(o)) then
 				return nil
 			else
 				return self:GetHighestMinion(o)
@@ -4243,17 +4258,43 @@ end
 
 function SLWalker:LaneClear()
 	for _,o in pairs(minionManager.objects) do
-		if o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) and AllyMinionsAround(myHero.pos, self.aarange) >= 3 then
-			if self:PredictHP(o,(1000/(myHero.attackSpeed*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())) < CalcPhysicalDamage(myHero, o, self:Dmg(o)*2) then
-				return nil
+		for t,turret in pairs(turrets) do
+			if OMenu.FS.AS:Value() then
+				if GetDistance(myHero,turret) > self.aarange then
+					if o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
+						if AllyMinionsAround(myHero,self.aarange-myHero.boundingRadius) > 3 then
+							if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(o)*2) then
+								return nil
+							else
+								return self:GetLowestMinion(o)
+							end
+						else
+							if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(o)) then
+								return nil
+							else
+								return self:GetLowestMinion(o)
+							end
+						end
+					end
+				else
+					return turret
+				end
 			else
-				return self:GetLowestMinion(o)
-			end
-		elseif o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) and AllyMinionsAround(myHero.pos, self.aarange) <= 3 then
-			if self:PredictHP(o,(1000/(myHero.attackSpeed*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())) < CalcPhysicalDamage(myHero, o, self:Dmg(o)) then
-				return nil
-			else
-				return self:GetLowestMinion(o)
+				if o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
+					if AllyMinionsAround(myHero,self.aarange-myHero.boundingRadius) > 3 then
+						if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(o)*2) then
+							return nil
+						else
+							return self:GetLowestMinion(o)
+						end
+					else
+						if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(o)) then
+							return nil
+						else
+							return self:GetLowestMinion(o)
+						end
+					end
+				end
 			end
 		end
 	end
@@ -4262,7 +4303,7 @@ end
 function SLWalker:LastHit()
 	for _,o in pairs(minionManager.objects) do
 		if o.team ~= MINION_ALLY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
-			if self:PredictHP(o,self.windUpTime +1000*(GetDistance(o)) / self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(o)) then
+			if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(o)) then
 				 return self:GetLowestMinion(o)
 			end
 		end
@@ -4382,11 +4423,12 @@ function SLWalker:GetPredictedHealth(unit, time)
     local i = 1
     local MaxDamage = 0
     local count = 0
+	local delay = 0.07
 
     while i <= #self.ActiveAttacks do
         if self.ActiveAttacks[i].Attacker and not self.ActiveAttacks[i].Attacker.dead and self.ActiveAttacks[i].Target and self.ActiveAttacks[i].Target.networkID == unit.networkID then
-            local hittime = (self.ActiveAttacks[i].windUpTime + self.ActiveAttacks[i].animationTime + GetLatency()) - self.ActiveAttacks[i].starttime + GetDistance(self.ActiveAttacks[i].Attacker,self.ActiveAttacks[i].Target) / self.ActiveAttacks[i].projectilespeed
-            if self:GetTime() < hittime and hittime < self:GetTime() + time  then
+            local hittime = self.ActiveAttacks[i].starttime + self.ActiveAttacks[i].windUpTime + (GetDistance(self.ActiveAttacks[i].Attacker.pos, self.ActiveAttacks[i].Target.pos)) / self.ActiveAttacks[i].projectilespeed + delay
+            if self:GetTime() < hittime - delay and hittime < self:GetTime() + time and self:Dmg(myHero) > self.ActiveAttacks[i].Target.health then
                 IncDamage = IncDamage + self.ActiveAttacks[i].damage
                 count = count + 1
                 if self.ActiveAttacks[i].damage > MaxDamage then
@@ -4396,7 +4438,7 @@ function SLWalker:GetPredictedHealth(unit, time)
         end
         i = i + 1
     end
-    return unit.health - IncDamage, MaxDamage, count
+		return unit.health - IncDamage, MaxDamage, count
 end
 
 function LoadSLW()
