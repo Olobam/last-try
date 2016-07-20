@@ -1,4 +1,4 @@
-local SLAIO = 1.8
+local SLAIO = 0.01
 local SLPatchnew = nil
 if GetGameVersion():sub(3,4) >= "10" then
 		SLPatchnew = GetGameVersion():sub(1,4)
