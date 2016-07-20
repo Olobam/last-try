@@ -2899,21 +2899,16 @@ class 'Drawings'
 
 function Drawings:__init()
 	if not SLSChamps[ChampName] then return end
-	self.SNames={"Q","W","E","R"}
-	self.Check={false,false,false,false}
+	self.SNames={[0]="Q",[1]="W",[2]="E",[3]="R"}
+	self.Check={[0]=false,[1]=false,[2]=false,[3]=false}
 	SLS[ChampName]:SubMenu("Dr", "Drawings")
 	SLS[ChampName].Dr:Boolean("UD", "Use Drawings", false)
 	SLS[ChampName].Dr:ColorPick("CP", "Circle color", {255,102,102,102})
 	SLS[ChampName].Dr:DropDown("DQM", "Draw Quality", 3, {"High", "Medium", "Low"})
 	SLS[ChampName].Dr:Slider("DWi", "Circle witdth", 1, 1, 5, 1)
 	for i=0,3 do
-		if _G[ChampName].Spell and _G[ChampName].Spell[i] and _G[ChampName].Spell[i].range then
-			local range = _G[ChampName].Spell[i].range
-		else
-			local range = nil
-		end
-		if range and range < 3000 and range > 200 then
-			SLS[ChampName].Dr:Boolean("D"..self.SNames[i+1], "Draw "..self.SNames[i+1], true)
+		if _G[ChampName].Spell[i].range and _G[ChampName].Spell[i].range > 200 then
+			SLS[ChampName].Dr:Boolean("D"..self.SNames[i], "Draw "..self.SNames[i], true)
 		end
 	end
 	Callback.Add("Tick", function() self:CheckS() end)
@@ -2922,19 +2917,18 @@ end
 
 function Drawings:CheckS()
 	for l=0,3 do 
-		if SLS[ChampName].Dr.UD:Value() and _G[ChampName].Spell and _G[ChampName].Spell[l] and SReady[l] and SLS[ChampName].Dr["D"..self.SNames[l+1]]:Value() then 
-			self.Check[l+1] = true
+		if SLS[ChampName].Dr.UD:Value() and SReady[l] and SLS[ChampName].Dr["D"..self.SNames[l]]:Value() then 
+			self.Check[l] = true
 		else 
-			self.Check[l+1] = false
+			self.Check[l] = false
 		end
 	end
 end
 
 function Drawings:Draw()
-	local org = GetOrigin(myHero)
 	for l=0,3 do
-		if self.Check[l+1] then
-			DrawCircle(org, _G[ChampName].Spell[l].range, SLS[ChampName].Dr.DWi:Value(), SLS[ChampName].Dr.DQM:Value(), SLS[ChampName].Dr.CP:Value())
+		if self.Check[l] then
+			DrawCircle(myHero.pos, _G[ChampName].Spell[l].range, SLS[ChampName].Dr.DWi:Value(), SLS[ChampName].Dr.DQM:Value(), SLS[ChampName].Dr.CP:Value())
 		end
 	end
 end
