@@ -3178,56 +3178,58 @@ self.s = {
 end
 
 function HitMe:Ti()
-	for _,i in pairs(self.object) do
-		if i.o and i.spell.type == "linear" and GetDistance(myHero,i.o) >= 3000 then return end
-		if i.p and i.spell.type == "circular" and GetDistance(myHero,i.p.endPos) >= 3000 then return end
-		i.spell.speed = i.spell.speed or math.huge
-		i.spell.range = i.spell.range or math.huge
-		i.spell.proj = i.spell.proj or _
-		i.spell.delay = i.spell.delay or 0
-		i.spell.radius = i.spell.radius or 100	
-		i.spell.mcollision = i.spell.mcollision or false
-		i.spell.danger = i.spell.danger or 2
-		i.spell.type = i.spell.type or nil
-		self.fT = SLS.SB.hV:Value()
-		self.YasuoWall = {}
-		self:MinionCollision()
-		self:WallCollision()
-		if SLS.SB.DoD:Value() or SLS.SB.DoD2:Value() then
-				self.DoD = true
-			else
-				self.DoD = false
-		end
-		for kk,k in pairs(GetEnemyHeroes()) do
-			if i.o then
-				i.p = {}
-				i.p.startPos = Vector(i.o.startPos)
-				i.p.endPos = Vector(i.o.endPos)
-			end	
-			if i.o and not i.o.valid and _ ~= "LuxMaliceCannon" then
-				self.object[_] = nil
+	if SLS.SB.uS:Value() then
+		for _,i in pairs(self.object) do
+			if i.o and i.spell.type == "linear" and GetDistance(myHero,i.o) >= 3000 then return end
+			if i.p and i.spell.type == "circular" and GetDistance(myHero,i.p.endPos) >= 3000 then return end
+			i.spell.speed = i.spell.speed or math.huge
+			i.spell.range = i.spell.range or math.huge
+			i.spell.proj = i.spell.proj or _
+			i.spell.delay = i.spell.delay or 0
+			i.spell.radius = i.spell.radius or 100	
+			i.spell.mcollision = i.spell.mcollision or false
+			i.spell.danger = i.spell.danger or 2
+			i.spell.type = i.spell.type or nil
+			self.fT = SLS.SB.hV:Value()
+			self.YasuoWall = {}
+			self:MinionCollision()
+			self:WallCollision()
+			if SLS.SB.DoD:Value() or SLS.SB.DoD2:Value() then
+					self.DoD = true
+				else
+					self.DoD = false
 			end
-			if i.p then
-				self.dT = i.spell.delay + GetDistance(myHero,i.p.startPos) / i.spell.speed
-				self.endposs = Vector(i.p.startPos)+Vector(Vector(i.p.endPos)-i.p.startPos):normalized()*(i.spell.range+i.spell.radius)
-			end
-			if ((not self.DoD and SLS.SB.dV:Value() <= SLS.SB.Spells[_]["d".._]:Value()) or (self.DoD and SLS.SB.Spells[_]["IsD".._]:Value())) then
-				if (i.spell.type == "Line" or i.spell.type == "Cone" or i.spell.type == "Rectangle") and i.p then
-						i.p.startPos = Vector(i.p.startPos)
-						i.p.endPos = Vector(i.p.endPos)
-					if GetDistance(i.p.startPos) < i.spell.range + myHero.boundingRadius and GetDistance(self.endposs) < i.spell.range + myHero.boundingRadius then
-						local v3 = Vector(myHero.pos)
-						local v4 = Vector(i.p.startPos-i.p.endPos):perpendicular()
-						local jp = Vector(VectorIntersection(i.p.startPos,i.p.endPos,v3,v4).x,myHero.pos.y,VectorIntersection(i.p.startPos,i.p.endPos,v3,v4).y)
-						i.jp = jp
-						if i.coll then return end
-						if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius then
+			for kk,k in pairs(GetEnemyHeroes()) do
+				if i.o then
+					i.p = {}
+					i.p.startPos = Vector(i.o.startPos)
+					i.p.endPos = Vector(i.o.endPos)
+				end	
+				if i.o and not i.o.valid and _ ~= "LuxMaliceCannon" then
+					self.object[_] = nil
+				end
+				if i.p then
+					self.dT = i.spell.delay + GetDistance(myHero,i.p.startPos) / i.spell.speed
+					self.endposs = Vector(i.p.startPos)+Vector(Vector(i.p.endPos)-i.p.startPos):normalized()*(i.spell.range+i.spell.radius)
+				end
+				if ((not self.DoD and SLS.SB.dV:Value() <= SLS.SB.Spells[_]["d".._]:Value()) or (self.DoD and SLS.SB.Spells[_]["IsD".._]:Value())) then
+					if (i.spell.type == "Line" or i.spell.type == "Cone" or i.spell.type == "Rectangle") and i.p then
+							i.p.startPos = Vector(i.p.startPos)
+							i.p.endPos = Vector(i.p.endPos)
+						if GetDistance(i.p.startPos) < i.spell.range + myHero.boundingRadius and GetDistance(self.endposs) < i.spell.range + myHero.boundingRadius then
+							local v3 = Vector(myHero.pos)
+							local v4 = Vector(i.p.startPos-i.p.endPos):perpendicular()
+							local jp = Vector(VectorIntersection(i.p.startPos,i.p.endPos,v3,v4).x,myHero.pos.y,VectorIntersection(i.p.startPos,i.p.endPos,v3,v4).y)
+							i.jp = jp
+							if i.coll then return end
+							if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius then
+								_G[ChampName]:HitMe(k,i.p,self.dT*self.fT*.001,i.type)
+							end
+						end
+					elseif i.spell.type == "Circle" then
+						if GetDistance(i.p.endPos) < i.spell.range + myHero.boundingRadius then
 							_G[ChampName]:HitMe(k,i.p,self.dT*self.fT*.001,i.type)
 						end
-					end
-				elseif i.spell.type == "Circle" then
-					if GetDistance(i.p.endPos) < i.spell.range + myHero.boundingRadius then
-						_G[ChampName]:HitMe(k,i.p,self.dT*self.fT*.001,i.type)
 					end
 				end
 			end
@@ -3331,7 +3333,7 @@ function HitMe:Detect(unit,spellProc)
 			end
 		end
 		for _,l in pairs(self.s) do
-			if spellProc.target and spellProc.target == myHero and not spellProc.name:lower():find("attack") then
+			if spellProc.target and spellProc.target == myHero and not spellProc.name:lower():find("attack") and SLS.SB.uS:Value() then
 				_G[ChampName]:HitMe(unit,spellProc,((l.delay or 0) + GetDistance(myHero,spellProc.startPos) / (l.speed or math.huge))*SLS.SB.hV:Value()*.001,l.type)
 			end
 		end
@@ -5376,17 +5378,17 @@ function SLEvade:Pathfinding()
 				if i.jp and (GetDistance(self:Position(),i.jp) < i.spell.radius + myHero.boundingRadius) or (GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius) and not i.safe and i.mpos then
 					--if GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular(),jp) >= GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular2(),jp) then
 						self.asd = true
-						self.patha = Vector(i.mpos) + Vector(i.p.startPos - i.p.endPos):perpendicular():normalized() * (i.spell.radius + myHero.boundingRadius+EMenu.Advanced.ew:Value())
-						self.patha2 = Vector(i.mpos) + Vector(i.p.startPos - i.p.endPos):perpendicular2():normalized() * (i.spell.radius + myHero.boundingRadius+EMenu.Advanced.ew:Value())
+						self.patha =Vector(i.mpos) + Vector(Vector(i.mpos) - i.p.endPos):perpendicular():normalized() * (i.spell.radius + myHero.boundingRadius+EMenu.Advanced.ew:Value())
+						self.patha2 = Vector(i.mpos) + Vector(Vector(i.mpos) - i.p.endPos):perpendicular2():normalized() * (i.spell.radius + myHero.boundingRadius+EMenu.Advanced.ew:Value())
 						if self.mposs2 and GetDistance(myHero,self.patha) > GetDistance(myHero,self.patha2) then
 							if not MapPosition:inWall(self.patha2) then
-									i.safe = Vector(i.mpos) + Vector(i.p.startPos - i.p.endPos):perpendicular2():normalized() * (i.spell.radius + myHero.boundingRadius+EMenu.Advanced.ew:Value())
+									i.safe = Vector(i.mpos) + Vector(Vector(i.mpos) - i.p.endPos):perpendicular():normalized() * (i.spell.radius + myHero.boundingRadius+EMenu.Advanced.ew:Value())
 								else 
 									i.safe = jp + Vector(jp - self.patha2) + Vector(i.p.startPos - i.p.endPos):perpendicular2():normalized() * (i.spell.radius + myHero.boundingRadius+EMenu.Advanced.ew:Value())
 							end
 						else
 							if not MapPosition:inWall(self.patha) then
-									i.safe = Vector(i.mpos) + Vector(i.p.startPos - i.p.endPos):perpendicular():normalized() * (i.spell.radius + myHero.boundingRadius+EMenu.Advanced.ew:Value())
+									i.safe = Vector(i.mpos) + Vector(Vector(i.mpos) - i.p.endPos):perpendicular2():normalized() * (i.spell.radius + myHero.boundingRadius+EMenu.Advanced.ew:Value())
 								else 
 									i.safe = jp + Vector(jp - self.patha) + Vector(i.p.startPos - i.p.endPos):perpendicular2():normalized() * (i.spell.radius + myHero.boundingRadius+EMenu.Advanced.ew:Value())
 							end
