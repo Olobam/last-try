@@ -3980,43 +3980,119 @@ function SLWalker:__init()
 	self.LastMoveOrder = 0
 	self.forceTarget = nil
 	self.ActiveAttacks = {}
-	self.dmg = 0
 	minionTar = {}
 	self.projectilespeeds = {["Velkoz"]= 2000,["TeemoMushroom"] = math.huge,["TestCubeRender"] = math.huge ,["Xerath"] = 2000.0000 ,["Kassadin"] = math.huge ,["Rengar"] = math.huge ,["Thresh"] = 1000.0000 ,["Ziggs"] = 1500.0000 ,["ZyraPassive"] = 1500.0000 ,["ZyraThornPlant"] = 1500.0000 ,["KogMaw"] = 1800.0000 ,["HeimerTBlue"] = 1599.3999 ,["EliseSpider"] = 500.0000 ,["Skarner"] = 500.0000 ,["ChaosNexus"] = 500.0000 ,["Katarina"] = 467.0000 ,["Riven"] = 347.79999 ,["SightWard"] = 347.79999 ,["HeimerTYellow"] = 1599.3999 ,["Ashe"] = 2000.0000 ,["VisionWard"] = 2000.0000 ,["TT_NGolem2"] = math.huge ,["ThreshLantern"] = math.huge ,["TT_Spiderboss"] = math.huge ,["OrderNexus"] = math.huge ,["Soraka"] = 1000.0000 ,["Jinx"] = 2750.0000 ,["TestCubeRenderwCollision"] = 2750.0000 ,["Red_Minion_Wizard"] = 650.0000 ,["JarvanIV"] = 20.0000 ,["Blue_Minion_Wizard"] = 650.0000 ,["TT_ChaosTurret2"] = 1200.0000 ,["TT_ChaosTurret3"] = 1200.0000 ,["TT_ChaosTurret1"] = 1200.0000 ,["ChaosTurretGiant"] = 1200.0000 ,["Dragon"] = 1200.0000 ,["LuluSnowman"] = 1200.0000 ,["Worm"] = 1200.0000 ,["ChaosTurretWorm"] = 1200.0000 ,["TT_ChaosInhibitor"] = 1200.0000 ,["ChaosTurretNormal"] = 1200.0000 ,["AncientGolem"] = 500.0000 ,["ZyraGraspingPlant"] = 500.0000 ,["HA_AP_OrderTurret3"] = 1200.0000 ,["HA_AP_OrderTurret2"] = 1200.0000 ,["Tryndamere"] = 347.79999 ,["OrderTurretNormal2"] = 1200.0000 ,["Singed"] = 700.0000 ,["OrderInhibitor"] = 700.0000 ,["Diana"] = 347.79999 ,["HA_FB_HealthRelic"] = 347.79999 ,["TT_OrderInhibitor"] = 347.79999 ,["GreatWraith"] = 750.0000 ,["Yasuo"] = 347.79999 ,["OrderTurretDragon"] = 1200.0000 ,["OrderTurretNormal"] = 1200.0000 ,["LizardElder"] = 500.0000 ,["HA_AP_ChaosTurret"] = 1200.0000 ,["Ahri"] = 1750.0000 ,["Lulu"] = 1450.0000 ,["ChaosInhibitor"] = 1450.0000 ,["HA_AP_ChaosTurret3"] = 1200.0000 ,["HA_AP_ChaosTurret2"] = 1200.0000 ,["ChaosTurretWorm2"] = 1200.0000 ,["TT_OrderTurret1"] = 1200.0000 ,["TT_OrderTurret2"] = 1200.0000 ,["TT_OrderTurret3"] = 1200.0000 ,["LuluFaerie"] = 1200.0000 ,["HA_AP_OrderTurret"] = 1200.0000 ,["OrderTurretAngel"] = 1200.0000 ,["YellowTrinketUpgrade"] = 1200.0000 ,["MasterYi"] = math.huge ,["Lissandra"] = 2000.0000 ,["ARAMOrderTurretNexus"] = 1200.0000 ,["Draven"] = 1700.0000 ,["FiddleSticks"] = 1750.0000 ,["SmallGolem"] = math.huge ,["ARAMOrderTurretFront"] = 1200.0000 ,["ChaosTurretTutorial"] = 1200.0000 ,["NasusUlt"] = 1200.0000 ,["Maokai"] = math.huge ,["Wraith"] = 750.0000 ,["Wolf"] = math.huge ,["Sivir"] = 1750.0000 ,["Corki"] = 2000.0000 ,["Janna"] = 1200.0000 ,["Nasus"] = math.huge ,["Golem"] = math.huge ,["ARAMChaosTurretFront"] = 1200.0000 ,["ARAMOrderTurretInhib"] = 1200.0000 ,["LeeSin"] = math.huge ,["HA_AP_ChaosTurretTutorial"] = 1200.0000 ,["GiantWolf"] = math.huge ,["HA_AP_OrderTurretTutorial"] = 1200.0000 ,["YoungLizard"] = 750.0000 ,["Jax"] = 400.0000 ,["LesserWraith"] = math.huge ,["Blitzcrank"] = math.huge ,["ARAMChaosTurretInhib"] = 1200.0000 ,["Shen"] = 400.0000 ,["Nocturne"] = math.huge ,["Sona"] = 1500.0000 ,["ARAMChaosTurretNexus"] = 1200.0000 ,["YellowTrinket"] = 1200.0000 ,["OrderTurretTutorial"] = 1200.0000 ,["Caitlyn"] = 2500.0000 ,["Trundle"] = 347.79999 ,["Malphite"] = 1000.0000 ,["Mordekaiser"] = math.huge ,["ZyraSeed"] = math.huge ,["Vi"] = 1000.0000 ,["Tutorial_Red_Minion_Wizard"] = 650.0000 ,["Renekton"] = math.huge ,["Anivia"] = 1400.0000 ,["Fizz"] = math.huge ,["Heimerdinger"] = 1500.0000 ,["Evelynn"] = 467.0000 ,["Rumble"] = 347.79999 ,["Leblanc"] = 1700.0000 ,["Darius"] = math.huge ,["OlafAxe"] = math.huge ,["Viktor"] = 2300.0000 ,["XinZhao"] = 20.0000 ,["Orianna"] = 1450.0000 ,["Vladimir"] = 1400.0000 ,["Nidalee"] = 1750.0000 ,["Tutorial_Red_Minion_Basic"] = math.huge ,["ZedShadow"] = 467.0000 ,["Syndra"] = 1800.0000 ,["Zac"] = 1000.0000 ,["Olaf"] = 347.79999 ,["Veigar"] = 1100.0000 ,["Twitch"] = 2500.0000 ,["Alistar"] = math.huge ,["Akali"] = 467.0000 ,["Urgot"] = 1300.0000 ,["Leona"] = 347.79999 ,["Talon"] = math.huge ,["Karma"] = 1500.0000 ,["Jayce"] = 347.79999 ,["Galio"] = 1000.0000 ,["Shaco"] = math.huge ,["Taric"] = math.huge ,["TwistedFate"] = 1500.0000 ,["Varus"] = 2000.0000 ,["Garen"] = 347.79999 ,["Swain"] = 1600.0000 ,["Vayne"] = 2000.0000 ,["Fiora"] = 467.0000 ,["Quinn"] = 2000.0000 ,["Kayle"] = math.huge ,["Blue_Minion_Basic"] = math.huge ,["Brand"] = 2000.0000 ,["Teemo"] = 1300.0000 ,["Amumu"] = 500.0000 ,["Annie"] = 1200.0000 ,["Odin_Blue_Minion_caster"] = 1200.0000 ,["Elise"] = 1600.0000 ,["Nami"] = 1500.0000 ,["Poppy"] = 500.0000 ,["AniviaEgg"] = 500.0000 ,["Tristana"] = 2250.0000 ,["Graves"] = 3000.0000 ,["Morgana"] = 1600.0000 ,["Gragas"] = math.huge ,["MissFortune"] = 2000.0000 ,["Warwick"] = math.huge ,["Cassiopeia"] = 1200.0000 ,["Tutorial_Blue_Minion_Wizard"] = 650.0000 ,["DrMundo"] = math.huge ,["Volibear"] = 467.0000 ,["Irelia"] = 467.0000 ,["Odin_Red_Minion_Caster"] = 650.0000 ,["Lucian"] = 2800.0000 ,["Yorick"] = math.huge ,["RammusPB"] = math.huge ,["Red_Minion_Basic"] = math.huge ,["Udyr"] = 467.0000 ,["MonkeyKing"] = 20.0000 ,["Tutorial_Blue_Minion_Basic"] = math.huge ,["Kennen"] = 1600.0000 ,["Nunu"] = 500.0000 ,["Ryze"] = 2400.0000 ,["Zed"] = 467.0000 ,["Nautilus"] = 1000.0000 ,["Gangplank"] = 1000.0000 ,["Lux"] = 1600.0000 ,["Sejuani"] = 500.0000 ,["Ezreal"] = 2000.0000 ,["OdinNeutralGuardian"] = 1800.0000 ,["Khazix"] = 500.0000 ,["Sion"] = math.huge ,["Aatrox"] = 347.79999 ,["Hecarim"] = 500.0000 ,["Pantheon"] = 20.0000 ,["Shyvana"] = 467.0000 ,["Zyra"] = 1700.0000 ,["Karthus"] = 1200.0000 ,["Rammus"] = math.huge ,["Zilean"] = 1200.0000 ,["Chogath"] = 500.0000 ,["Malzahar"] = 2000.0000 ,["YorickRavenousGhoul"] = 347.79999 ,["YorickSpectralGhoul"] = 347.79999 ,["JinxMine"] = 347.79999 ,["YorickDecayedGhoul"] = 347.79999 ,["XerathArcaneBarrageLauncher"] = 347.79999 ,["Odin_SOG_Order_Crystal"] = 347.79999 ,["TestCube"] = 347.79999 ,["ShyvanaDragon"] = math.huge ,["FizzBait"] = math.huge ,["Blue_Minion_MechMelee"] = math.huge ,["OdinQuestBuff"] = math.huge ,["TT_Buffplat_L"] = math.huge ,["TT_Buffplat_R"] = math.huge ,["KogMawDead"] = math.huge ,["TempMovableChar"] = math.huge ,["Lizard"] = 500.0000 ,["GolemOdin"] = math.huge ,["OdinOpeningBarrier"] = math.huge ,["TT_ChaosTurret4"] = 500.0000 ,["TT_Flytrap_A"] = 500.0000 ,["TT_NWolf"] = math.huge ,["OdinShieldRelic"] = math.huge ,["LuluSquill"] = math.huge ,["redDragon"] = math.huge ,["MonkeyKingClone"] = math.huge ,["Odin_skeleton"] = math.huge ,["OdinChaosTurretShrine"] = 500.0000 ,["Cassiopeia_Death"] = 500.0000 ,["OdinCenterRelic"] = 500.0000 ,["OdinRedSuperminion"] = math.huge ,["JarvanIVWall"] = math.huge ,["ARAMOrderNexus"] = math.huge ,["Red_Minion_MechCannon"] = 1200.0000 ,["OdinBlueSuperminion"] = math.huge ,["SyndraOrbs"] = math.huge ,["LuluKitty"] = math.huge ,["SwainNoBird"] = math.huge ,["LuluLadybug"] = math.huge ,["CaitlynTrap"] = math.huge ,["TT_Shroom_A"] = math.huge ,["ARAMChaosTurretShrine"] = 500.0000 ,["Odin_Windmill_Propellers"] = 500.0000 ,["TT_NWolf2"] = math.huge ,["OdinMinionGraveyardPortal"] = math.huge ,["SwainBeam"] = math.huge ,["Summoner_Rider_Order"] = math.huge ,["TT_Relic"] = math.huge ,["odin_lifts_crystal"] = math.huge ,["OdinOrderTurretShrine"] = 500.0000 ,["SpellBook1"] = 500.0000 ,["Blue_Minion_MechCannon"] = 1200.0000 ,["TT_ChaosInhibitor_D"] = 1200.0000 ,["Odin_SoG_Chaos"] = 1200.0000 ,["TrundleWall"] = 1200.0000 ,["HA_AP_HealthRelic"] = 1200.0000 ,["OrderTurretShrine"] = 500.0000 ,["OriannaBall"] = 500.0000 ,["ChaosTurretShrine"] = 500.0000 ,["LuluCupcake"] = 500.0000 ,["HA_AP_ChaosTurretShrine"] = 500.0000 ,["TT_NWraith2"] = 750.0000 ,["TT_Tree_A"] = 750.0000 ,["SummonerBeacon"] = 750.0000 ,["Odin_Drill"] = 750.0000 ,["TT_NGolem"] = math.huge ,["AramSpeedShrine"] = math.huge ,["OriannaNoBall"] = math.huge ,["Odin_Minecart"] = math.huge ,["Summoner_Rider_Chaos"] = math.huge ,["OdinSpeedShrine"] = math.huge ,["TT_SpeedShrine"] = math.huge ,["odin_lifts_buckets"] = math.huge ,["OdinRockSaw"] = math.huge ,["OdinMinionSpawnPortal"] = math.huge ,["SyndraSphere"] = math.huge ,["Red_Minion_MechMelee"] = math.huge ,["SwainRaven"] = math.huge ,["crystal_platform"] = math.huge ,["MaokaiSproutling"] = math.huge ,["Urf"] = math.huge ,["TestCubeRender10Vision"] = math.huge ,["MalzaharVoidling"] = 500.0000 ,["GhostWard"] = 500.0000 ,["MonkeyKingFlying"] = 500.0000 ,["LuluPig"] = 500.0000 ,["AniviaIceBlock"] = 500.0000 ,["TT_OrderInhibitor_D"] = 500.0000 ,["Odin_SoG_Order"] = 500.0000 ,["RammusDBC"] = 500.0000 ,["FizzShark"] = 500.0000 ,["LuluDragon"] = 500.0000 ,["OdinTestCubeRender"] = 500.0000 ,["TT_Tree1"] = 500.0000 ,["ARAMOrderTurretShrine"] = 500.0000 ,["Odin_Windmill_Gears"] = 500.0000 ,["ARAMChaosNexus"] = 500.0000 ,["TT_NWraith"] = 750.0000 ,["TT_OrderTurret4"] = 500.0000 ,["Odin_SOG_Chaos_Crystal"] = 500.0000 ,["OdinQuestIndicator"] = 500.0000 ,["JarvanIVStandard"] = 500.0000 ,["TT_DummyPusher"] = 500.0000 ,["OdinClaw"] = 500.0000 ,["EliseSpiderling"] = 2000.0000 ,["QuinnValor"] = math.huge ,["UdyrTigerUlt"] = math.huge ,["UdyrTurtleUlt"] = math.huge ,["UdyrUlt"] = math.huge ,["UdyrPhoenixUlt"] = math.huge ,["ShacoBox"] = 1500.0000 ,["HA_AP_Poro"] = 1500.0000 ,["AnnieTibbers"] = math.huge ,["UdyrPhoenix"] = math.huge ,["UdyrTurtle"] = math.huge ,["UdyrTiger"] = math.huge ,["HA_AP_OrderShrineTurret"] = 500.0000 ,["HA_AP_Chains_Long"] = 500.0000 ,["HA_AP_BridgeLaneStatue"] = 500.0000 ,["HA_AP_ChaosTurretRubble"] = 500.0000 ,["HA_AP_PoroSpawner"] = 500.0000 ,["HA_AP_Cutaway"] = 500.0000 ,["HA_AP_Chains"] = 500.0000 ,["ChaosInhibitor_D"] = 500.0000 ,["ZacRebirthBloblet"] = 500.0000 ,["OrderInhibitor_D"] = 500.0000 ,["Nidalee_Spear"] = 500.0000 ,["Nidalee_Cougar"] = 500.0000 ,["TT_Buffplat_Chain"] = 500.0000 ,["WriggleLantern"] = 500.0000 ,["TwistedLizardElder"] = 500.0000 ,["RabidWolf"] = math.huge ,["HeimerTGreen"] = 1599.3999 ,["HeimerTRed"] = 1599.3999 ,["ViktorFF"] = 1599.3999 ,["TwistedGolem"] = math.huge ,["TwistedSmallWolf"] = math.huge ,["TwistedGiantWolf"] = math.huge ,["TwistedTinyWraith"] = 750.0000 ,["TwistedBlueWraith"] = 750.0000 ,["TwistedYoungLizard"] = 750.0000 ,["Red_Minion_Melee"] = math.huge ,["Blue_Minion_Melee"] = math.huge ,["Blue_Minion_Healer"] = 1000.0000 ,["Ghast"] = 750.0000 ,["blueDragon"] = 800.0000 ,["Red_Minion_MechRange"] = 3000, ["SRU_OrderMinionRanged"] = 650, ["SRU_ChaosMinionRanged"] = 650, ["SRU_OrderMinionSiege"] = 1200, ["SRU_ChaosMinionSiege"] = 1200, ["SRUAP_Turret_Chaos1"]  = 1200, ["SRUAP_Turret_Chaos2"]  = 1200, ["SRUAP_Turret_Chaos3"] = 1200, ["SRUAP_Turret_Order1"]  = 1200, ["SRUAP_Turret_Order2"]  = 1200, ["SRUAP_Turret_Order3"] = 1200, ["SRUAP_Turret_Chaos4"] = 1200, ["SRUAP_Turret_Chaos5"] = 500, ["SRUAP_Turret_Order4"] = 1200, ["SRUAP_Turret_Order5"] = 500 }
 	self.altAANames = {"caitlynheadshotmissile", "frostarrow", "garenslash2", "kennenmegaproc", "lucianpassiveattack", "masteryidoublestrike", "quinnwenhanced", "renektonexecute", "renektonsuperexecute", "rengarnewpassivebuffdash", "trundleq", "xenzhaothrust", "xenzhaothrust2", "xenzhaothrust3"}
 	self.aaresets = {"dariusnoxiantacticsonh", "fiorae", "garenq", "hecarimrapidslash", "jaxempowertwo", "jaycehypercharge", "leonashieldofdaybreak", "luciane", "monkeykingdoubleattack", "mordekaisermaceofspades", "nasusq", "nautiluspiercinggaze", "netherblade", "parley", "poppydevastatingblow", "powerfist", "renektonpreexecute", "rengarq", "shyvanadoubleattack", "sivirw", "takedown", "talonnoxiandiplomacy", "trundletrollsmash", "vaynetumble", "vie", "volibearq", "xenzhaocombotarget", "yorickspectral", "reksaiq", "riventricleave", "kalistaexpunge", "itemtitanichydracleave", "itemtiamatcleave", "gravesmove", "masochism" }
- self.bonusDamageTable = {
-	["Aatrox"]		= {buffname="aatroxwpower", dmg = function(target) return getdmg("Q",target,myHero,1,GetCastLevel(myHero,0)) end},
-	["Ashe"]   		= {buffname="asheqattack", dmg = function(target) return getdmg("Q",target,myHero,1,GetCastLevel(myHero,0)) end},
-	["Bard"]  	 	= {buffname="bardpspiritammocount", dmg = function(target) return 30+GetLevel(myHero)*15+0.3*GetBonusAP(myHero)end},
-	["Blitzcrank"]	= {buffname="powerfist", dmg = function(target) return getdmg("E",target,myHero,1,GetCastLevel(myHero,2)) end},
-	["Caitlyn"]		= {buffname="caitlynheadshot", dmg = function(target) return 1.5*(GetBaseDamage(myHero)+GetBonusDmg(myHero)) end},
-	["Chogath"]		= {buffname="vorpalspikes", dmg = function(target) return getdmg("E",target,myHero,1,GetCastLevel(myHero,2)) end},
-	["Corki"]		= {buffname="rapidreload", dmg = function(target) return GetBaseDamage(myHero)+GetBonusDmg(myHero)+.1*(GetBaseDamage(myHero)+GetBonusDmg(myHero)) end},
-	["Darius"]		= {buffname="dariusnoxiantacticsonh", dmg = function(target) return getdmg("W",target,myHero,1,GetCastLevel(myHero,1)) end},
-	["Draven"]		= {buffname="dravenspinning", dmg = function(target) return getdmg("Q",target,myHero,1,GetCastLevel(myHero,0)) end},
-	["Ekko"]		= {buffname="ekkoeattackbuff", dmg = function(target) return getdmg("E",target,myHero,1,GetCastLevel(myHero,2)) end},
-	["Fizz"]		= {buffname="fizzseastonepassive", dmg = function(target) return getdmg("W",target,myHero,1,GetCastLevel(myHero,W)) end},
-	["Garen"]		= {buffname="garenq", dmg = function(target) return getdmg("Q",target,myHero,1,GetCastLevel(myHero,0)) end},
-	["Gragas"]		= {buffname="gragaswattackbuff", dmg = function(target) return getdmg("W",target,myHero,1,GetCastLevel(myHero,1))end},
-	["Irelia"]		= {buffname="ireliahitenstylecharged", dmg = function(target) return getdmg("W",target,myHero,1,GetCastLevel(myHero,1)) end},
-	["Jax"]			= {buffname="jaxempowertwo", dmg = function(target) return getdmg("W",target,myHero,1,GetCastLevel(myHero,1)) end},
-	["Jayce"]		= {buffname="jaycepassivemeleeatack", dmg = function(target) return 40*GetCastLevel(myHero, _R)-20+.4*GetBonusAP(myHero) end},
-	["Jinx"]		= {buffname="jinxq", dmg = function(target) return getdmg("Q",target,myHero,1,GetCastLevel(myHero,0)) end},
-	["Kassadin"]	= {buffname="netherbladebuff", dmg = function(target) return getdmg("W",target,myHero,1,GetCastLevel(myHero,1)) end},
-	["Kayle"]		= {buffname="kaylerighteousfurybuff", dmg = function(target) return getdmg("E",target,myHero,1,GetCastLevel(myHero,2)) end},
-	["MasterYi"]	= {buffname="doublestrike", dmg = function(target) return getdmg("E",target,myHero,1,GetCastLevel(myHero,2)) end},
-	["RekSai"]		= {buffname="reksaiq", dmg = function(target) return getdmg("Q",target,myHero,1,GetCastLevel(myHero,0)) end},
-	["Rengar"]		= {buffname="rengarqbase", dmg = function(target) return getdmg("Q",target,myHero,1,GetCastLevel(myHero,0)) end},
-	["Riven"]		= {buffname="rivenpassiveaaboost", dmg = function(target) return (GetBaseDamage(myHero)+GetBonusDmg(myHero))+(2.7*GetLevel(myHero)) end},
-	["Shyvana"]		= {buffname="shyvanadoubleattack", dmg = function(target) return getdmg("Q",target,myHero,1,GetCastLevel(myHero,0)) end},
-	["Talon"]		= {buffname="talonnoxiandiplomacybuff", dmg = function(target) return getdmg("Q",target,myHero,1,GetCastLevel(myHero,0)) end},
-	["Teemo"]		= {buffname="ToxicShot", dmg = function(target) return getdmg("E",target,myHero,1,GetCastLevel(myHero,2)) end},
-	["Trundle"]		= {buffname="trundletrollsmash", dmg = function(target) return getdmg("Q",target,myHero,1,GetCastLevel(myHero,0)) end},
-	["Varus"]		= {buffname="varusw", dmg = function(target) return getdmg("W",target,myHero,1,GetCastLevel(myHero,1)) end},
-	["Vayne"]		= {buffname="vaynetumblebonus", dmg = function(target) return getdmg("Q",target,myHero,1,GetCastLevel(myHero,0)) end},
-	["Vi"]			= {buffname="vie", dmg = function(target) return getdmg("E",target,myHero,1,GetCastLevel(myHero,2)) end},
-	["Volibear"]	= {buffname="volibearq", dmg = function(target) return getdmg("Q",target,myHero,1,GetCastLevel(myHero,0)) end},
+ self.bonusDamageTable = {--IOW
+    ["Aatrox"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg+(GotBuff(source, "aatroxwpower")>0 and 35*GetCastLevel(source, _W)+25 or 0), APDmg, TRUEDmg
+    end,
+    ["Ashe"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg*(GotBuff(source, "asheqattack")>0 and 5*(0.01*GetCastLevel(source, _Q)+0.22) or GotBuff(target, "ashepassiveslow")>0 and (1.1+GetCritChance(source)*(1)) or 1), APDmg, TRUEDmg
+    end,
+    ["Bard"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg, APDmg+(GotBuff(source, "bardpspiritammocount")>0 and 30+GetLevel(source)*15+0.3*GetBonusAP(source) or 0), TRUEDmg
+    end,
+    ["Blitzcrank"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg*(GotBuff(source, "powerfist")+1), APDmg, TRUEDmg
+    end,
+    ["Caitlyn"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg + (GotBuff(source, "caitlynheadshot") > 0 and 1.5*(ADDmg) or 0), APDmg, TRUEDmg
+    end,
+    ["Chogath"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg, APDmg + (GotBuff(source, "vorpalspikes") > 0 and 15*GetCastLevel(source, _E)+5+.3*GetBonusAP(source) or 0), APDmg, TRUEDmg
+    end,
+    ["Corki"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg, 0, TRUEDmg + (GotBuff(source, "rapidreload") > 0 and .1*(ADDmg) or 0)
+    end,
+    ["Darius"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg + (GotBuff(source, "dariusnoxiantacticsonh") > 0 and .4*(ADDmg) or 0), APDmg, TRUEDmg
+    end,
+    ["Diana"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg, APDmg + (GotBuff(source, "dianaarcready") > 0 and math.max(5*GetLevel(source)+15,10*GetLevel(source)-10,15*GetLevel(source)-60,20*GetLevel(source)-125,25*GetLevel(source)-200)+.8*GetBonusAP(source) or 0), TRUEDmg
+    end,
+    ["Draven"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg + (GotBuff(source, "dravenspinning") > 0 and (.1*GetCastLevel(source, _Q)+.35)*(ADDmg) or 0), APDmg, TRUEDmg
+    end,
+    ["Ekko"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg, APDmg + (GotBuff(source, "ekkoeattackbuff") > 0 and 30*GetCastLevel(source, _E)+20+.2*GetBonusAP(source) or 0), TRUEDmg
+    end,
+    ["Fizz"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg, APDmg + (GotBuff(source, "fizzseastonepassive") > 0 and 5*GetCastLevel(source, _W)+5+.3*GetBonusAP(source) or 0), TRUEDmg
+    end,
+    ["Garen"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg + (GotBuff(source, "garenq") > 0 and 25*GetCastLevel(source, _Q)+5+.4*(ADDmg) or 0), APDmg, TRUEDmg
+    end,
+    ["Gragas"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg, APDmg + (GotBuff(source, "gragaswattackbuff") > 0 and 30*GetCastLevel(source, _W)-10+.3*GetBonusAP(source)+(.01*GetCastLevel(source, _W)+.07)*GetMaxHP(minion) or 0), TRUEDmg
+    end,
+    ["Irelia"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg, 0, TRUEDmg + (GotBuff(source, "ireliahitenstylecharged") > 0 and 25*GetCastLevel(source, _Q)+5+.4*(ADDmg) or 0)
+    end,
+    ["Jax"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg, APDmg + (GotBuff(source, "jaxempowertwo") > 0 and 35*GetCastLevel(source, _W)+5+.6*GetBonusAP(source) or 0), TRUEDmg
+    end,
+    ["Jayce"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg, APDmg + (GotBuff(source, "jaycepassivemeleeatack") > 0 and 40*GetCastLevel(source, _R)-20+.4*GetBonusAP(source) or 0), TRUEDmg
+    end,
+    ["Jinx"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg + (GotBuff(source, "jinxq") > 0 and .1*(ADDmg) or 0), APDmg, TRUEDmg
+    end,
+    ["Kalista"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg * 0.9, APDmg, TRUEDmg
+    end,
+    ["Kassadin"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg, APDmg + (GotBuff(source, "netherbladebuff") > 0 and 20+.1*GetBonusAP(source) or (GotBuff(source, "netherblade") > 0 and 25*GetCastLevel(source, _W)+15+.6*GetBonusAP(source) or 0)), TRUEDmg
+    end,
+    ["Kayle"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg, APDmg + (GotBuff(source, "kaylerighteousfurybuff") > 0 and 5*GetCastLevel(source, _E)+5+.15*GetBonusAP(source) or 0) + (GotBuff(source, "judicatorrighteousfury") > 0 and 5*GetCastLevel(source, _E)+5+.15*GetBonusAP(source) or 0), TRUEDmg
+    end,
+    ["Leona"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg, APDmg + (GotBuff(source, "leonashieldofdaybreak") > 0 and 30*GetCastLevel(source, _Q)+10+.3*GetBonusAP(source) or 0), TRUEDmg
+    end,
+    ["Lux"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg, APDmg + (GotBuff(source, "luxilluminatingfraulein") > 0 and 10+(GetLevel(source)*8)+(GetBonusAP(source)*0.2) or 0), TRUEDmg
+    end,
+    ["MasterYi"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg + (GotBuff(source, "doublestrike") > 0 and .5*(ADDmg) or 0), APDmg, TRUEDmg
+    end,
+    ["Nocturne"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg + (GotBuff(source, "nocturneumrablades") > 0 and .2*(ADDmg) or 0), APDmg, TRUEDmg
+    end,
+    ["Orianna"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg, APDmg + 2 + 8 * math.ceil(GetLevel(source)/3) + 0.15*GetBonusAP(source), TRUEDmg
+    end,
+    ["RekSai"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg + (GotBuff(source, "reksaiq") > 0 and 10*GetCastLevel(source, _Q)+5+.2*(ADDmg) or 0), APDmg, TRUEDmg
+    end,
+    ["Rengar"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg + (GotBuff(source, "rengarqbase") > 0 and math.max(30*GetCastLevel(source, _Q)+(.05*GetCastLevel(source, _Q)-.05)*(ADDmg)) or 0) + (GotBuff(source, "rengarqemp") > 0 and math.min(15*GetLevel(source)+15,10*GetLevel(source)+60)+.5*(ADDmg) or 0), APDmg, TRUEDmg
+    end,
+    ["Shyvana"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg + (GotBuff(source, "shyvanadoubleattack") > 0 and (.05*GetCastLevel(source, _Q)+.75)*(ADDmg) or 0), APDmg, TRUEDmg
+    end,
+    ["Talon"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg + (GotBuff(source, "talonnoxiandiplomacybuff") > 0 and 30*GetCastLevel(source, _Q)+.3*(GetBonusDmg(source)) or 0), APDmg, TRUEDmg
+    end,
+    ["Teemo"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg, APDmg + 10*GetCastLevel(source, _E)+0.3*GetBonusAP(source), TRUEDmg
+    end,
+    ["Trundle"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg + (GotBuff(source, "trundletrollsmash") > 0 and 20*GetCastLevel(source, _Q)+((0.05*GetCastLevel(source, _Q)+0.095)*(ADDmg)) or 0), APDmg, TRUEDmg
+    end,
+    ["Varus"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg, APDmg + (GotBuff(source, "varusw") > 0 and (4*GetCastLevel(source, _W)+6+.25*GetBonusAP(source)) or 0) , TRUEDmg
+    end,
+    ["Vayne"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg + (GotBuff(source, "vaynetumblebonus") > 0 and (.05*GetCastLevel(source, _Q)+.25)*(ADDmg) or 0), 0, TRUEDmg + (GotBuff(target, "vaynesilvereddebuff") > 1 and 10*GetCastLevel(source, _W)+10+((1*GetCastLevel(source, _W)+3)*GetMaxHP(target)/100) or 0)
+    end,
+    ["Vi"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg + (GotBuff(source, "vie") > 0 and 15*GetCastLevel(source, _E)-10+.15*(ADDmg)+.7*GetBonusAP(source) or 0) , APDmg, TRUEDmg
+    end,
+    ["Volibear"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg + (GotBuff(source, "volibearq") > 0 and 30*GetCastLevel(source, _Q) or 0), APDmg, TRUEDmg
+	end
   }	
   
 	OMenu:Menu("FS", "Farm Settings")
@@ -4083,14 +4159,14 @@ if not SLW then return end
 	for _,i in pairs(minionManager.objects) do
 		if OMenu.D.LHM:Value() then
 			if self:Mode() == "LaneClear" then
-				if i.visible and i.distance < self.aarange and i.alive and i.team ~= MINION_ALLY and self:PredictHP(i,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(i)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, i, self:Dmg(i)*2) and AllyMinionsAround(myHero,self.aarange-myHero.boundingRadius) > 3 then
+				if i.visible and i.distance < self.aarange and i.alive and i.team ~= MINION_ALLY and self:PredictHP(i,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(i)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, i, self:Dmg(myHero,i,{name = "Basic"})*2) and AllyMinionsAround(myHero,self.aarange-myHero.boundingRadius) > 3 then
 					DrawCircle(i.pos,i.boundingRadius*1.2,1,20,ARGB(255,255,128,0))
-				elseif i.visible and i.distance < self.aarange and i.alive and i.team ~= MINION_ALLY and self:PredictHP(i,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(i)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, i, self:Dmg(i)) and AllyMinionsAround(myHero,self.aarange-myHero.boundingRadius) < 3 then
+				elseif i.visible and i.distance < self.aarange and i.alive and i.team ~= MINION_ALLY and self:PredictHP(i,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(i)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, i, self:Dmg(myHero,i,{name = "Basic"})) and AllyMinionsAround(myHero,self.aarange-myHero.boundingRadius) < 3 then
 					DrawCircle(i.pos,i.boundingRadius*1.2,1,20,ARGB(255,255,128,0))
 				end
 			end
 			if self:Mode() == "LaneClear" or self:Mode() == "LastHit" then
-				if i.visible and i.distance < self.aarange and i.alive and i.team ~= MINION_ALLY and self:PredictHP(i,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(i)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, i, self:Dmg(i)) then
+				if i.visible and i.distance < self.aarange and i.alive and i.team ~= MINION_ALLY and self:PredictHP(i,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(i)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, i, self:Dmg(myHero,i,{name = "Basic"})) then
 					DrawCircle(i.pos,i.boundingRadius*1.2,1,20,GoS.Green)
 				end
 			end
@@ -4102,25 +4178,79 @@ function SLWalker:PredictHP(unit,time)
 	return self:GetPredictedHealth(unit,time)
 end
 
-function SLWalker:Dmg(unit)
-	if self.bonusDamageTable[myHero.charName] then
-		if GotBuff(myHero,self.bonusDamageTable[myHero.charName].buffname)>0 then
-			return self.bonusDamageTable[myHero.charName].dmg(unit)
-		else
-			return GetBonusDmg(myHero)+GetBaseDamage(myHero)
+function SLWalker:Dmg(source,unit,spell)
+local dmg = 0
+local ADDmg = 0
+local TotalDmg = source.totalDamage
+local APDmg = 0
+local TRUEDmg = 0
+local armorPenPercent = source.armorPenPercent
+local armorPen = source.armorPen
+local damageMultiplier = spell.name:find("CritAttack") and 2 or 1
+    if source.type == "obj_AI_Minion" then
+        armorPenPercent = 1
+    elseif source.type == "obj_AI_Turret" then
+        armorPenPercent = 0.7
+    end
+    if unit.type == "obj_AI_Turret" then
+        armorPenPercent = 1
+        armorPen = 0
+        damageMultiplier = 1
+    end
+    local targetArmor = (unit.armor * armorPenPercent) - armorPen
+    if targetArmor < 0 then
+        damageMultiplier = 1 * damageMultiplier
+    else
+        damageMultiplier = 100 / (100 + targetArmor) * damageMultiplier
+    end
+    if source.type == source.type and unit.type == "obj_AI_Turret" then
+        TotalDmg = math.max(source.totalDamage, source.damage + 0.4 * source.ap)
+    end
+    if source.type == "obj_AI_Minion" and unit.type == source.type and source.team ~= MINION_JUNGLE then
+        damageMultiplier = 0.60 * damageMultiplier
+    end
+    if source.type == source.type and unit.type == "obj_AI_Turret" then
+        damageMultiplier = 0.95 * damageMultiplier
+    end
+    if source.type == "obj_AI_Minion" and unit.type == "obj_AI_Turret" then
+        damageMultiplier = 0.475 * damageMultiplier
+    end
+    if source.type == "obj_AI_Turret" and (unit.charName == "Red_Minion_MechCannon" or unit.charName == "Blue_Minion_MechCannon") then
+        damageMultiplier = 0.8 * damageMultiplier
+    end
+    if source.type == "obj_AI_Turret" and (unit.charName == "Red_Minion_Wizard" or unit.charName == "Blue_Minion_Wizard" or unit.charName == "Red_Minion_Basic" or unit.charName == "Blue_Minion_Basic") then
+        damageMultiplier = (1 / 0.875) * damageMultiplier
+    end
+    if source.type == "obj_AI_Turret" then
+        damageMultiplier = 1.05 * damageMultiplier
+    end
+	ADDmg = TotalDmg
+	if targetType ~= Obj_AI_Turret then
+		if GetMaladySlot(source) then
+			APDmg = 15 + 0.15*AP
 		end
-	else
-		return GetBonusDmg(myHero)+GetBaseDamage(myHero)
-	end		
-	if self.bonusDamageTable[unit.charName] then
-		if GotBuff(unit,self.bonusDamageTable[unit.charName].buffname)>0 then
-			return self.bonusDamageTable[unit.charName].dmg(unit)
-		else
-			return GetBonusDmg(unit)+GetBaseDamage(unit)
+		if GotBuff(source, "itemstatikshankcharge") == 100 then
+			APDmg = APDmg + 100
 		end
-	else
-		return GetBonusDmg(unit)+GetBaseDamage(unit)
-	end	
+		if source == source and not freeze then
+			if self.bonusDamageTable[source.charName] then
+				ADDmg, APDmg, TRUEDmg = self.bonusDamageTable[source.charName](source, unit, ADDmg, APDmg, TRUEDmg)
+			end
+			if GotBuff(source, "sheen") > 0 then
+				ADDmg = ADDmg + TotalDmg
+			end
+			if GotBuff(source, "lichbane") > 0 then
+				ADDmg = ADDmg + TotalDmg*0.75
+				APDmg = APDmg + 0.5*myHero.ap
+			end
+			if GotBuff(source, "itemfrozenfist") > 0 then
+				ADDmg = ADDmg + TotalDmg*1.25
+			end
+		end
+	end
+	dmg = math.floor(ADDmg)+math.floor(APDmg)
+	dmg = math.floor(dmg*damageMultiplier)+TRUEDmg
+return dmg
 end
 
 function SLWalker:moveEvery()
@@ -4249,7 +4379,7 @@ end
 function SLWalker:JungleClear()
 	for _,o in pairs(minionManager.objects) do
 		if OMenu.FS.AJ:Value() and o.team == MINION_JUNGLE and ValidTarget(o,self.aarange) and self:CanOrb(o) then
-			if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(o)) then
+			if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
 				return nil
 			else
 				return self:GetHighestMinion(o)
@@ -4265,13 +4395,13 @@ function SLWalker:LaneClear()
 				if GetDistance(myHero,turret) > self.aarange then
 					if o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
 						if AllyMinionsAround(myHero,self.aarange-myHero.boundingRadius) > 3 then
-							if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(o)*2) then
+							if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})*2) then
 								return nil
 							else
 								return self:GetLowestMinion(o)
 							end
 						else
-							if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(o)) then
+							if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
 								return nil
 							else
 								return self:GetLowestMinion(o)
@@ -4284,13 +4414,13 @@ function SLWalker:LaneClear()
 			else
 				if o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
 					if AllyMinionsAround(myHero,self.aarange-myHero.boundingRadius) > 3 then
-						if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(o)*2) then
+						if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})*2) then
 							return nil
 						else
 							return self:GetLowestMinion(o)
 						end
 					else
-						if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(o)) then
+						if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
 							return nil
 						else
 							return self:GetLowestMinion(o)
@@ -4305,7 +4435,7 @@ end
 function SLWalker:LastHit()
 	for _,o in pairs(minionManager.objects) do
 		if o.team ~= MINION_ALLY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
-			if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(o)) then
+			if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
 				 return self:GetLowestMinion(o)
 			end
 		end
@@ -4337,7 +4467,7 @@ function SLWalker:Harass()
 		end
 		if o and o.team == MINION_ENEMY then
 			if self:CanOrb(o) and ValidTarget(o,self.aarange)then
-				if self:PredictHP(o,(1000/(myHero.attackSpeed*self.BaseAttackSpeed)*GetDistance(o)/self:aaprojectilespeed())) < CalcPhysicalDamage(myHero, o, self:Dmg(o)) then
+				if self:PredictHP(o,(1000/(myHero.attackSpeed*self.BaseAttackSpeed)*GetDistance(o)/self:aaprojectilespeed())) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
 					return self:GetLowestMinion(o)
 				end
 			end
@@ -4389,7 +4519,7 @@ if not SLW then return end
         local time = os.clock() + 0.393 - GetLatency()/2000
         local tar = self:GetAggro(unit)
         if tar then
-            table.insert(self.ActiveAttacks, {Attacker = unit, pos = Vector(unit), Target = tar, animationTime = math.huge, damage = self:Dmg(unit), hittime=time, starttime = self:GetTime() - GetLatency()/2000, windUpTime = 0.393, projectilespeed = math.huge})
+            table.insert(self.ActiveAttacks, {Attacker = unit, pos = Vector(unit), Target = tar, animationTime = math.huge, damage = unit.totalDamage, hittime=time, starttime = self:GetTime() - GetLatency()/2000, windUpTime = 0.393, projectilespeed = math.huge})
         end
     end
 end
@@ -4408,7 +4538,7 @@ if not SLW then return end
                         i = i + 1
                     end
                 end
-                table.insert(self.ActiveAttacks, {Attacker = unit, pos = Vector(unit), Target = spellProc.target, animationTime = spellProc.animationTime, damage = CalcPhysicalDamage(unit, spellProc.target, self:Dmg(unit)), hittime=time, starttime = self:GetTime() - GetLatency()/2000, windUpTime = spellProc.windUpTime, projectilespeed = self.projectilespeeds[unit.charName]})
+                table.insert(self.ActiveAttacks, {Attacker = unit, pos = Vector(unit), Target = spellProc.target, animationTime = spellProc.animationTime, damage = unit.totalDamage, hittime=time, starttime = self:GetTime() - GetLatency()/2000, windUpTime = spellProc.windUpTime, projectilespeed = self.projectilespeeds[unit.charName]})
             else
                 minionTar[unit.networkID] = spellProc.target
             end
@@ -4430,7 +4560,7 @@ function SLWalker:GetPredictedHealth(unit, time)
     while i <= #self.ActiveAttacks do
         if self.ActiveAttacks[i].Attacker and not self.ActiveAttacks[i].Attacker.dead and self.ActiveAttacks[i].Target and self.ActiveAttacks[i].Target.networkID == unit.networkID then
             local hittime = self.ActiveAttacks[i].starttime + self.ActiveAttacks[i].windUpTime + (GetDistance(self.ActiveAttacks[i].Attacker.pos, self.ActiveAttacks[i].Target.pos)) / self.ActiveAttacks[i].projectilespeed + delay
-            if self:GetTime() < hittime - delay and hittime < self:GetTime() + time and self:Dmg(myHero) > self.ActiveAttacks[i].Target.health then
+            if self:GetTime() < hittime - delay and hittime < self:GetTime() + time and self:Dmg(myHero,self.ActiveAttacks[i].Target,{name = "Basic"}) > self.ActiveAttacks[i].Target.health then
                 IncDamage = IncDamage + self.ActiveAttacks[i].damage
                 count = count + 1
                 if self.ActiveAttacks[i].damage > MaxDamage then
