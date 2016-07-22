@@ -8,7 +8,7 @@ if GetGameVersion():sub(3,4) >= "10" then
 end
 local AutoUpdater = true
 
-local function dRectangleOutline(s, e, p, w, r, t, c)--start,end,pos,width,radius,thickness,color
+local function dRectangleOutline(s, e, w, t, c)--start,end,width,thickness,color
 	local c1 = s+Vector(Vector(e)-s):perpendicular():normalized()*w/2
 	local c2 = s+Vector(Vector(e)-s):perpendicular2():normalized()*w/2
 	local c3 = e+Vector(Vector(s)-e):perpendicular():normalized()*w/2
@@ -17,9 +17,6 @@ local function dRectangleOutline(s, e, p, w, r, t, c)--start,end,pos,width,radiu
 	DrawLine3D(c2.x,c2.y,c2.z,c3.x,c3.y,c3.z,t,c)
 	DrawLine3D(c3.x,c3.y,c3.z,c4.x,c4.y,c4.z,t,c)
 	DrawLine3D(c1.x,c1.y,c1.z,c4.x,c4.y,c4.z,t,c)
-	if p then
-		DrawCircle(p, r, 1, 20, c)
-	end
 end
 
 local function dRectangleOutline2(s, e, w, t, c)--start,end,radius,thickness,color
@@ -43,7 +40,7 @@ local function DisableHoldPosition(boolean)
 end
 
 OnObjectLoad(function(obj)
-	if obj and obj.type == Obj_AI_Turret and obj.team == MINION_ENEMY then
+	if obj and obj.type == Obj_AI_Turret then
 		turrets[obj.networkID] = obj
 	end
 end)
@@ -4099,6 +4096,7 @@ function SLWalker:__init()
 	OMenu:Menu("FS", "Farm Settings")
 	OMenu.FS:Boolean("AJ", "Attack Jungle", true)
 	OMenu.FS:Boolean("AS", "Attack Structures", true)
+	OMenu.FS:Boolean("FWA", "Turret farm logic", true)
 	
 	OMenu:Menu("D", "Drawings")
 	OMenu.D:Boolean("LHM", "Lasthit Marker", true)
@@ -4363,7 +4361,6 @@ function SLWalker:CanOrb(t)
 	return true 
 end
 
-
 function SLWalker:Mode()
 	if OMenu.K.C:Value() then 
 		return "Combo" 
@@ -4395,24 +4392,26 @@ function SLWalker:LaneClear()
 	for _,o in pairs(minionManager.objects) do
 		for t,turret in pairs(turrets) do
 			if OMenu.FS.AS:Value() then
-				if GetDistance(myHero,turret) > self.aarange then
-					if o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
-						if AllyMinionsAround(myHero,self.aarange-myHero.boundingRadius) > 3 then
-							if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})*2) then
-								return nil
+				if turret.team == MINION_ENEMY then
+					if GetDistance(myHero,turret) > self.aarange then
+						if o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
+							if AllyMinionsAround(myHero,self.aarange-myHero.boundingRadius) > 3 then
+								if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})*2) then
+									return nil
+								else
+									return self:GetLowestUnit(o)
+								end
 							else
-								return self:GetLowestUnit(o)
-							end
-						else
-							if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
-								return nil
-							else
-								return self:GetLowestUnit(o)
+								if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
+									return nil
+								else
+									return self:GetLowestUnit(o)
+								end
 							end
 						end
+					else
+						return turret
 					end
-				else
-					return turret
 				end
 			else
 				if o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
@@ -4427,6 +4426,20 @@ function SLWalker:LaneClear()
 							return nil
 						else
 							return self:GetLowestUnit(o)
+						end
+					end
+				end
+			end
+			if OMenu.FS.FWA:Value() and ValidTarget(o,self.aarange) and self:CanOrb(o) then
+				if turret.team == MINION_ALLY then
+					if turret.distance < 950 then
+						if 152+myHero.totalDamage < o.health then
+							self.attacksEnabled = false
+						elseif 152+myHero.totalDamage > o.health then
+							self.attacksEnabled = true
+							return o
+						elseif self:Dmg(myHero,o,{name="Basic"}) < self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) then
+							return nil
 						end
 					end
 				end
@@ -4632,7 +4645,6 @@ function SLEvade:__init()
 	EMenu.Advanced:Boolean("EWC", "Enable Wall Collision", true)
 	EMenu.Draws:Boolean("DSPath", "Draw SkillShot Path", true)
 	EMenu.Draws:Boolean("DSEW", "Draw SkillShot Extra Width", true)
-	EMenu.Draws:Boolean("DSPos", "Draw SkillShot Position", true)
 	EMenu.Draws:Boolean("DEPos", "Draw Evade Position", true)
 	EMenu.Draws:Menu("SD", "Spell Drawing color")
 	EMenu.Draws.SD:ColorPick("d1c", "Danger 1 color", {230,51,51,255})
@@ -5251,7 +5263,7 @@ function SLEvade:Drawp()
 			end
 			if i.p then
 				self:MinionCollision()
-				self:HeroCollsion()
+				-- self:HeroCollsion()
 				self:WallCollision()
 				if i.coll then
 					self.endposs = Vector(i.p.endPos)
@@ -5324,36 +5336,36 @@ function SLEvade:MinionCollision()
 	end
 end
 
-function SLEvade:HeroCollsion()
-	for _,i in pairs(self.obj) do
-		if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EHC:Value() and EMenu.Spells[_]["hColl".._]:Value() then
-			local vI = nil 
-			local helperVec = nil
-			local cDist = math.huge 			
-			local cHero = {}
-			endpos = Vector(i.p.endPos)
-			start = Vector(i.p.startPos)
-			for m,p in pairs(heroes) do
-				if p and p.team ~= MINION_ENEMY and p.alive and GetDistance(p.pos,start) < i.spell.range then
-					helperVec = Vector(endpos - start):perpendicular()
-					vI = Vector(VectorIntersection(endpos,start,p.pos,helperVec).x,myHero.pos.y,VectorIntersection(endpos,start,p.pos,helperVec).y)
-					if (i.spell.radius and GetDistance(vI,p.pos) < i.spell.radius) or (i.spell.width and GetDistance(vI,p.pos) < i.spell.width) then
-						if GetDistance(vI,start) < cDist then
-							cDist = GetDistance(start,vI)
-						end
-					end
-				end	
-			end
-			if cDist < i.spell.range then
-				i.p.endPos = vI  
-					if not i.coll then
-						i.coll = true
-					end
-				--print("Hero Collision ")
-			end
-		end
-	end
-end
+-- function SLEvade:HeroCollsion()
+	-- for _,i in pairs(self.obj) do
+		-- if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EHC:Value() and EMenu.Spells[_]["hColl".._]:Value() then
+			-- local vI = nil 
+			-- local helperVec = nil
+			-- local cDist = math.huge 			
+			-- local cHero = {}
+			-- endpos = Vector(i.p.endPos)
+			-- start = Vector(i.p.startPos)
+			-- for m,p in pairs(heroes) do
+				-- if p and p.team ~= MINION_ENEMY and p.alive and GetDistance(p.pos,start) < i.spell.range then
+					-- helperVec = Vector(endpos - start):perpendicular()
+					-- vI = Vector(VectorIntersection(endpos,start,p.pos,helperVec).x,myHero.pos.y,VectorIntersection(endpos,start,p.pos,helperVec).y)
+					-- if (i.spell.radius and GetDistance(vI,p.pos) < i.spell.radius) or (i.spell.width and GetDistance(vI,p.pos) < i.spell.width) then
+						-- if GetDistance(vI,start) < cDist then
+							-- cDist = GetDistance(start,vI)
+						-- end
+					-- end
+				-- end	
+			-- end
+			-- if cDist < i.spell.range then
+				-- i.p.endPos = vI  
+					-- if not i.coll then
+						-- i.coll = true
+					-- end
+				-- print("Hero Collision ")
+			-- end
+		-- end
+	-- end
+-- end
 
 function SLEvade:WallCollision()
 	for _,i in pairs(self.obj) do
@@ -5400,16 +5412,6 @@ end
 
 function SLEvade:Position()
 return Vector(myHero) + Vector(Vector(self.mV) - myHero.pos):normalized() * myHero.ms/2
-end
-
-function SLEvade:ascad()
-	for _,i in pairs(self.obj) do
-		if i.jp then
-			return i.jp 
-		else
-			return self.opos
-		end
-	end
 end
 
 function SLEvade:prwp(unit, wp)
@@ -5462,7 +5464,7 @@ function SLEvade:Others()
 		if i.spell.type == "Circle" then 
 			if (GetDistance(self:Position(),i.p.endPos) < i.spell.radius + myHero.boundingRadius + 10) or (GetDistance(myHero,i.p.endPos) < i.spell.radius + myHero.boundingRadius + 10) and not i.safe then
 				if not i.mpos and not self.mposs then
-					i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * (i.spell.radius+myHero.boundingRadius)/2
+					i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * i.spell.radius/2
 					self.mposs = GetMousePos()
 				end
 			else
@@ -5473,7 +5475,7 @@ function SLEvade:Others()
 			if i.jp and (GetDistance(self:Position(),i.jp) < i.spell.radius + myHero.boundingRadius + 10) or (GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius + 10) and not i.safe then
 				--if GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular(),jp) >= GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular2(),jp) then
 					if not i.mpos and not self.mposs2 then
-						i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * (i.spell.radius+myHero.boundingRadius)/2
+						i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * i.spell.radius/2
 						self.mposs2 = GetMousePos()
 					end	
 				--end
@@ -5508,12 +5510,12 @@ function SLEvade:Pathfinding()
 				local v4 = Vector(i.p.startPos-i.p.endPos):perpendicular()
 				local jp = Vector(VectorIntersection(i.p.startPos,i.p.endPos,v3,v4).x,myHero.pos.y,VectorIntersection(i.p.startPos,i.p.endPos,v3,v4).y)
 				i.jp = jp
-				if i.jp and (GetDistance(self:Position(),i.jp) < i.spell.radius + myHero.boundingRadius) or (GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius) and not i.safe and i.mpos then
+				if i.jp and (GetDistance(self:Position(),i.jp) < i.spell.radius + myHero.boundingRadius) or (GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius) and not i.safe and i.mpos and not i.coll then
 					--if GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular(),jp) >= GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular2(),jp) then
 						self.asd = true
-						self.patha =Vector(i.mpos) + Vector(Vector(i.mpos) - i.p.endPos):perpendicular():normalized() * (i.spell.radius + myHero.boundingRadius+EMenu.Advanced.ew:Value())
-						self.patha2 = Vector(i.mpos) + Vector(Vector(i.mpos) - i.p.endPos):perpendicular2():normalized() * (i.spell.radius + myHero.boundingRadius+EMenu.Advanced.ew:Value())
-						if self.mposs2 and GetDistance(myHero,self.patha) > GetDistance(myHero,self.patha2) then
+						self.patha = Vector(i.mpos) + Vector(Vector(i.mpos) - i.p.endPos):perpendicular():normalized() * (i.spell.radius + myHero.boundingRadius+EMenu.Advanced.ew:Value())
+						self.patha2 = jp + Vector(i.p.startPos- i.p.endPos):perpendicular():normalized() * (i.spell.radius + myHero.boundingRadius+EMenu.Advanced.ew:Value())
+						if self.mposs2 and GetDistance(self.mposs2,self.patha) > GetDistance(self.mposs2,self.patha2) then
 							if not MapPosition:inWall(self.patha2) then
 									i.safe = Vector(i.mpos) + Vector(Vector(i.mpos) - i.p.endPos):perpendicular():normalized() * (i.spell.radius + myHero.boundingRadius+EMenu.Advanced.ew:Value())
 								else 
@@ -5521,7 +5523,7 @@ function SLEvade:Pathfinding()
 							end
 						else
 							if not MapPosition:inWall(self.patha) then
-									i.safe = Vector(i.mpos) + Vector(Vector(i.mpos) - i.p.endPos):perpendicular2():normalized() * (i.spell.radius + myHero.boundingRadius+EMenu.Advanced.ew:Value())
+									i.safe = jp + Vector(i.p.startPos- i.p.endPos):perpendicular():normalized() * (i.spell.radius + myHero.boundingRadius+EMenu.Advanced.ew:Value())
 								else 
 									i.safe = jp + Vector(jp - self.patha) + Vector(i.p.startPos - i.p.endPos):perpendicular2():normalized() * (i.spell.radius + myHero.boundingRadius+EMenu.Advanced.ew:Value())
 							end
@@ -5573,115 +5575,61 @@ end
 function SLEvade:Drawings()
 	for _,i in pairs(self.obj) do
       if EMenu.Spells[_]["Draw".._]:Value() then
-		if i.spell.type == "Line" and not EMenu.Keys.DDraws:Value() then	
+		if i.spell.type == "Line" and not EMenu.Keys.DDraws:Value() then
 			local sPos = Vector(self.opos)
  			local ePos = Vector(self.endposs)
 			if EMenu.Draws.DSPath:Value() then
-				if (GetDistance(self:Position(),self:ascad()) > i.spell.radius + myHero.boundingRadius) or (GetDistance(myHero,self:ascad()) > i.spell.radius + myHero.boundingRadius) then
-					if EMenu.Spells[_]["d".._]:Value() == 1 then
-						dRectangleOutline(sPos, ePos, self.opos, i.spell.radius+myHero.boundingRadius, i.spell.radius, 0.75, EMenu.Draws.SD.d1c:Value())
-					elseif EMenu.Spells[_]["d".._]:Value() == 2 then
-						dRectangleOutline(sPos, ePos, self.opos, i.spell.radius+myHero.boundingRadius, i.spell.radius, 1, EMenu.Draws.SD.d2c:Value())
-					elseif EMenu.Spells[_]["d".._]:Value() == 3 then
-						dRectangleOutline(sPos, ePos, self.opos, i.spell.radius+myHero.boundingRadius, i.spell.radius, 1.25, EMenu.Draws.SD.d3c:Value())
+				if EMenu.Spells[_]["d".._]:Value() == 1 then
+					dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius, 0.75, EMenu.Draws.SD.d1c:Value())
+				elseif EMenu.Spells[_]["d".._]:Value() == 2 then
+					dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius, 1, EMenu.Draws.SD.d2c:Value())
+				elseif EMenu.Spells[_]["d".._]:Value() == 3 then
+					dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius, 1.25, EMenu.Draws.SD.d3c:Value())
 					elseif EMenu.Spells[_]["d".._]:Value() == 4 then
-						dRectangleOutline(sPos, ePos, self.opos, i.spell.radius+myHero.boundingRadius, i.spell.radius, 1.5, EMenu.Draws.SD.d4c:Value())
-					elseif EMenu.Spells[_]["d".._]:Value() == 5 then
-						dRectangleOutline(sPos, ePos, self.opos, i.spell.radius+myHero.boundingRadius, i.spell.radius, 1.75, EMenu.Draws.SD.d5c:Value())
-					end
-					if EMenu.Draws.DSEW:Value() then
-						if EMenu.Spells[_]["d".._]:Value() == 1 then
-							dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 1.5, EMenu.Draws.SD.d1c:Value())
-						elseif EMenu.Spells[_]["d".._]:Value() == 2 then
-							dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 2, EMenu.Draws.SD.d2c:Value())
-						elseif EMenu.Spells[_]["d".._]:Value() == 3 then
-							dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 2.5, EMenu.Draws.SD.d3c:Value())
-						elseif EMenu.Spells[_]["d".._]:Value() == 4 then
-							dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 3, EMenu.Draws.SD.d4c:Value())
-						elseif EMenu.Spells[_]["d".._]:Value() == 5 then
-							dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 3.5, EMenu.Draws.SD.d5c:Value())
-						end
-					end
-				else
+					dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius, 1.5, EMenu.Draws.SD.d4c:Value())
+				elseif EMenu.Spells[_]["d".._]:Value() == 5 then
+					dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius, 1.75, EMenu.Draws.SD.d5c:Value())
+				end
+				if EMenu.Draws.DSEW:Value() then
 					if EMenu.Spells[_]["d".._]:Value() == 1 then
-						dRectangleOutline(sPos, ePos, self.opos, i.spell.radius+myHero.boundingRadius, i.spell.radius, 0.75, GoS.Red)
+						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 1.5, EMenu.Draws.SD.d1c:Value())
 					elseif EMenu.Spells[_]["d".._]:Value() == 2 then
-						dRectangleOutline(sPos, ePos, self.opos, i.spell.radius+myHero.boundingRadius, i.spell.radius, 1, GoS.Red)
+						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 2, EMenu.Draws.SD.d2c:Value())
 					elseif EMenu.Spells[_]["d".._]:Value() == 3 then
-						dRectangleOutline(sPos, ePos, self.opos, i.spell.radius+myHero.boundingRadius, i.spell.radius, 1.25, GoS.Red)
+						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 2.5, EMenu.Draws.SD.d3c:Value())
 					elseif EMenu.Spells[_]["d".._]:Value() == 4 then
-						dRectangleOutline(sPos, ePos, self.opos, i.spell.radius+myHero.boundingRadius, i.spell.radius, 1.5, GoS.Red)
+						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 3, EMenu.Draws.SD.d4c:Value())
 					elseif EMenu.Spells[_]["d".._]:Value() == 5 then
-						dRectangleOutline(sPos, ePos, self.opos, i.spell.radius+myHero.boundingRadius, i.spell.radius, 1.75, GoS.Red)
-					end
-					if EMenu.Draws.DSEW:Value() then
-						if EMenu.Spells[_]["d".._]:Value() == 1 then
-							dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 1.5, GoS.Red)
-						elseif EMenu.Spells[_]["d".._]:Value() == 2 then
-							dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 2, GoS.Red)
-						elseif EMenu.Spells[_]["d".._]:Value() == 3 then
-							dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 2.5, GoS.Red)
-						elseif EMenu.Spells[_]["d".._]:Value() == 4 then
-							dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 3, GoS.Red)
-						elseif EMenu.Spells[_]["d".._]:Value() == 5 then
-							dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 3.5, GoS.Red)
-						end
+						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 3.5, EMenu.Draws.SD.d5c:Value())
 					end
 				end
 			end
 			
 		elseif i.spell.type == "Circle" and not EMenu.Keys.DDraws:Value() then
 			if EMenu.Draws.DSPath:Value() then
-				if (GetDistance(self:Position(),i.p.endPos) > i.spell.radius + myHero.boundingRadius) or (GetDistance(myHero,i.p.endPos) > i.spell.radius + myHero.boundingRadius) then
+				if EMenu.Spells[_]["d".._]:Value() == 1 then
+					DrawCircle(i.p.endPos,i.spell.radius,0.75,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())	
+				elseif EMenu.Spells[_]["d".._]:Value() == 2 then
+					DrawCircle(i.p.endPos,i.spell.radius,1,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
+				elseif EMenu.Spells[_]["d".._]:Value() == 3 then
+					DrawCircle(i.p.endPos,i.spell.radius,1.25,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
+				elseif EMenu.Spells[_]["d".._]:Value() == 4 then
+					DrawCircle(i.p.endPos,i.spell.radius,1.5,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
+				elseif EMenu.Spells[_]["d".._]:Value() == 5 then
+					DrawCircle(i.p.endPos,i.spell.radius,1.75,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
+				end
+				if EMenu.Draws.DSEW:Value() then
 					if EMenu.Spells[_]["d".._]:Value() == 1 then
-						DrawCircle(i.p.endPos,i.spell.radius,0.75,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())	
+						DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),1.5,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())	
 					elseif EMenu.Spells[_]["d".._]:Value() == 2 then
-						DrawCircle(i.p.endPos,i.spell.radius,1,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
-					elseif EMenu.Spells[_]["d".._]:Value() == 3 then
-						DrawCircle(i.p.endPos,i.spell.radius,1.25,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
-					elseif EMenu.Spells[_]["d".._]:Value() == 4 then
-						DrawCircle(i.p.endPos,i.spell.radius,1.5,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
-					elseif EMenu.Spells[_]["d".._]:Value() == 5 then
-						DrawCircle(i.p.endPos,i.spell.radius,1.75,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
-					end
-					if EMenu.Draws.DSEW:Value() then
-						if EMenu.Spells[_]["d".._]:Value() == 1 then
-							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),1.5,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())	
-						elseif EMenu.Spells[_]["d".._]:Value() == 2 then
 							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),2,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
-						elseif EMenu.Spells[_]["d".._]:Value() == 3 then
-							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),2.5,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
-						elseif EMenu.Spells[_]["d".._]:Value() == 4 then
-							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),3,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
-						elseif EMenu.Spells[_]["d".._]:Value() == 5 then
-							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),3.5,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
-						end
-					end
-				else
-					if EMenu.Spells[_]["d".._]:Value() == 1 then
-						DrawCircle(i.p.endPos,i.spell.radius,0.75,EMenu.Draws.SQ:Value(),GoS.Red)	
-					elseif EMenu.Spells[_]["d".._]:Value() == 2 then
-						DrawCircle(i.p.endPos,i.spell.radius,1,EMenu.Draws.SQ:Value(),GoS.Red)
 					elseif EMenu.Spells[_]["d".._]:Value() == 3 then
-						DrawCircle(i.p.endPos,i.spell.radius,1.25,EMenu.Draws.SQ:Value(),GoS.Red)
+						DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),2.5,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
 					elseif EMenu.Spells[_]["d".._]:Value() == 4 then
-						DrawCircle(i.p.endPos,i.spell.radius,1.5,EMenu.Draws.SQ:Value(),GoS.Red)
+						DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),3,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
 					elseif EMenu.Spells[_]["d".._]:Value() == 5 then
-						DrawCircle(i.p.endPos,i.spell.radius,1.75,EMenu.Draws.SQ:Value(),GoS.Red)
+						DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),3.5,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
 					end
-					if EMenu.Draws.DSEW:Value() then
-						if EMenu.Spells[_]["d".._]:Value() == 1 then
-							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),1.5,EMenu.Draws.SQ:Value(),GoS.Red)	
-						elseif EMenu.Spells[_]["d".._]:Value() == 2 then
-							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),2,EMenu.Draws.SQ:Value(),GoS.Red)
-						elseif EMenu.Spells[_]["d".._]:Value() == 3 then
-							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),2.5,EMenu.Draws.SQ:Value(),GoS.Red)
-						elseif EMenu.Spells[_]["d".._]:Value() == 4 then
-							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),3,EMenu.Draws.SQ:Value(),GoS.Red)
-						elseif EMenu.Spells[_]["d".._]:Value() == 5 then
-							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),3.5,EMenu.Draws.SQ:Value(),GoS.Red)						
-						end
-					end				
 				end
 			end	
 		end
