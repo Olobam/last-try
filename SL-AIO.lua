@@ -4096,6 +4096,7 @@ function SLWalker:__init()
 	OMenu:Menu("FS", "Farm Settings")
 	OMenu.FS:Boolean("AJ", "Attack Jungle", true)
 	OMenu.FS:Boolean("AS", "Attack Structures", true)
+	OMenu.FS:Boolean("EFD", "Enable Farm Delay", false)
 	
 	OMenu:Menu("D", "Drawings")
 	OMenu.D:Boolean("LHM", "Lasthit Marker", true)
@@ -4125,8 +4126,6 @@ function SLWalker:__init()
 	OMenu.Adv:Slider("MD", "Move Delay", 0,-100,100,5)
 	
 	Callback.Add("ProcessSpellAttack", function(unit,spellProc) self:PrAtt(unit,spellProc) end)
-	Callback.Add("Animation", function(unit,animation) self:Animation(unit,animation) end)
-	Callback.Add("ProcessSpell", function(unit,spellProc) self:PrSp(unit,spellProc) end)
 	Callback.Add("Tick", function(unit,spellProc) self:T(unit,spellProc) end)
 	Callback.Add("Draw", function(unit,spellProc) self:D(unit,spellProc) end)
 	Callback.Add("IssueOrder", function(order) self:IssOrd(order) end)
@@ -4315,14 +4314,15 @@ if not SLW then return end
 			self:ResetAA()
 		end
 	end
-end
-
-function SLWalker:GetAggro(unit)
-    if unit.spellProc and unit.spellProc.target then
-        return unit.spellProc.target
-    else
-        return minionTar[unit.networkID] and minionTar[unit.networkID] or nil
-    end
+	if self.projectilespeeds[unit.charName] and unit.team == myHero.team then
+		for i = 1, #self.ActiveAttacks do
+			if self.ActiveAttacks[i].Attacker == unit then
+				table.remove(self.ActiveAttacks, i)
+				break
+			end
+		end
+		table.insert(self.ActiveAttacks, {Attacker = unit, Target = spellProc.target, starttime = os.clock(),projectilespeed = self.projectilespeeds[unit.charName], windUpTime = spellProc.windUpTime, animationTime = spellProc.animationTime})
+	end
 end
 
 function SLWalker:ResetAA()
@@ -4512,39 +4512,6 @@ function SLWalker:aaprojectilespeed()
 	return (self.projectilespeeds[myHero.charName] and self.projectilespeeds[myHero.charName] or math.huge) or math.huge
 end
 
-function SLWalker:Animation(unit, animation)
-if not SLW then return end
-    if unit and unit.valid and unit ~= myHero and unit.team == myHero.team and animation:lower():find("atta") and not self.projectilespeeds[unit.charName] then
-        local time = os.clock() + 0.393 - GetLatency()/2000
-        local tar = self:GetAggro(unit)
-        if tar then
-            table.insert(self.ActiveAttacks, {Attacker = unit, pos = Vector(unit), Target = tar, animationTime = math.huge, damage = unit.totalDamage, hittime=time, starttime = self:GetTime() - GetLatency()/2000, windUpTime = 0.393, projectilespeed = math.huge})
-        end
-    end
-end
-
-function SLWalker:PrSp(unit, spellProc)
-if not SLW then return end
-    if unit and unit.valid and spellProc.target and unit.type ~= myHero.type and spellProc.target.type == 'obj_AI_Minion' and unit.team == myHero.team and spellProc and spellProc.name and (spellProc.name:lower():find("attack") or (spellProc.name == "frostarrow")) and spellProc.windUpTime and spellProc.target then
-        if GetDistanceSqr(unit) < 4000000 then
-            if self.projectilespeeds[unit.charName] then
-                local time = self:GetTime() + GetDistance(spellProc.target, unit) / self.projectilespeeds[unit.charName] - GetLatency()/2000
-                local i = 1
-                while i <= #self.ActiveAttacks do
-                    if (self.ActiveAttacks[i].Attacker and self.ActiveAttacks[i].Attacker.valid and self.ActiveAttacks[i].Attacker.networkID == unit.networkID) or ((self.ActiveAttacks[i].hittime + 3) < self:GetTime()) then
-                        table.remove(self.ActiveAttacks, i)
-                    else
-                        i = i + 1
-                    end
-                end
-                table.insert(self.ActiveAttacks, {Attacker = unit, pos = Vector(unit), Target = spellProc.target, animationTime = spellProc.animationTime, damage = unit.totalDamage, hittime=time, starttime = self:GetTime() - GetLatency()/2000, windUpTime = spellProc.windUpTime, projectilespeed = self.projectilespeeds[unit.charName]})
-            else
-                minionTar[unit.networkID] = spellProc.target
-            end
-        end
-    end
-end
-
 function SLWalker:GetTime()
 	return os.clock()
 end
@@ -4557,17 +4524,31 @@ function SLWalker:GetPredictedHealth(unit, time)
 	local delay = 0.07
 
     while i <= #self.ActiveAttacks do
-        if self.ActiveAttacks[i].Attacker and not self.ActiveAttacks[i].Attacker.dead and self.ActiveAttacks[i].Target and self.ActiveAttacks[i].Target.networkID == unit.networkID then
-            local hittime = self.ActiveAttacks[i].starttime + self.ActiveAttacks[i].windUpTime + (GetDistance(self.ActiveAttacks[i].Attacker.pos, self.ActiveAttacks[i].Target.pos)) / self.ActiveAttacks[i].projectilespeed + delay
-            if self:GetTime() < hittime - delay and hittime < self:GetTime() + time and self:Dmg(myHero,self.ActiveAttacks[i].Target,{name = "Basic"}) > self.ActiveAttacks[i].Target.health then
-                IncDamage = IncDamage + self.ActiveAttacks[i].damage
-                count = count + 1
-                if self.ActiveAttacks[i].damage > MaxDamage then
-                    MaxDamage = self.ActiveAttacks[i].damage
-                end
-            end
-        end
-        i = i + 1
+		if OMenu.FS.EFD:Value() then
+			if self.ActiveAttacks[i].Attacker and not self.ActiveAttacks[i].Attacker.dead and self.ActiveAttacks[i].Target and self.ActiveAttacks[i].Target.networkID == unit.networkID then
+				local hittime =  self.ActiveAttacks[i].starttime + (GetDistance(self.ActiveAttacks[i].Target.pos,self.ActiveAttacks[i].Attacker.pos)/self.ActiveAttacks[i].projectilespeed) + self.ActiveAttacks[i].windUpTime
+				if self:GetTime() < hittime - delay and hittime < self:GetTime() + time and unit.totalDamage > self.ActiveAttacks[i].Target.health then
+					IncDamage = IncDamage + unit.totalDamage
+					count = count + 1
+					if unit.totalDamage > MaxDamage then
+						MaxDamage = unit.totalDamage
+					end
+				end
+			end
+			i = i + 1
+		else
+			if self.ActiveAttacks[i].Attacker and not self.ActiveAttacks[i].Attacker.dead and self.ActiveAttacks[i].Target and self.ActiveAttacks[i].Target.networkID == unit.networkID then
+				local hittime =  self.ActiveAttacks[i].starttime + (GetDistance(self.ActiveAttacks[i].Target.pos,self.ActiveAttacks[i].Attacker.pos)/self.ActiveAttacks[i].projectilespeed) + self.ActiveAttacks[i].windUpTime
+				if self:GetTime() < hittime - delay and hittime < self:GetTime() + time then
+					IncDamage = IncDamage + unit.totalDamage
+					count = count + 1
+					if unit.totalDamage > MaxDamage then
+						MaxDamage = unit.totalDamage
+					end
+				end
+			end
+			i = i + 1		
+		end
     end
 		return unit.health - IncDamage, MaxDamage, count
 end
