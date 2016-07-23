@@ -40,7 +40,7 @@ local function DisableHoldPosition(boolean)
 end
 
 OnObjectLoad(function(obj)
-	if obj and obj.type == Obj_AI_Turret then
+	if obj and obj.type == Obj_AI_Turret and obj.team == MINION_ENEMY then
 		turrets[obj.networkID] = obj
 	end
 end)
@@ -4096,7 +4096,6 @@ function SLWalker:__init()
 	OMenu:Menu("FS", "Farm Settings")
 	OMenu.FS:Boolean("AJ", "Attack Jungle", true)
 	OMenu.FS:Boolean("AS", "Attack Structures", true)
-	OMenu.FS:Boolean("FWA", "Turret farm logic", true)
 	
 	OMenu:Menu("D", "Drawings")
 	OMenu.D:Boolean("LHM", "Lasthit Marker", true)
@@ -4392,26 +4391,24 @@ function SLWalker:LaneClear()
 	for _,o in pairs(minionManager.objects) do
 		for t,turret in pairs(turrets) do
 			if OMenu.FS.AS:Value() then
-				if turret.team == MINION_ENEMY then
-					if GetDistance(myHero,turret) > self.aarange then
-						if o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
-							if AllyMinionsAround(myHero,self.aarange-myHero.boundingRadius) > 3 then
-								if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})*2) then
-									return nil
-								else
-									return self:GetLowestUnit(o)
-								end
+				if turret.distance > self.aarange then
+					if o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
+						if AllyMinionsAround(myHero,self.aarange-myHero.boundingRadius) > 3 then
+							if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})*2) then
+								return nil
 							else
-								if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
-									return nil
-								else
-									return self:GetLowestUnit(o)
-								end
+								return self:GetLowestUnit(o)
+							end
+						else
+							if self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
+								return nil
+							else
+								return self:GetLowestUnit(o)
 							end
 						end
-					else
-						return turret
 					end
+				else
+					return turret
 				end
 			else
 				if o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
@@ -4426,20 +4423,6 @@ function SLWalker:LaneClear()
 							return nil
 						else
 							return self:GetLowestUnit(o)
-						end
-					end
-				end
-			end
-			if OMenu.FS.FWA:Value() and ValidTarget(o,self.aarange) and self:CanOrb(o) then
-				if turret.team == MINION_ALLY then
-					if turret.distance < 950 then
-						if 152+myHero.totalDamage < o.health then
-							self.attacksEnabled = false
-						elseif 152+myHero.totalDamage > o.health then
-							self.attacksEnabled = true
-							return o
-						elseif self:Dmg(myHero,o,{name="Basic"}) < self:PredictHP(o,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) then
-							return nil
 						end
 					end
 				end
