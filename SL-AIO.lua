@@ -5428,7 +5428,7 @@ function SLEvade:Others()
 		if i.spell.type == "Circle" then 
 			if (GetDistance(self:Position(),i.p.endPos) < i.spell.radius + myHero.boundingRadius + 10) or (GetDistance(myHero,i.p.endPos) < i.spell.radius + myHero.boundingRadius + 10) and not i.safe then
 				if not i.mpos and not self.mposs then
-					i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * i.spell.radius/2
+					i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * i.spell.radius
 					self.mposs = GetMousePos()
 				end
 			else
@@ -5439,7 +5439,7 @@ function SLEvade:Others()
 			if i.jp and (GetDistance(self:Position(),i.jp) < i.spell.radius + myHero.boundingRadius + 10) or (GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius + 10) and not i.safe then
 				--if GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular(),jp) >= GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular2(),jp) then
 					if not i.mpos and not self.mposs2 then
-						i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * i.spell.radius/2
+						i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * i.spell.radius
 						self.mposs2 = GetMousePos()
 					end	
 				--end
@@ -5477,19 +5477,19 @@ function SLEvade:Pathfinding()
 				if i.jp and (GetDistance(self:Position(),i.jp) < i.spell.radius + myHero.boundingRadius) or (GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius) and not i.safe and i.mpos and not i.coll then
 					--if GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular(),jp) >= GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular2(),jp) then
 						self.asd = true
-						self.patha = Vector(i.mpos) + Vector(Vector(i.mpos) - i.p.endPos):perpendicular():normalized() * (i.spell.radius + myHero.boundingRadius+EMenu.Advanced.ew:Value())
-						self.patha2 = jp + Vector(i.p.startPos- i.p.endPos):perpendicular():normalized() * (i.spell.radius + myHero.boundingRadius+EMenu.Advanced.ew:Value())
-						if self.mposs2 and GetDistance(self.mposs2,self.patha) > GetDistance(self.mposs2,self.patha2) then
+						self.patha = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*.5+EMenu.Advanced.ew:Value())
+						self.patha2 = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*.5+EMenu.Advanced.ew:Value())
+						if GetDistance(self.patha) > GetDistance(self.patha2) then
 							if not MapPosition:inWall(self.patha2) then
-									i.safe = Vector(i.mpos) + Vector(Vector(i.mpos) - i.p.endPos):perpendicular():normalized() * (i.spell.radius + myHero.boundingRadius+EMenu.Advanced.ew:Value())
+									i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*.5+EMenu.Advanced.ew:Value())
 								else 
-									i.safe = jp + Vector(jp - self.patha2) + Vector(i.p.startPos - i.p.endPos):perpendicular2():normalized() * (i.spell.radius + myHero.boundingRadius+EMenu.Advanced.ew:Value())
+									i.safe = jp + Vector(i.p.startPos - i.p.endPos):perpendicular2():normalized() * ((i.spell.radius + myHero.boundingRadius)*.5+EMenu.Advanced.ew:Value())
 							end
 						else
 							if not MapPosition:inWall(self.patha) then
-									i.safe = jp + Vector(i.p.startPos- i.p.endPos):perpendicular():normalized() * (i.spell.radius + myHero.boundingRadius+EMenu.Advanced.ew:Value())
+									i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*.5+EMenu.Advanced.ew:Value())
 								else 
-									i.safe = jp + Vector(jp - self.patha) + Vector(i.p.startPos - i.p.endPos):perpendicular2():normalized() * (i.spell.radius + myHero.boundingRadius+EMenu.Advanced.ew:Value())
+									i.safe = jp + Vector(i.p.startPos - i.p.endPos):perpendicular2():normalized() * ((i.spell.radius + myHero.boundingRadius)*.5+EMenu.Advanced.ew:Value())
 							end
 						end
 					--end
@@ -5556,15 +5556,15 @@ function SLEvade:Drawings()
 				end
 				if EMenu.Draws.DSEW:Value() then
 					if EMenu.Spells[_]["d".._]:Value() == 1 then
-						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 1.5, EMenu.Draws.SD.d1c:Value())
+						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius+EMenu.Advanced.ew:Value(), 1.5, EMenu.Draws.SD.d1c:Value())
 					elseif EMenu.Spells[_]["d".._]:Value() == 2 then
-						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 2, EMenu.Draws.SD.d2c:Value())
+						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius+EMenu.Advanced.ew:Value(), 2, EMenu.Draws.SD.d2c:Value())
 					elseif EMenu.Spells[_]["d".._]:Value() == 3 then
-						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 2.5, EMenu.Draws.SD.d3c:Value())
+						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius+EMenu.Advanced.ew:Value(), 2.5, EMenu.Draws.SD.d3c:Value())
 					elseif EMenu.Spells[_]["d".._]:Value() == 4 then
-						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 3, EMenu.Draws.SD.d4c:Value())
+						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius+EMenu.Advanced.ew:Value(), 3, EMenu.Draws.SD.d4c:Value())
 					elseif EMenu.Spells[_]["d".._]:Value() == 5 then
-						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 3.5, EMenu.Draws.SD.d5c:Value())
+						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius+EMenu.Advanced.ew:Value(), 3.5, EMenu.Draws.SD.d5c:Value())
 					end
 				end
 			end
