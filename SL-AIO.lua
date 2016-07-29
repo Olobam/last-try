@@ -5483,13 +5483,13 @@ function SLEvade:Pathfinding()
 						self.patha2 = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*.5+EMenu.Advanced.ew:Value())
 						if GetDistance(self.patha) > GetDistance(self.patha2) then
 							if not MapPosition:inWall(self.patha2) then
-									i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*.5+EMenu.Advanced.ew:Value())
+									i.safe = Vector(i.mpos)+Vector(i.p.startPos-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*.5+EMenu.Advanced.ew:Value())
 								else 
 									i.safe = jp + Vector(i.p.startPos - i.p.endPos):perpendicular2():normalized() * ((i.spell.radius + myHero.boundingRadius)*.5+EMenu.Advanced.ew:Value())
 							end
 						else
 							if not MapPosition:inWall(self.patha) then
-									i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*.5+EMenu.Advanced.ew:Value())
+									i.safe = Vector(i.mpos)+Vector(i.p.startPos-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*.5+EMenu.Advanced.ew:Value())
 								else 
 									i.safe = jp + Vector(i.p.startPos - i.p.endPos):perpendicular2():normalized() * ((i.spell.radius + myHero.boundingRadius)*.5+EMenu.Advanced.ew:Value())
 							end
