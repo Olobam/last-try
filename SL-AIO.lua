@@ -2911,7 +2911,9 @@ function Drawings:__init()
 	SLS[ChampName].Dr:DropDown("DQM", "Draw Quality", 3, {"High", "Medium", "Low"})
 	SLS[ChampName].Dr:Slider("DWi", "Circle witdth", 1, 1, 5, 1)
 	for i=0,3 do
-		SLS[ChampName].Dr:Boolean("D"..self.SNames[i], "Draw "..self.SNames[i], true)
+		if _G[ChampName].Spell[i].range > 200 and _G[ChampName].Spell[i].range then
+			SLS[ChampName].Dr:Boolean("D"..self.SNames[i], "Draw "..self.SNames[i], true)
+		end
 	end
 	Callback.Add("Tick", function() self:CheckS() end)
 	Callback.Add("Draw", function() self:Draw() end)
@@ -2919,7 +2921,7 @@ end
 
 function Drawings:CheckS()
 	for l=0,3 do 
-		if SLS[ChampName].Dr.UD:Value() and SReady[l] and SLS[ChampName].Dr["D"..self.SNames[l]]:Value() then 
+		if SLS[ChampName].Dr.UD:Value() and SReady[l] and SLS[ChampName].Dr["D"..self.SNames[l]]:Value() and _G[ChampName].Spell[l].range and _G[ChampName].Spell[l].range > 200 then 
 			self.Check[l] = true
 		else 
 			self.Check[l] = false
@@ -5586,7 +5588,7 @@ function SLEvade:Drawings()
 					if EMenu.Spells[_]["d".._]:Value() == 1 then
 						DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),1.5,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())	
 					elseif EMenu.Spells[_]["d".._]:Value() == 2 then
-							DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),2,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
+						DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),2,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
 					elseif EMenu.Spells[_]["d".._]:Value() == 3 then
 						DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),2.5,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
 					elseif EMenu.Spells[_]["d".._]:Value() == 4 then
