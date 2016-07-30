@@ -2904,35 +2904,25 @@ class 'Drawings'
 function Drawings:__init()
 	if not SLSChamps[ChampName] then return end
 	self.SNames={[0]="Q",[1]="W",[2]="E",[3]="R"}
-	self.Check={[0]=false,[1]=false,[2]=false,[3]=false}
 	SLS[ChampName]:SubMenu("Dr", "Drawings")
 	SLS[ChampName].Dr:Boolean("UD", "Use Drawings", false)
 	SLS[ChampName].Dr:ColorPick("CP", "Circle color", {255,102,102,102})
 	SLS[ChampName].Dr:DropDown("DQM", "Draw Quality", 3, {"High", "Medium", "Low"})
 	SLS[ChampName].Dr:Slider("DWi", "Circle witdth", 1, 1, 5, 1)
 	for i=0,3 do
-		if _G[ChampName].Spell[i].range > 200 and _G[ChampName].Spell[i].range then
+		if _G[ChampName].Spell and _G[ChampName].Spell[i] and _G[ChampName].Spell[i].range and _G[ChampName].Spell[i].range > 200 then
 			SLS[ChampName].Dr:Boolean("D"..self.SNames[i], "Draw "..self.SNames[i], true)
 		end
 	end
-	Callback.Add("Tick", function() self:CheckS() end)
 	Callback.Add("Draw", function() self:Draw() end)
-end
-
-function Drawings:CheckS()
-	for l=0,3 do 
-		if SLS[ChampName].Dr.UD:Value() and SReady[l] and SLS[ChampName].Dr["D"..self.SNames[l]]:Value() and _G[ChampName].Spell[l].range and _G[ChampName].Spell[l].range > 200 then 
-			self.Check[l] = true
-		else 
-			self.Check[l] = false
-		end
-	end
 end
 
 function Drawings:Draw()
 	for l=0,3 do
-		if self.Check[l] then
-			DrawCircle(myHero.pos, _G[ChampName].Spell[l].range, SLS[ChampName].Dr.DWi:Value(), SLS[ChampName].Dr.DQM:Value(), SLS[ChampName].Dr.CP:Value())
+		if _G[ChampName].Spell and _G[ChampName].Spell[l] and _G[ChampName].Spell[l].range and _G[ChampName].Spell[l].range > 200 then
+			if SLS[ChampName].Dr.UD:Value() and SReady[l] and SLS[ChampName].Dr["D"..self.SNames[l]]:Value() then
+				DrawCircle(myHero.pos, _G[ChampName].Spell[l].range, SLS[ChampName].Dr.DWi:Value(), SLS[ChampName].Dr.DQM:Value(), SLS[ChampName].Dr.CP:Value())
+			end
 		end
 	end
 end
@@ -4787,7 +4777,7 @@ self.Spells = {
 	["LuluQ"]={charName="Lulu",slot=0,type="Line",delay=0.25,range=950,radius=60,speed=1450,addHitbox=true,danger=2,dangerous=false,proj="LuluQMissile",killTime=0,displayname="",mcollision=false},
 	["LuluQPix"]={charName="Lulu",slot=0,type="Line",delay=0.25,range=950,radius=60,speed=1450,addHitbox=true,danger=2,dangerous=false,proj="LuluQMissileTwo",killTime=0,displayname="",mcollision=false},
 	["LuxLightBinding"]={charName="Lux",slot=0,type="Line",delay=0.225,range=1300,radius=70,speed=1200,addHitbox=true,danger=3,dangerous=true,proj="LuxLightBindingMis",killTime=0,displayname="Light Binding",mcollision=true},
-	["LuxLightStrikeKugel"]={charName="Lux",slot=2,type="Circle",delay=0.25,range=1100,radius=275,speed=1300,addHitbox=true,danger=2,dangerous=false,proj="LuxLightStrikeKugel",killTime=5.25,displayname="LightStrikeKugel",mcollision=false,killName="LuxLightstrikeToggle"},
+	["LuxLightStrikeKugel"]={charName="Lux",slot=2,type="Circle",delay=0.25,range=1100,radius=350,speed=1300,addHitbox=true,danger=2,dangerous=false,proj="LuxLightStrikeKugel",killTime=5.25,displayname="LightStrikeKugel",mcollision=false,killName="LuxLightstrikeToggle"},
 	["LuxMaliceCannon"]={charName="Lux",slot=3,type="Line",delay=1,range=3500,radius=190,speed=math.huge,addHitbox=true,danger=5,dangerous=true,proj="LuxMaliceCannon",killTime=0,displayname="Malice Cannon",mcollision=false},
 	["UFSlash"]={charName="Malphite",slot=3,type="Circle",delay=0,range=1000,radius=270,speed=1500,addHitbox=true,danger=5,dangerous=true,proj="UFSlash",killTime=0.4,displayname="",mcollision=false},
 	["MalzaharQ"]={charName="Malzahar",slot=0,type="Line",delay=0.75,range=900,radius=85,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="MalzaharQ",killTime=0,displayname="",mcollision=false},
@@ -4817,7 +4807,7 @@ self.Spells = {
 	["SejuaniGlacialPrisonStart"]={charName="Sejuani",slot=3,type="Line",delay=0.25,range=1200,radius=110,speed=1600,addHitbox=true,danger=3,dangerous=true,proj="sejuaniglacialprison",killTime=0,displayname="GlacialPrisonStart",mcollision=false},
 	["SionE"]={charName="Sion",slot=2,type="Line",delay=0.25,range=800,radius=80,speed=1800,addHitbox=true,danger=3,dangerous=true,proj="SionEMissile",killTime=0,displayname="",mcollision=false},
 	["SionR"]={charName="Sion",slot=3,type="Line",delay=0.5,range=20000,radius=120,speed=1000,addHitbox=true,danger=3,dangerous=true,proj="nil",killTime=0,displayname="",mcollision=false},
-	["SorakaQ"]={charName="Soraka",slot=0,type="Circle",delay=0.5,range=950,radius=300,speed=1750,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=0.25,displayname="",mcollision=false},
+	["SorakaQ"]={charName="Soraka",slot=0,type="Circle",delay=0.5,range=950,radius=250,speed=1750,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=0.25,displayname="",mcollision=false},
 	["SorakaE"]={charName="Soraka",slot=2,type="Circle",delay=0.25,range=925,radius=275,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=1,displayname="",mcollision=false},
 	["ShenE"]={charName="Shen",slot=2,type="Line",delay=0,range=650,radius=50,speed=1600,addHitbox=true,danger=3,dangerous=true,proj="ShenE",killTime=0,displayname="Shadow Dash",mcollision=false},
 	["ShyvanaFireball"]={charName="Shyvana",slot=2,type="Line",delay=0.25,range=925,radius=60,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="ShyvanaFireballMissile",killTime=0,displayname="Fireball",mcollision=false},
