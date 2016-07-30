@@ -4114,8 +4114,8 @@ function SLWalker:__init()
 	OMenu.Hum:Slider("combo", "Max. Movements in Combo", 8, 1, 20, 1)
 	
 	OMenu:Menu("Adv", "Advanced")
-	OMenu.Adv:Slider("AAD", "Auto Attack Delay", 20,-100,100,5)
-	OMenu.Adv:Slider("MD", "Move Delay", 0,-100,100,5)
+	OMenu.Adv:Slider("AAD", "Auto Attack Delay", -50,-50,50,5)
+	OMenu.Adv:Slider("MD", "Move Delay", 20,-50,50,5)
 	
 	Callback.Add("ProcessSpellAttack", function(unit,spellProc) self:PrAtt(unit,spellProc) end)
 	Callback.Add("ProcessSpell", function(unit,spellProc) self:PrSp(unit,spellProc) end)
