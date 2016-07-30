@@ -2921,7 +2921,7 @@ function Drawings:Draw()
 	for l=0,3 do
 		if _G[ChampName].Spell and _G[ChampName].Spell[l] and _G[ChampName].Spell[l].range and _G[ChampName].Spell[l].range > 200 then
 			if SLS[ChampName].Dr.UD:Value() and SReady[l] and SLS[ChampName].Dr["D"..self.SNames[l]]:Value() then
-				DrawCircle(myHero.pos, _G[ChampName].Spell[l].range, SLS[ChampName].Dr.DWi:Value(), SLS[ChampName].Dr.DQM:Value(), SLS[ChampName].Dr.CP:Value())
+				DrawCircle(myHero.pos, _G[ChampName].Spell[l].range, SLS[ChampName].Dr.DWi:Value(), SLS[ChampName].Dr.DQM:Value()*20, SLS[ChampName].Dr.CP:Value())
 			end
 		end
 	end
@@ -8001,6 +8001,8 @@ function SLEvade:Drawp()
 				self:WallCollision()
 				self.endposs = Vector(i.p.startPos)+Vector(Vector(i.p.endPos)-i.p.startPos):normalized()*(i.spell.range+i.spell.radius)
 				i.spell.radius = EMenu.Spells[i.spell.name]["radius"..i.spell.name]:Value()
+				i.spell.speed = i.spell.speed or math.huge
+				i.spell.delay = i.spell.delay or 0
 				-- if i.spell.spellType == "Line" then
 					-- if i.o then
 						-- local sample = Sample(i.o)
