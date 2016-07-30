@@ -6290,9 +6290,9 @@ function HitMe:Detect(unit,spellProc)
 				self.object[spellProc.name].startTime = os.clock()
 				self.object[spellProc.name].coll = false
 				if l.killTime and l.spellType == "Circular" then
-					DelayAction(function() self.obj[spellProc.name] = nil end, l.killTime + GetDistance(unit,spellProc.endPos)/l.speed + l.delay)
+					DelayAction(function() self.object[spellProc.name] = nil end, l.killTime + GetDistance(unit,spellProc.endPos)/l.speed + l.delay)
 				elseif l.spellType == "Line" then
-					DelayAction(function() self.obj[spellProc.name] = nil end, l.delay*.001 + 1.3*GetDistance(myHero.pos,spellProc.startPos)/l.speed)
+					DelayAction(function() self.object[spellProc.name] = nil end, l.delay*.001 + 1.3*GetDistance(myHero.pos,spellProc.startPos)/l.speed)
 				end
 				if l.killName and l.killName == spellProc.name then
 					self.object[spellProc.name] = nil
