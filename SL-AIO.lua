@@ -11311,10 +11311,6 @@ end
 
 function SLEvade:Dodge()
 	for _,i in pairs(self.obj) do
-	if i.p then
-	 local oT = (i.spell.delay*.001) + GetDistance(myHero,i.p.startPos) / i.spell.speed
-	  local fT = .75
-	end
 				--DashP = Dash - Position, DashS = Dash - Self, DashT = Dash - Targeted, SpellShieldS = SpellShield - Self, SpellShieldT = SpellShield - Targeted, WindWallP = WindWall - Position, 
 		if EMenu.Keys.DD:Value() then return end
 			if i.safe and ((not self.DodgeOnlyDangerous and EMenu.d:Value() <= EMenu.Spells[i.spell.name]["d"..i.spell.name]:Value()) or (self.DodgeOnlyDangerous and EMenu.Spells[i.spell.name]["IsD"..i.spell.name]:Value())) and EMenu.Spells[i.spell.name]["Dodge"..i.spell.name]:Value() and GetPercentHP(myHero) <= EMenu.Spells[i.spell.name]["hp"..i.spell.name]:Value() then
@@ -11326,7 +11322,9 @@ function SLEvade:Dodge()
 					DisableAll(false) 
 				end
 				MoveToXYZ(i.safe)
-				if EMenu.Spells[i.spell.name]["Dashes"..i.spell.name]:Value() then
+				if EMenu.Spells[i.spell.name]["Dashes"..i.spell.name]:Value() and i.p then
+					local oT = (i.spell.delay*.001) + GetDistance(myHero,i.p.startPos) / i.spell.speed
+					local fT = .75
 					for op = 0,3 do
 						if self.EvadeSpells[GetObjectName(myHero)] and self.EvadeSpells[GetObjectName(myHero)][op] and EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].name]["Dodge"..self.EvadeSpells[GetObjectName(myHero)][op].name]:Value() and self.EvadeSpells[GetObjectName(myHero)][op].evadeType and self.EvadeSpells[GetObjectName(myHero)][op].spellKey and EMenu.Spells[i.spell.name]["d"..i.spell.name]:Value() >= EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].name]["d"..self.EvadeSpells[GetObjectName(myHero)][op].name]:Value() then 
 							if i.uDodge == true and self.usp == false and self.ut == false then
