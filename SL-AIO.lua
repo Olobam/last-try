@@ -3442,24 +3442,24 @@ function Reallifeinfo:__init()
 	SLU.Date.DDA:Slider("Vertical", "Vertical (Drawings)", 60, 0, GetResolution().y, 10)
 	SLU.Date.DDA:ColorPick("ColorPick", "Color Pick - Date", {255,226,255,18})
 	SLU.Date:Menu("DD", "Draw Day")
-	SLU.Date.DD:Boolean("DrawDay", "Draw Current Day", true)
+	SLU.Date.DD:Boolean("DrawDay", "Draw Current Day", false)
 	SLU.Date.DD:Slider("Horizontal", "Horizontal (Drawings)", GetResolution().x*.9, 0, GetResolution().x, 10)
-	SLU.Date.DD:Slider("Vertical", "Vertical (Drawings)", 80, 0, GetResolution().y, 10)
+	SLU.Date.DD:Slider("Vertical", "Vertical (Drawings)", 140, 0, GetResolution().y, 10)
 	SLU.Date.DD:ColorPick("ColorPick", "Color Pick - Day", {255,226,255,18})
 	SLU.Date:Menu("DM", "Draw Month")
-	SLU.Date.DM:Boolean("DrawMonth", "Draw Current Month", true)
+	SLU.Date.DM:Boolean("DrawMonth", "Draw Current Month", false)
 	SLU.Date.DM:Slider("Horizontal", "Horizontal (Drawings)", GetResolution().x*.9, 0, GetResolution().x, 10)
 	SLU.Date.DM:Slider("Vertical", "Vertical (Drawings)", 100, 0, GetResolution().y, 10)
 	SLU.Date.DM:ColorPick("ColorPick", "Color Pick - Month", {255,226,255,18})
 	SLU.Date:Menu("DY", "Draw Year")
-	SLU.Date.DY:Boolean("DrawYear", "Draw Current Year", true)
+	SLU.Date.DY:Boolean("DrawYear", "Draw Current Year", false)
 	SLU.Date.DY:Slider("Horizontal", "Horizontal (Drawings)", GetResolution().x*.9, 0, GetResolution().x, 10)
 	SLU.Date.DY:Slider("Vertical", "Vertical (Drawings)", 120, 0, GetResolution().y, 10)
 	SLU.Date.DY:ColorPick("ColorPick", "Color Pick - Year", {255,226,255,18})
 	SLU.Date:Menu("DT", "Draw Time")
 	SLU.Date.DT:Boolean("DrawTime", "Draw Current Time", true)
 	SLU.Date.DT:Slider("Horizontal", "Horizontal (Drawings)", GetResolution().x*.9, 0, GetResolution().x, 10)
-	SLU.Date.DT:Slider("Vertical", "Vertical (Drawings)", 140, 0, GetResolution().y, 10)
+	SLU.Date.DT:Slider("Vertical", "Vertical (Drawings)", 80, 0, GetResolution().y, 10)
 	SLU.Date.DT:ColorPick("ColorPick", "Color Pick - Time", {255,226,255,18})
 	
 	Callback.Add("Draw", function() self:EnableDraw() end)
@@ -4602,15 +4602,10 @@ function SLEvade:__init()
 	EMenu.Draws:Boolean("DSPath", "Draw SkillShot Path", true)
 	EMenu.Draws:Boolean("DSEW", "Draw SkillShot Extra Width", true)
 	EMenu.Draws:Boolean("DEPos", "Draw Evade Position", true)
-	EMenu.Draws:Menu("SD", "Spell Drawing color")
-	EMenu.Draws.SD:ColorPick("d1c", "Danger 1 color", {230,51,51,255})
-	EMenu.Draws.SD:ColorPick("d2c", "Danger 2 color", {230,102,102,255})
-	EMenu.Draws.SD:ColorPick("d3c", "Danger 3 color", {230,153,153,255})
-	EMenu.Draws.SD:ColorPick("d4c", "Danger 4 color", {230,204,204,255})
-	EMenu.Draws.SD:ColorPick("d5c", "Danger 5 color", {230,255,255,255})
+	EMenu.Draws:Menu("SD", "Spell Drawing")
+	EMenu.Draws.SD:ColorPick("c", " Spell Color", {255,255,255,255})
+	EMenu.Draws.SD:Slider("t", "Line width", 2, 1, 5, 1)
 	EMenu.Draws:Boolean("DevOpt", "Draw for Devs", false)
-	EMenu.Draws:Slider("SQ", "SkillShot Quality", 5, 1, 35, 5)
-	EMenu.Draws:Info("asd", "lower = higher Quality")
 	EMenu:SubMenu("Keys", "Key Settings")
 	EMenu.Keys:KeyBinding("DD", "Disable Dodging", string.byte("K"), true)
 	EMenu.Keys:KeyBinding("DDraws", "Disable Drawings", string.byte("J"), true)
@@ -5420,7 +5415,7 @@ function SLEvade:Others()
 		if i.spell.type == "Circle" then 
 			if (GetDistance(self:Position(),i.p.endPos) < i.spell.radius + myHero.boundingRadius + 10) or (GetDistance(myHero,i.p.endPos) < i.spell.radius + myHero.boundingRadius + 10) and not i.safe then
 				if not i.mpos and not self.mposs then
-					i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * i.spell.radius
+					i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * (i.spell.radius+myHero.boundingRadius)
 					self.mposs = GetMousePos()
 				end
 			else
@@ -5431,7 +5426,7 @@ function SLEvade:Others()
 			if i.jp and (GetDistance(self:Position(),i.jp) < i.spell.radius + myHero.boundingRadius + 10) or (GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius + 10) and not i.safe then
 				--if GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular(),jp) >= GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular2(),jp) then
 					if not i.mpos and not self.mposs2 then
-						i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * i.spell.radius
+						i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * (i.spell.radius+myHero.boundingRadius)
 						self.mposs2 = GetMousePos()
 					end	
 				--end
@@ -5530,66 +5525,22 @@ end
 
 function SLEvade:Drawings()
 	for _,i in pairs(self.obj) do
-      if EMenu.Spells[_]["Draw".._]:Value() then
-		if i.spell.type == "Line" and not EMenu.Keys.DDraws:Value() then
-			local sPos = Vector(self.opos)
- 			local ePos = Vector(self.endposs)
-			if EMenu.Draws.DSPath:Value() then
-				if EMenu.Spells[_]["d".._]:Value() == 1 then
-					dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius, 0.75, EMenu.Draws.SD.d1c:Value())
-				elseif EMenu.Spells[_]["d".._]:Value() == 2 then
-					dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius, 1, EMenu.Draws.SD.d2c:Value())
-				elseif EMenu.Spells[_]["d".._]:Value() == 3 then
-					dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius, 1.25, EMenu.Draws.SD.d3c:Value())
-					elseif EMenu.Spells[_]["d".._]:Value() == 4 then
-					dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius, 1.5, EMenu.Draws.SD.d4c:Value())
-				elseif EMenu.Spells[_]["d".._]:Value() == 5 then
-					dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius, 1.75, EMenu.Draws.SD.d5c:Value())
-				end
-				if EMenu.Draws.DSEW:Value() then
-					if EMenu.Spells[_]["d".._]:Value() == 1 then
-						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius+EMenu.Advanced.ew:Value(), 1.5, EMenu.Draws.SD.d1c:Value())
-					elseif EMenu.Spells[_]["d".._]:Value() == 2 then
-						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius+EMenu.Advanced.ew:Value(), 2, EMenu.Draws.SD.d2c:Value())
-					elseif EMenu.Spells[_]["d".._]:Value() == 3 then
-						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius+EMenu.Advanced.ew:Value(), 2.5, EMenu.Draws.SD.d3c:Value())
-					elseif EMenu.Spells[_]["d".._]:Value() == 4 then
-						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius+EMenu.Advanced.ew:Value(), 3, EMenu.Draws.SD.d4c:Value())
-					elseif EMenu.Spells[_]["d".._]:Value() == 5 then
-						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius+EMenu.Advanced.ew:Value(), 3.5, EMenu.Draws.SD.d5c:Value())
+		if EMenu.Spells[_]["Draw".._]:Value() then
+			if i.spell.type == "Line" and not EMenu.Keys.DDraws:Value() then
+				local sPos = Vector(self.opos)
+				local ePos = Vector(self.endposs)
+				if EMenu.Draws.DSPath:Value() then
+					dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius, EMenu.Draws.SD.t:Value(), EMenu.Draws.SD.c:Value())
+					if EMenu.Draws.DSEW:Value() then
+						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius+EMenu.Advanced.ew:Value(), EMenu.Draws.SD.t:Value()+1, EMenu.Draws.SD.c:Value())
 					end
-				end
+				end			
+			elseif i.spell.type == "Circle" and not EMenu.Keys.DDraws:Value() then
+				if EMenu.Draws.DSPath:Value() then
+					DrawCircle(i.p.endPos,i.spell.radius,EMenu.Draws.SD.t:Value(),20,EMenu.Draws.SD.c:Value())	
+				end	
 			end
-			
-		elseif i.spell.type == "Circle" and not EMenu.Keys.DDraws:Value() then
-			if EMenu.Draws.DSPath:Value() then
-				if EMenu.Spells[_]["d".._]:Value() == 1 then
-					DrawCircle(i.p.endPos,i.spell.radius,0.75,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())	
-				elseif EMenu.Spells[_]["d".._]:Value() == 2 then
-					DrawCircle(i.p.endPos,i.spell.radius,1,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
-				elseif EMenu.Spells[_]["d".._]:Value() == 3 then
-					DrawCircle(i.p.endPos,i.spell.radius,1.25,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
-				elseif EMenu.Spells[_]["d".._]:Value() == 4 then
-					DrawCircle(i.p.endPos,i.spell.radius,1.5,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
-				elseif EMenu.Spells[_]["d".._]:Value() == 5 then
-					DrawCircle(i.p.endPos,i.spell.radius,1.75,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
-				end
-				if EMenu.Draws.DSEW:Value() then
-					if EMenu.Spells[_]["d".._]:Value() == 1 then
-						DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),1.5,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())	
-					elseif EMenu.Spells[_]["d".._]:Value() == 2 then
-						DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),2,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
-					elseif EMenu.Spells[_]["d".._]:Value() == 3 then
-						DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),2.5,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
-					elseif EMenu.Spells[_]["d".._]:Value() == 4 then
-						DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),3,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
-					elseif EMenu.Spells[_]["d".._]:Value() == 5 then
-						DrawCircle(i.p.endPos,i.spell.radius+EMenu.Advanced.ew:Value(),3.5,EMenu.Draws.SQ:Value(),EMenu.Draws.SD.d2c:Value())
-					end
-				end
-			end	
 		end
-	  end
 	end
 end
 
