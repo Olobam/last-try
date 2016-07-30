@@ -6289,8 +6289,10 @@ function HitMe:Detect(unit,spellProc)
 				self.object[spellProc.name].uDodge = nil
 				self.object[spellProc.name].startTime = os.clock()
 				self.object[spellProc.name].coll = false
-				if l.killTime then
-					DelayAction(function() self.object[spellProc.name] = nil end, l.killTime + GetDistance(unit,spellProc.endPos)/l.speed + l.delay)
+				if l.killTime and l.spellType == "Circular" then
+					DelayAction(function() self.obj[spellProc.name] = nil end, l.killTime + GetDistance(unit,spellProc.endPos)/l.speed + l.delay)
+				elseif l.spellType == "Line" then
+					DelayAction(function() self.obj[spellProc.name] = nil end, l.delay*.001 + 1.3*GetDistance(myHero.pos,spellProc.startPos)/l.speed)
 				end
 				if l.killName and l.killName == spellProc.name then
 					self.object[spellProc.name] = nil
@@ -10916,17 +10918,17 @@ self.EvadeSpells = {
 		-- [2] = {dl = 3,name = "Cutthroat",range = 700,speed = math.huge,spellDelay = 50,spellKey = 2,evadeType = "DashT",castType = "Target",},
 	-- },
 }
-DelayAction(function()
-	for kk,k in pairs(GetEnemyHeroes()) do
-		if self.Spells[k.charName] then
-			for _,i in pairs(self.Spells[k.charName]) do
-				if self.supportedtypes[i.spellType].supported == false then
-					print("<font color=\"#FFFFF\"><b>"..k.charName.." - spell : "..self.str[i.Slot].." | "..i.name.. "<font color=\"#FFFFFF\"> is not supported </b></font>")
-				end
-			end
-		end
-	end
-end,001.25)
+-- DelayAction(function()
+	-- for kk,k in pairs(GetEnemyHeroes()) do
+		-- if self.Spells[k.charName] then
+			-- for _,i in pairs(self.Spells[k.charName]) do
+				-- if self.supportedtypes[i.spellType].supported == false then
+					-- print("<font color=\"#FFFFF\"><b>"..k.charName.." - spell : "..self.str[i.Slot].." | "..i.name.. "<font color=\"#FFFFFF\"> is not supported </b></font>")
+				-- end
+			-- end
+		-- end
+	-- end
+-- end,001.25)
 
 end
 
@@ -11196,7 +11198,7 @@ end
 
 function SLEvade:Pathfinding()
 	for _,i in pairs(self.obj) do
-		if i.spell.spellType == "Line" then
+		if i.spell.spellType == "Line" and i.p then
 				i.p.startPos = Vector(i.p.startPos)
 				i.p.endPos = Vector(i.p.endPos)
 			if GetDistance(i.p.startPos) < i.spell.range + myHero.boundingRadius and GetDistance(self.endposs) < i.spell.range + myHero.boundingRadius then
@@ -11309,8 +11311,10 @@ end
 
 function SLEvade:Dodge()
 	for _,i in pairs(self.obj) do
+	if i.p then
 	 local oT = (i.spell.delay*.001) + GetDistance(myHero,i.p.startPos) / i.spell.speed
 	  local fT = .75
+	end
 				--DashP = Dash - Position, DashS = Dash - Self, DashT = Dash - Targeted, SpellShieldS = SpellShield - Self, SpellShieldT = SpellShield - Targeted, WindWallP = WindWall - Position, 
 		if EMenu.Keys.DD:Value() then return end
 			if i.safe and ((not self.DodgeOnlyDangerous and EMenu.d:Value() <= EMenu.Spells[i.spell.name]["d"..i.spell.name]:Value()) or (self.DodgeOnlyDangerous and EMenu.Spells[i.spell.name]["IsD"..i.spell.name]:Value())) and EMenu.Spells[i.spell.name]["Dodge"..i.spell.name]:Value() and GetPercentHP(myHero) <= EMenu.Spells[i.spell.name]["hp"..i.spell.name]:Value() then
@@ -11399,7 +11403,7 @@ function SLEvade:CreateObject(obj)
 			if self.Spells[obj.spellOwner.charName] and EMenu.Spells[l.name] and EMenu.d:Value() <= EMenu.Spells[l.name]["d"..l.name]:Value() and (l.missileName == obj.spellName or obj.spellName:lower():find(l.name:lower()) or obj.spellName:lower():find(l.spellName:lower()) or (tostring(l.extraMissileNames) and l.extraMissileNames == obj.spellName)) then
 				if not self.obj[obj.spellName] then self.obj[obj.spellName] = {} end
 				self.obj[obj.spellName].o = obj
-				self.obj[obj.spellName].caster = GetObjectSpellOwner(obj)
+				self.obj[obj.spellName].caster = obj.spellOwner.charName
 				self.obj[obj.spellName].mpos = nil
 				self.obj[obj.spellName].uDodge = nil
 				self.obj[obj.spellName].startTime = os.clock()
@@ -11427,8 +11431,10 @@ function SLEvade:Detection(unit,spellProc)
 				self.obj[spellProc.name].uDodge = nil
 				self.obj[spellProc.name].startTime = os.clock()
 				self.obj[spellProc.name].coll = false
-				if l.killTime then
+				if l.killTime and l.spellType == "Circular" then
 					DelayAction(function() self.obj[spellProc.name] = nil end, l.killTime + GetDistance(unit,spellProc.endPos)/l.speed + l.delay)
+				elseif l.spellType == "Line" then
+					DelayAction(function() self.obj[spellProc.name] = nil end, l.delay*.001 + 1.3*GetDistance(myHero.pos,spellProc.startPos)/l.speed)
 				end
 				if l.killName and l.killName == spellProc.name then
 					self.obj[spellProc.name] = nil
