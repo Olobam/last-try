@@ -4118,6 +4118,7 @@ function SLWalker:__init()
 	OMenu.Adv:Slider("MD", "Move Delay", 0,-100,100,5)
 	
 	Callback.Add("ProcessSpellAttack", function(unit,spellProc) self:PrAtt(unit,spellProc) end)
+	Callback.Add("ProcessSpell", function(unit,spellProc) self:PrSp(unit,spellProc) end)
 	Callback.Add("Tick", function(unit,spellProc) self:T(unit,spellProc) end)
 	Callback.Add("Draw", function(unit,spellProc) self:D(unit,spellProc) end)
 	Callback.Add("IssueOrder", function(order) self:IssOrd(order) end)
@@ -4306,7 +4307,10 @@ if not SLW then return end
 			self:ResetAA()
 		end
 	end
-	if self.projectilespeeds[unit.charName] and unit.team == myHero.team then
+end
+
+function SLWalker:PrSp(unit,spellProc)
+	if self.projectilespeeds[unit.charName] and unit.team == myHero.team and spellProc.name:lower():find("attack") then
 		for i = 1, #self.ActiveAttacks do
 			if self.ActiveAttacks[i].Attacker == unit then
 				table.remove(self.ActiveAttacks, i)
@@ -4518,8 +4522,8 @@ function SLWalker:GetPredictedHealth(unit, time)
     while i <= #self.ActiveAttacks do
 		if OMenu.FS.EFD:Value() then
 			if self.ActiveAttacks[i].Attacker and not self.ActiveAttacks[i].Attacker.dead and self.ActiveAttacks[i].Target and self.ActiveAttacks[i].Target.networkID == unit.networkID then
-				local hittime =  self.ActiveAttacks[i].starttime + (GetDistance(self.ActiveAttacks[i].Target.pos,self.ActiveAttacks[i].Attacker.pos)/self.ActiveAttacks[i].projectilespeed) + self.ActiveAttacks[i].windUpTime
-				if self:GetTime() < hittime - delay and hittime < self:GetTime() + time and unit.totalDamage > self.ActiveAttacks[i].Target.health then
+				local hittime = self.ActiveAttacks[i].starttime + (GetDistance(self.ActiveAttacks[i].Target,self.ActiveAttacks[i].Attacker)/self.ActiveAttacks[i].projectilespeed) - delay
+				if self:GetTime() < hittime and hittime < self:GetTime() + time and unit.totalDamage > self.ActiveAttacks[i].Target.health then
 					IncDamage = IncDamage + unit.totalDamage
 					count = count + 1
 					if unit.totalDamage > MaxDamage then
@@ -4530,8 +4534,8 @@ function SLWalker:GetPredictedHealth(unit, time)
 			i = i + 1
 		else
 			if self.ActiveAttacks[i].Attacker and not self.ActiveAttacks[i].Attacker.dead and self.ActiveAttacks[i].Target and self.ActiveAttacks[i].Target.networkID == unit.networkID then
-				local hittime = self.ActiveAttacks[i].starttime + (GetDistance(self.ActiveAttacks[i].Target.pos,self.ActiveAttacks[i].Attacker.pos)/self.ActiveAttacks[i].projectilespeed) + self.ActiveAttacks[i].windUpTime
-				if self:GetTime() < hittime - delay and hittime < self:GetTime() + time then
+				local hittime = self.ActiveAttacks[i].starttime + (GetDistance(self.ActiveAttacks[i].Target,self.ActiveAttacks[i].Attacker)/self.ActiveAttacks[i].projectilespeed) - delay
+				if self:GetTime() < hittime and hittime < self:GetTime() + time then
 					IncDamage = IncDamage + unit.totalDamage
 					count = count + 1
 					if unit.totalDamage > MaxDamage then
