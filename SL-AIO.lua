@@ -4156,7 +4156,7 @@ if not SLW then return end
 					DrawCircle(i.pos,i.boundingRadius*1.2,1,20,ARGB(255,255,128,0))
 				end
 			end
-			if self:Mode() == "LaneClear" or self:Mode() == "LastHit" then
+			if self:Mode() == "LaneClear" or self:Mode() == "LastHit" or self:Mode() == "Harass" then
 				if i.visible and i.distance < self.aarange and i.alive and i.team ~= MINION_ALLY and self:PredictHP(i,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(i)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, i, self:Dmg(myHero,i,{name = "Basic"})) then
 					DrawCircle(i.pos,i.boundingRadius*1.2,1,20,GoS.Green)
 				end
