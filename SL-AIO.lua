@@ -282,7 +282,9 @@ function Init:__init()
 	end
 	
 	if MapPositionGOS[ChampName] == true and FileExist(COMMON_PATH .. "MapPositionGOS.lua") then
-		require 'MapPositionGOS'
+		if not _G.MapPosition then
+			require('MapPositionGoS')
+		end
 	end
 end
 
@@ -2901,6 +2903,7 @@ self.s = {
 	["AhriOrbofDeception"]={charName="Ahri",slot=0,type="Line",delay=0.25,range=1000,radius=100,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="AhriOrbMissile",killTime=0,displayname="Orb of Deception",mcollision=false},
 	["AhriOrbReturn"]={charName="Ahri",slot=0,type="Line",delay=0.25,range=1000,radius=100,speed=915,addHitbox=true,danger=2,dangerous=false,proj="AhriOrbReturn",killTime=0,displayname="Orb of Deception2",mcollision=false},
 	["AhriSeduce"]={charName="Ahri",slot=2,type="Line",delay=0.25,range=1000,radius=60,speed=1600,addHitbox=true,danger=3,dangerous=true,proj="AhriSeduceMissile",killTime=0,displayname="Charm",mcollision=true},
+	["Pulverize"]={charName="Alistar",slot=0,type="Circle",delay=0.25,range=1000,radius=200,speed=math.huge,addHitbox=true,danger=5,dangerous=true,proj="nil",killTime=0.25,displayname="Pulverize",mcollision=false},
 	["BandageToss"]={charName="Amumu",slot=0,type="Line",delay=0.25,range=1000,radius=90,speed=2000,addHitbox=true,danger=3,dangerous=true,proj="SadMummyBandageToss",killTime=0,displayname="Bandage Toss",mcollision=true},
 	["CurseoftheSadMummy"]={charName="Amumu",slot=3,type="Circle",delay=0.25,range=0,radius=550,speed=math.huge,addHitbox=false,danger=5,dangerous=true,proj="nil",killTime=1.25,displayname="Curse of the Sad Mummy",mcollision=false},
 	["FlashFrost"]={charName="Anivia",slot=0,type="Line",delay=0.25,range=1200,radius=110,speed=850,addHitbox=true,danger=3,dangerous=true,proj="FlashFrostSpell",killTime=0,displayname="Flash Frost",mcollision=false},
@@ -3160,7 +3163,7 @@ function HitMe:Ti()
 					self.dT = i.spell.delay + GetDistance(myHero,i.p.startPos) / i.spell.speed
 					self.endposs = Vector(i.p.startPos)+Vector(Vector(i.p.endPos)-i.p.startPos):normalized()*(i.spell.range+i.spell.radius)
 				end
-				if ((not self.DoD and SLS.SB.dV:Value() <= SLS.SB.Spells[_]["d".._]:Value()) or (self.DoD and SLS.SB.Spells[_]["IsD".._]:Value())) then
+				if ((not self.DoD and SLS.SB.dV:Value() <= SLS.SB.Spells[_]["d".._]:Value()) or (self.DoD and SLS.SB.Spells[_]["IsD".._]:Value())) and SLS.SB.Spells[_]["Dodge".._]:Value() then
 					if (i.spell.type == "Line" or i.spell.type == "Cone" or i.spell.type == "Rectangle") and i.p then
 							i.p.startPos = Vector(i.p.startPos)
 							i.p.endPos = Vector(i.p.endPos)
