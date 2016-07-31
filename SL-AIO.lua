@@ -4088,7 +4088,7 @@ function SLWalker:__init()
 	OMenu:Menu("FS", "Farm Settings")
 	OMenu.FS:Boolean("AJ", "Attack Jungle", true)
 	OMenu.FS:Boolean("AS", "Attack Structures", true)
-	OMenu.FS:Boolean("EFD", "Enable Farm Delay", false)
+	OMenu.FS:Slider("FD", "Farm Delay", 0,-20,20,2)
 	
 	OMenu:Menu("D", "Drawings")
 	OMenu.D:Boolean("LHM", "Lasthit Marker", true)
@@ -4517,36 +4517,22 @@ function SLWalker:GetPredictedHealth(unit, time)
     local i = 1
     local MaxDamage = 0
     local count = 0
-	local delay = 0.07
+	local delay = 0.10
 
     while i <= #self.ActiveAttacks do
-		if OMenu.FS.EFD:Value() then
-			if self.ActiveAttacks[i].Attacker and not self.ActiveAttacks[i].Attacker.dead and self.ActiveAttacks[i].Target and self.ActiveAttacks[i].Target.networkID == unit.networkID then
-				local hittime = self.ActiveAttacks[i].starttime + (GetDistance(self.ActiveAttacks[i].Target,self.ActiveAttacks[i].Attacker)/self.ActiveAttacks[i].projectilespeed) - delay
-				if self:GetTime() < hittime and hittime < self:GetTime() + time and unit.totalDamage > self.ActiveAttacks[i].Target.health then
-					IncDamage = IncDamage + unit.totalDamage
-					count = count + 1
-					if unit.totalDamage > MaxDamage then
-						MaxDamage = unit.totalDamage
-					end
+		if self.ActiveAttacks[i].Attacker and not self.ActiveAttacks[i].Attacker.dead and self.ActiveAttacks[i].Target and self.ActiveAttacks[i].Target.networkID == unit.networkID then
+			local hittime = self.ActiveAttacks[i].starttime + (GetDistance(self.ActiveAttacks[i].Target,self.ActiveAttacks[i].Attacker)/self.ActiveAttacks[i].projectilespeed) - (self.ActiveAttacks[i].windUpTime+delay+OMenu.FS.FD:Value())
+			if self:GetTime() < hittime and hittime < self:GetTime() + time then
+				IncDamage = IncDamage + unit.totalDamage
+				count = count + 1
+				if unit.totalDamage > MaxDamage then
+					MaxDamage = unit.totalDamage
 				end
 			end
-			i = i + 1
-		else
-			if self.ActiveAttacks[i].Attacker and not self.ActiveAttacks[i].Attacker.dead and self.ActiveAttacks[i].Target and self.ActiveAttacks[i].Target.networkID == unit.networkID then
-				local hittime = self.ActiveAttacks[i].starttime + (GetDistance(self.ActiveAttacks[i].Target,self.ActiveAttacks[i].Attacker)/self.ActiveAttacks[i].projectilespeed) - delay
-				if self:GetTime() < hittime and hittime < self:GetTime() + time then
-					IncDamage = IncDamage + unit.totalDamage
-					count = count + 1
-					if unit.totalDamage > MaxDamage then
-						MaxDamage = unit.totalDamage
-					end
-				end
-			end
-			i = i + 1		
 		end
-    end
-		return unit.health - IncDamage, MaxDamage, count
+		i = i + 1		
+	end
+	return unit.health - IncDamage, MaxDamage, count
 end
 
 function LoadSLW()
