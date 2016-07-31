@@ -1,4 +1,4 @@
-local SLSeries = 1.2
+local SLSeries = 1.21
 local SLPatchnew = nil
 if GetGameVersion():sub(3,4) >= "10" then
 		SLPatchnew = GetGameVersion():sub(1,4)
@@ -133,7 +133,9 @@ function Init:__init()
 	end
 	
 	if MapPositionGOS[ChampName] == true and FileExist(COMMON_PATH .. "MapPositionGOS.lua") then
-		require 'MapPositionGOS'
+		if not _G.MapPosition then
+			require('MapPositionGoS')
+		end
 	end
 end
 
