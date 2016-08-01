@@ -5058,9 +5058,9 @@ self.EvadeSpells = {
 	["Lucian"] = { 
 		[2] = {dl = 1,name = "RelentlessPursuit",range = 425,spellDelay = 50,speed = 1350,spellKey = 2,evadeType = "DashP",castType = "Position",},
 	},	
-	-- ["Morgana"] = {
-		-- [2] = {dl = 3,name = "BlackShield",speed = math.huge,range = 650,spellDelay = 50,spellKey = 2,evadeType = "SpellShieldT",castType = "Target",},
-	-- },	
+	["Morgana"] = {
+		[2] = {dl = 3,name = "BlackShield",speed = math.huge,range = 650,spellDelay = 50,spellKey = 2,evadeType = "SpellShieldT",castType = "Target",},
+	},	
 	["Nocturne"] = { 
 		[1] = {dl = 3,name = "ShroudofDarkness",speed = math.huge,range = 0,spellDelay = 50,spellKey = 1,evadeType = "SpellShieldS",castType = "Self",},
 	},	
@@ -5566,7 +5566,7 @@ function SLEvade:Dodge()
 									else
 										self.ues = false
 								end		
-								if self.EvadeSpells[GetObjectName(myHero)][op].evadeType == "SpellShieldS" and CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].spellKey) == 0 then
+								if self.EvadeSpells[GetObjectName(myHero)][op].evadeType == "SpellShieldS" and CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].spellKey) == READY then
 										self.ues = true
 										DelayAction(function()
 											CastSpell(self.EvadeSpells[GetObjectName(myHero)][op].spellKey)
@@ -5574,12 +5574,15 @@ function SLEvade:Dodge()
 									else
 										self.ues = false
 								end
-								-- if self.EvadeSpells[GetObjectName(myHero)][op].evadeType == "SpellShieldT" and CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].spellKey) == 0 then --logic needed
-											-- self.ues = true
-										-- else
-											-- self.ues = false
-								-- end
-								if self.EvadeSpells[GetObjectName(myHero)][op].evadeType == "DashS" and CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].spellKey) == 0 then
+								if self.EvadeSpells[GetObjectName(myHero)][op].evadeType == "SpellShieldT" and CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].spellKey) == READY then --logic needed
+										self.ues = true
+										DelayAction(function()
+											CastTargetSpell(myHero,self.EvadeSpells[GetObjectName(myHero)][op].spellKey)
+										end,oT*fT*.001)
+									else
+											self.ues = false
+								end
+								if self.EvadeSpells[GetObjectName(myHero)][op].evadeType == "DashS" and CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].spellKey) == READY then
 										self.ues = true
 										CastSpell(self.EvadeSpells[GetObjectName(myHero)][op].spellKey)
 									else
@@ -5595,9 +5598,11 @@ function SLEvade:Dodge()
 					self.usp = false
 				end		
 				for item,c in pairs(self.SI) do
-					if c.State and Ready(GetItemSlot(myHero,item)) and EMenu.invulnerable[c.Name]["Dodge"..c.Name]:Value() and i.uDodge == true and GetPercentHP(myHero) <= EMenu.invulnerable[c.Name]["hp"..c.Name]:Value() and EMenu.Spells[_]["d".._]:Value() >= EMenu.invulnerable[c.Name]["d"..c.Name]:Value() and self.ues == false and self.usp == false then
+					if c.State and Ready(GetItemSlot(myHero,item)) and EMenu.invulnerable[c.Name]["Dodge"..c.Name]:Value() and i.uDodge == false and GetPercentHP(myHero) <= EMenu.invulnerable[c.Name]["hp"..c.Name]:Value() and EMenu.Spells[_]["d".._]:Value() >= EMenu.invulnerable[c.Name]["d"..c.Name]:Value() and self.ues == false and self.usp == false then
 						self.ut = true
-						CastSpell(GetItemSlot(myHero,item))
+						DelayAction(function()
+							CastSpell(GetItemSlot(myHero,item))
+						end,oT*fT*.001)
 					else
 						self.ut = false
 					end
