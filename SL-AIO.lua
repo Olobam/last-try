@@ -13,7 +13,7 @@ local function dRectangleOutline(s, e, w, t, c)--start,end,width,thickness,color
 	local c2 = s+Vector(Vector(e)-s):perpendicular2():normalized()*w/2
 	local c3 = e+Vector(Vector(s)-e):perpendicular():normalized()*w/2
 	local c4 = e+Vector(Vector(s)-e):perpendicular2():normalized()*w/2
-	DrawLine3D(c1.x,c1.y,c1.z,c2.x,c2.y,c2.z,t,c)
+	DrawLine3D(c1.x,c1.y,c1.z,c2.x,c2.y,c2.z,t,ARGB(255,15,250,42))
 	DrawLine3D(c2.x,c2.y,c2.z,c3.x,c3.y,c3.z,t,c)
 	DrawLine3D(c3.x,c3.y,c3.z,c4.x,c4.y,c4.z,t,c)
 	DrawLine3D(c1.x,c1.y,c1.z,c4.x,c4.y,c4.z,t,c)
@@ -24,7 +24,7 @@ local function dRectangleOutline2(s, e, w, t, c)--start,end,radius,thickness,col
 	local c2 = s+Vector(Vector(e)-s):perpendicular2():normalized()*w
 	local c3 = e+Vector(Vector(s)-e):perpendicular():normalized()*w
 	local c4 = e+Vector(Vector(s)-e):perpendicular2():normalized()*w
-	DrawLine3D(c1.x,c1.y,c1.z,c2.x,c2.y,c2.z,t,c)
+	DrawLine3D(c1.x,c1.y,c1.z,c2.x,c2.y,c2.z,t,ARGB(255,15,250,42))
 	DrawLine3D(c2.x,c2.y,c2.z,c3.x,c3.y,c3.z,t,c)
 	DrawLine3D(c3.x,c3.y,c3.z,c4.x,c4.y,c4.z,t,c)
 	DrawLine3D(c1.x,c1.y,c1.z,c4.x,c4.y,c4.z,t,c)
@@ -4525,6 +4525,7 @@ function SLEvade:__init()
 	self.usp = false -- self.usingsummonerspells
 	self.mposs2 = nil -- self.mousepos line
 	self.opos = nil -- simulated obj pos
+	self.cpos = nil --c pos
 	self.endposs = nil -- endpos
 	self.mV = nil -- wp
 	self.YasuoWall = {} --yasuowall
@@ -4558,7 +4559,7 @@ function SLEvade:__init()
 	EMenu.Draws:Boolean("DEPos", "Draw Evade Position", true)
 	EMenu.Draws:Menu("SD", "Spell Drawing")
 	EMenu.Draws.SD:ColorPick("c", " Spell Color", {255,255,255,255})
-	EMenu.Draws.SD:Slider("t", "Line width", 2, 1, 5, 1)
+	EMenu.Draws.SD:Slider("t", "Line width", 0.5, 0, 5, 0.5)
 	EMenu.Draws:Boolean("DevOpt", "Draw for Devs", false)
 	EMenu:SubMenu("Keys", "Key Settings")
 	EMenu.Keys:KeyBinding("DD", "Disable Dodging", string.byte("K"), true)
@@ -5204,6 +5205,7 @@ function SLEvade:Drawp()
 					-- self.Spells[_].speed = self.Spelldatasave[_].speed
 				-- end
 				self.opos = self:sObjpos()
+				self.cpos = self:sCircPos()
 				self:Drawings()
 				self:Drawings2()
 			end
@@ -5316,6 +5318,14 @@ function SLEvade:sObjpos()
 	end
 end
 
+function SLEvade:sCircPos()
+	for _,i in pairs(self.obj) do
+		if i.p then
+			return (i.spell.radius*(os.clock()-(i.spell.killTime + GetDistance(i.caster,i.p.endPos)/i.spell.speed + i.spell.delay)-i.startTime) + i.spell.radius)
+		end
+	end
+end
+
 function SLEvade:Position()
 return Vector(myHero) + Vector(Vector(self.mV) - myHero.pos):normalized() * myHero.ms/2
 end
@@ -5406,16 +5416,6 @@ function SLEvade:Others()
 	end
 end
 
-function SLEvade:IssOrd(order)
-	for _,i in pairs(self.obj) do
-		if order.flag == 2 and i.jp and i.spell.type == "Line" and (GetDistance(self:Position(),i.jp) < ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())) and not i.safe then
-			BlockOrder()
-		elseif order.flag == 2 and i.p and i.spell.type == "Circle" and (GetDistance(self:Position(),i.p.endPos) < ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())) and not i.safe then
-			BlockOrder()
-		end
-	end
-end
-
 function SLEvade:Pathfinding()
 	for _,i in pairs(self.obj) do
 		if i.spell.type == "Line" then
@@ -5495,12 +5495,13 @@ function SLEvade:Drawings()
 				if EMenu.Draws.DSPath:Value() then
 					dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius, EMenu.Draws.SD.t:Value(), EMenu.Draws.SD.c:Value())
 					if EMenu.Draws.DSEW:Value() then
-						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius+EMenu.Advanced.ew:Value(), EMenu.Draws.SD.t:Value()+1, EMenu.Draws.SD.c:Value())
+						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius+EMenu.Advanced.ew:Value(), EMenu.Draws.SD.t:Value()+0.5, EMenu.Draws.SD.c:Value())
 					end
 				end			
 			elseif i.spell.type == "Circle" and not EMenu.Keys.DDraws:Value() then
 				if EMenu.Draws.DSPath:Value() then
-					DrawCircle(i.p.endPos,i.spell.radius,EMenu.Draws.SD.t:Value(),20,EMenu.Draws.SD.c:Value())	
+					DrawCircle(i.p.endPos,i.spell.radius,EMenu.Draws.SD.t:Value()+0.5,20,EMenu.Draws.SD.c:Value())	
+					DrawCircle(i.p.endPos,self.cpos,EMenu.Draws.SD.t:Value()+0.5,20,GoS.Yellow)
 				end	
 			end
 		end
@@ -5613,6 +5614,20 @@ function SLEvade:Dodge()
 		else
 			DisableHoldPosition(false)
 			DisableAll(false)
+		end
+	end
+end
+
+function SLEvade:IssOrd(order)
+	for _,i in pairs(self.obj) do
+		if order.flag == 2 and i.jp and i.spell.type == "Line" then
+			if (GetDistance(self:Position(),i.jp) < ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())) and not i.safe and not i.mpos and (GetDistance(i.jp) > ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())) then
+				BlockOrder()
+			end
+		elseif order.flag == 2 and i.p and i.spell.type == "Circle" then
+			if (GetDistance(self:Position(),i.p.endPos) < ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())) and not i.safe and not i.mpos and (GetDistance(i.p.endPos) > ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())) then
+				BlockOrder()
+			end
 		end
 	end
 end
