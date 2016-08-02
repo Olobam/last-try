@@ -4216,7 +4216,7 @@ local damageMultiplier = spell.name:find("CritAttack") and 2 or 1
 	ADDmg = TotalDmg
 	if targetType ~= Obj_AI_Turret then
 		if GetMaladySlot(source) then
-			APDmg = 15 + 0.15*AP
+			APDmg = 15 + 0.15*source.ap
 		end
 		if GotBuff(source, "itemstatikshankcharge") == 100 then
 			APDmg = APDmg + 100
@@ -4673,7 +4673,7 @@ self.Spells = {
 	["FlashFrost"]={charName="Anivia",slot=0,type="Line",delay=0.25,range=1200,radius=110,speed=850,addHitbox=true,danger=3,dangerous=true,proj="FlashFrostSpell",killTime=0,displayname="Flash Frost",mcollision=false},
 	["Incinerate"]={charName="Annie",slot=1,type="Cone",delay=0.25,range=825,radius=80,speed=math.huge,angle=50,addHitbox=false,danger=2,dangerous=false,proj="nil",killTime=0,displayname="",mcollision=false},
 	["InfernalGuardian"]={charName="Annie",slot=3,type="Circle",delay=0.25,range=600,radius=251,speed=math.huge,addHitbox=true,danger=5,dangerous=true,proj="nil",killTime=0.3,displayname="",mcollision=false},
-	["Volley"]={charName="Ashe",slot=1,type="Cone",delay=0.25,range=1200,radius=200,speed=1500,angle=50,addHitbox=true,danger=2,dangerous=false,proj="VolleyAttack",killTime=0,displayname="",mcollision=false},
+	["Volley"]={charName="Ashe",slot=1,type="Cone",delay=0.25,range=1200,radius=200,speed=1500,angle=60,addHitbox=true,danger=2,dangerous=false,proj="VolleyAttack",killTime=0,displayname="",mcollision=false},
 	["EnchantedCrystalArrow"]={charName="Ashe",slot=3,type="Line",delay=0.2,range=20000,radius=130,speed=1600,addHitbox=true,danger=5,dangerous=true,proj="EnchantedCrystalArrow",killTime=0,displayname="Enchanted Arrow",mcollision=false},
 	["AurelionSolQ"]={charName="AurelionSol",slot=0,type="Line",delay=0.25,range=1500,radius=180,speed=850,addHitbox=true,danger=2,dangerous=false,proj="AurelionSolQMissile",killTime=0,displayname="AurelionSolQ",mcollision=false},
 	["AurelionSolR"]={charName="AurelionSol",slot=3,type="Line",delay=0.3,range=1420,radius=120,speed=4500,addHitbox=true,danger=3,dangerous=true,proj="AurelionSolRBeamMissile",killTime=0,displayname="AurelionSolR",mcollision=false},
@@ -5596,7 +5596,7 @@ function SLEvade:Pathfinding()
 		elseif i.spell.type == "Cone" then
 			i.p.startPos = Vector(i.p.startPos)
 				i.p.endPos = Vector(i.p.endPos)
-			if GetDistance(i.p.startPos) < i.spell.range + myHero.boundingRadius and GetDistance(i.p.endPos) < i.spell.range + myHero.boundingRadius then
+			if GetDistance(i.p.startPos) < i.spell.range + myHero.boundingRadius and GetDistance(self.endposs) < i.spell.range + myHero.boundingRadius then
 				local v3 = Vector(myHero.pos)
 				local v4 = Vector(i.p.startPos-i.p.endPos):perpendicular()
 				local jp = Vector(VectorIntersection(i.p.startPos,i.p.endPos,v3,v4).x,myHero.pos.y,VectorIntersection(i.p.startPos,i.p.endPos,v3,v4).y)
