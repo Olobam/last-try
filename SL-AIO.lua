@@ -5009,6 +5009,32 @@ function SLEvade:Tickp()
 			end
 		end
 	end
+	for item,c in pairs(self.SI) do
+		if GetItemSlot(myHero,item)>0 then
+			if not c.State and not EMenu.invulnerable[c.Name] then
+				EMenu.invulnerable:Menu(c.Name,""..myHero.charName.." | Item - "..c.Name)
+				EMenu.invulnerable[c.Name]:Boolean("Dodge"..c.Name, "Enable Dodge", true)
+				EMenu.invulnerable[c.Name]:Slider("d"..c.Name,"Danger", 5, 1, 5, 1)
+				EMenu.invulnerable[c.Name]:Slider("hp"..c.Name,"HP", 100, 1, 100, 5)
+			end
+			c.State = true
+		else
+			c.State = false
+		end
+	end
+	for item,c in pairs(self.D) do
+		if GetItemSlot(myHero,item)>0 then
+			if not c.State and not EMenu.EvadeSpells[c.Name] then
+				EMenu.EvadeSpells:Menu(c.Name,""..myHero.charName.." | Item - "..c.Name)
+				EMenu.EvadeSpells[c.Name]:Boolean("Dodge"..c.Name, "Enable Dodge", true)
+				EMenu.EvadeSpells[c.Name]:Slider("d"..c.Name,"Danger", 3, 1, 5, 1)
+				EMenu.EvadeSpells[c.Name]:Slider("hp"..c.Name,"HP", 100, 1, 100, 5)
+			end
+			c.State = true
+		else
+			c.State = false
+		end
+	end
 end
 
 function SLEvade:Drawp()
@@ -5174,32 +5200,6 @@ function SLEvade:CleanObj()
 end
 
 function SLEvade:Others()
-	for item,c in pairs(self.SI) do
-		if GetItemSlot(myHero,item)>0 then
-			if not c.State and not EMenu.invulnerable[c.Name] then
-				EMenu.invulnerable:Menu(c.Name,""..myHero.charName.." | Item - "..c.Name)
-				EMenu.invulnerable[c.Name]:Boolean("Dodge"..c.Name, "Enable Dodge", true)
-				EMenu.invulnerable[c.Name]:Slider("d"..c.Name,"Danger", 5, 1, 5, 1)
-				EMenu.invulnerable[c.Name]:Slider("hp"..c.Name,"HP", 100, 1, 100, 5)
-			end
-			c.State = true
-		else
-			c.State = false
-		end
-	end
-	for item,c in pairs(self.D) do
-		if GetItemSlot(myHero,item)>0 then
-			if not c.State and not EMenu.EvadeSpells[c.Name] then
-				EMenu.EvadeSpells:Menu(c.Name,""..myHero.charName.." | Item - "..c.Name)
-				EMenu.EvadeSpells[c.Name]:Boolean("Dodge"..c.Name, "Enable Dodge", true)
-				EMenu.EvadeSpells[c.Name]:Slider("d"..c.Name,"Danger", 3, 1, 5, 1)
-				EMenu.EvadeSpells[c.Name]:Slider("hp"..c.Name,"HP", 100, 1, 100, 5)
-			end
-			c.State = true
-		else
-			c.State = false
-		end
-	end
 	if EMenu.Keys.DoD:Value() or EMenu.Keys.DoD2:Value() then
 			self.DodgeOnlyDangerous = true
 		else
