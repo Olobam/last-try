@@ -5250,7 +5250,7 @@ function SLEvade:Others()
 			end
 		end
 		if i.safe and i.spell.type == "Line" and i.p then
-			if GetDistance(self.opos)/i.spell.speed + i.spell.delay < GetDistance(i.safe)/myHero.ms then 
+			if GetDistance(self.opos)/i.spell.speed + i.spell.delay < (GetDistance(i.safe)/2)/myHero.ms then 
 					i.uDodge = true 
 				else
 					i.uDodge = false
@@ -5262,7 +5262,7 @@ function SLEvade:Others()
 					i.uDodge = false
 			end
 		elseif i.safe and i.spell.type == "Rectangle" and i.p then
-			if GetDistance(i.p.endPos)/i.spell.speed + i.spell.delay < GetDistance(i.safe)/myHero.ms then
+			if GetDistance(i.p.endPos)/i.spell.speed + i.spell.delay < (GetDistance(i.safe)/2)/myHero.ms then
 					i.uDodge = true 
 				else
 					i.uDodge = false
