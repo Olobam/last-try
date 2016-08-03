@@ -327,9 +327,11 @@ class 'Recommend'
 
 function Recommend:__init()
 	self.RecommendedUtility = {
-	[1] = {Name = "Radar Hack", 	Link = "https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/RadarHack.lua",		        Author = "Noddy",	File = "RadarHack"},
-	[2] = {Name = "Recall Tracker",	Link = "https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/RecallTracker.lua",	        Author = "Noddy",	File = "RecallTracker"},
-	[3] = {Name = "GoSEvade",       Link = "https://raw.githubusercontent.com/KeVuong/GoS/master/Evade.lua",                    Author = "MeoBeo",  File = "Evade"},
+	[1] = {Name = "Radar Hack", 	Link = "https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/RadarHack.lua",		       		Author = "Noddy",	File = "RadarHack"},
+	[2] = {Name = "Recall Tracker",	Link = "https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/RecallTracker.lua",	       		Author = "Noddy",	File = "RecallTracker"},
+	[3] = {Name = "GoSEvade",       Link = "https://raw.githubusercontent.com/KeVuong/GoS/master/Evade.lua",                   		Author = "MeoBeo",	File = "Evade"},
+	[4] = {Name = "ChallengerEvade",Link = "https://raw.githubusercontent.com/D3ftsu/GoS/master/ChallengerEvade.lua",      			Author = "Deftsu",	File = "ChallengerEvade"},
+	-- [5] = {Name = "NEET´s Tracker", Link = "https://raw.githubusercontent.com/VTNEETS/NEET-Scripts/master/NEET%27s%20Tracker.lua",	Author = "Ryzuki",	File = "NEET´s Tracker"},
 	}
 
 	SLS:Menu("Re","|SL| Recommended Scripts")
@@ -4159,13 +4161,6 @@ if not SLW then return end
 	end
 	for _,i in pairs(minionManager.objects) do
 		if OMenu.D.LHM:Value() then
-			if self:Mode() == "LaneClear" then
-				if i.visible and i.distance < self.aarange and i.alive and i.team ~= MINION_ALLY and self:PredictHP(i,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(i)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, i, self:Dmg(myHero,i,{name = "Basic"})*2) and AllyMinionsAround(myHero,self.aarange-myHero.boundingRadius) > 3 then
-					DrawCircle(i.pos,i.boundingRadius*1.2,1,20,ARGB(255,255,128,0))
-				elseif i.visible and i.distance < self.aarange and i.alive and i.team ~= MINION_ALLY and self:PredictHP(i,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(i)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, i, self:Dmg(myHero,i,{name = "Basic"})) and AllyMinionsAround(myHero,self.aarange-myHero.boundingRadius) < 3 then
-					DrawCircle(i.pos,i.boundingRadius*1.2,1,20,ARGB(255,255,128,0))
-				end
-			end
 			if self:Mode() == "LaneClear" or self:Mode() == "LastHit" or self:Mode() == "Harass" then
 				if i.visible and i.distance < self.aarange and i.alive and i.team ~= MINION_ALLY and self:PredictHP(i,(1000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-GetDistance(i)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, i, self:Dmg(myHero,i,{name = "Basic"})) then
 					DrawCircle(i.pos,i.boundingRadius*1.2,1,20,GoS.Green)
@@ -4685,7 +4680,7 @@ self.Spells = {
 	["FlashFrost"]={charName="Anivia",slot=0,type="Line",delay=0.25,range=1200,radius=110,speed=850,addHitbox=true,danger=3,dangerous=true,proj="FlashFrostSpell",killTime=0,displayname="Flash Frost",mcollision=false},
 	["Incinerate"]={charName="Annie",slot=1,type="Cone",delay=0.25,range=825,radius=80,speed=math.huge,angle=50,addHitbox=false,danger=2,dangerous=false,proj="nil",killTime=0,displayname="",mcollision=false},
 	["InfernalGuardian"]={charName="Annie",slot=3,type="Circle",delay=0.25,range=600,radius=251,speed=math.huge,addHitbox=true,danger=5,dangerous=true,proj="nil",killTime=0.3,displayname="",mcollision=false},
-	["Volley"]={charName="Ashe",slot=1,type="Cone",delay=0.25,range=1200,radius=200,speed=1500,angle=55,addHitbox=true,danger=2,dangerous=false,proj="VolleyAttack",killTime=0,displayname="",mcollision=false},
+	["Volley"]={charName="Ashe",slot=1,type="Line",delay=0.25,range=1200,radius=60,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="VolleyAttack",killTime=0,displayname="",mcollision=false},
 	["EnchantedCrystalArrow"]={charName="Ashe",slot=3,type="Line",delay=0.2,range=20000,radius=130,speed=1600,addHitbox=true,danger=5,dangerous=true,proj="EnchantedCrystalArrow",killTime=0,displayname="Enchanted Arrow",mcollision=false},
 	["AurelionSolQ"]={charName="AurelionSol",slot=0,type="Line",delay=0.25,range=1500,radius=180,speed=850,addHitbox=true,danger=2,dangerous=false,proj="AurelionSolQMissile",killTime=0,displayname="AurelionSolQ",mcollision=false},
 	["AurelionSolR"]={charName="AurelionSol",slot=3,type="Line",delay=0.3,range=1420,radius=120,speed=4500,addHitbox=true,danger=3,dangerous=true,proj="AurelionSolRBeamMissile",killTime=0,displayname="AurelionSolR",mcollision=false},
@@ -5581,8 +5576,10 @@ end
 
 function SLEvade:CreateObject(obj)
 	if obj and obj.isSpell and obj.spellOwner.isHero and obj.spellOwner.team == MINION_ENEMY then
+		if EMenu.Draws.DevOpt:Value() then
+			print(obj.spellName)
+		end
 		for _,l in pairs(self.Spells) do
-			if obj.spellName:lower():find("attack") then return end
 			if self.Spells[obj.spellName] and EMenu.Spells[obj.spellName] and EMenu.d:Value() <= EMenu.Spells[obj.spellName]["d"..obj.spellName]:Value() and (l.proj == obj.spellName or _ == obj.spellName or obj.spellName:lower():find(_:lower()) or obj.spellName:lower():find(l.proj:lower())) then
 				if not self.obj[obj.spellName] then self.obj[obj.spellName] = {} end
 				self.obj[obj.spellName].o = obj
