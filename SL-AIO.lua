@@ -6440,9 +6440,9 @@ self.Spells = {
 		delay = 1000,
 		Slot = 3,
 		spellName = "LuxMaliceCannon",
-		spellType = "LuxR",
+		spellType = "Line",
 		Dangerous = true,
-		killTime = 1,
+		killTime = .8,
 		},
 		{
 		charName = "Lux",
