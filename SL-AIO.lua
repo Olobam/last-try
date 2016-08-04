@@ -134,6 +134,10 @@ local function dArrow(s, e, w, c)--startpos,endpos,width,color
 	DrawLine3D(s3.x,s3.y,s3.z,e.x,e.y,e.z,w,c)
 end
 
+local function Sample(o)
+    return {x=GetOrigin(o).x, y=GetOrigin(o).y, z=GetOrigin(o).z, time=GetTickCount()/1000 }
+end
+
 require 'OpenPredict'
 require 'DamageLib'
 
@@ -2942,7 +2946,7 @@ self.s = {
 	["FlashFrost"]={charName="Anivia",slot=0,type="Line",delay=0.25,range=1200,radius=110,speed=850,addHitbox=true,danger=3,dangerous=true,proj="FlashFrostSpell",killTime=0,displayname="Flash Frost",mcollision=false},
 	["Incinerate"]={charName="Annie",slot=1,type="Cone",delay=0.25,range=825,radius=80,speed=math.huge,angle=50,addHitbox=false,danger=2,dangerous=false,proj="nil",killTime=0,displayname="",mcollision=false},
 	["InfernalGuardian"]={charName="Annie",slot=3,type="Circle",delay=0.25,range=600,radius=251,speed=math.huge,addHitbox=true,danger=5,dangerous=true,proj="nil",killTime=0.3,displayname="",mcollision=false},
-	["Volley"]={charName="Ashe",slot=1,type="Line",delay=0.25,range=1200,radius=60,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="VolleyAttack",killTime=0,displayname="",mcollision=false},
+	["Volley"]={charName="Ashe",slot=1,type="Cone",delay=0.25,range=1200,radius=200,speed=1500,angle=55,addHitbox=true,danger=2,dangerous=false,proj="VolleyAttack",killTime=0,displayname="",mcollision=false},
 	["EnchantedCrystalArrow"]={charName="Ashe",slot=3,type="Line",delay=0.2,range=20000,radius=130,speed=1600,addHitbox=true,danger=5,dangerous=true,proj="EnchantedCrystalArrow",killTime=0,displayname="Enchanted Arrow",mcollision=false},
 	["AurelionSolQ"]={charName="AurelionSol",slot=0,type="Line",delay=0.25,range=1500,radius=180,speed=850,addHitbox=true,danger=2,dangerous=false,proj="AurelionSolQMissile",killTime=0,displayname="AurelionSolQ",mcollision=false},
 	["AurelionSolR"]={charName="AurelionSol",slot=3,type="Line",delay=0.3,range=1420,radius=120,speed=4500,addHitbox=true,danger=3,dangerous=true,proj="AurelionSolRBeamMissile",killTime=0,displayname="AurelionSolR",mcollision=false},
@@ -4544,7 +4548,7 @@ class 'SLEvade'
 
 function SLEvade:__init()
 
-	self.supportedtypes = {["Line"]={supported=true},["Circular"]={supported=true},["Cone"]={supported=true},["Rectangle"]={supported=true},["Arc"]={supported=false},["Ring"]={supported=false},["Threeway"]={supported=false},["Sevenway"]={supported=false}}
+	self.supportedtypes = {["Line"]={supported=true},["Circle"]={supported=true},["Cone"]={supported=true},["Rectangle"]={supported=true},["Arc"]={supported=false},["Ring"]={supported=false},["Threeway"]={supported=false},["Sevenway"]={supported=false}}
 	self.globalults = {["EzrealTrueshotBarrage"]={s=true},["EnchantedCrystalArrow"]={s=true},["DravenRCast"]={s=true},["JinxR"]={s=true}}
 	self.obj = {}
 	self.str = {[-1]="P",[0]="Q",[1]="W",[2]="E",[3]="R"}
@@ -4571,7 +4575,6 @@ function SLEvade:__init()
 	self.mposs4 = nil --mpos cone
 	self.pathd = nil --cone wall check
 	self.pathd2 = nil --cone wall check2
-	self.position = nil --pos
 	--collision creep [local]
 	--vector intersection [local]
 	--helperVector [local]
@@ -4610,36 +4613,34 @@ function SLEvade:__init()
 	EMenu.Keys:KeyBinding("DoD", "Dodge only Dangerous", string.byte(" "))
 	EMenu.Keys:KeyBinding("DoD2", "Dodge only Dangerous 2", string.byte("V"))
 	
-DelayAction(function()
-		for _,k in pairs(GetEnemyHeroes()) do
-			if self.Spells[GetObjectName(k)] then
-				for m,i in pairs(self.Spells[GetObjectName(k)]) do
-					if i.name == "" and GetCastName(k,m) then i.name = GetCastName(k,m) end
-					if i.spellName == "" and GetCastName(k,m) then i.spellName = GetCastName(k,m) end
-					if not i.spellType then i.spellType = "Line" end
-					if i.name ~= "" and i.spellName ~= "" and i.spellType and i.Slot then
-					if not EMenu.Spells[i.name] then EMenu.Spells:Menu(i.name,""..k.charName.." | "..(self.str[i.Slot] or "?").." - "..i.name) end
-						EMenu.Spells[i.name]:Boolean("Dodge"..i.name, "Enable Dodge", true)
-						EMenu.Spells[i.name]:Boolean("Draw"..i.name, "Enable Draw", true)
-						EMenu.Spells[i.name]:Boolean("Dashes"..i.name, "Enable Dashes", true)
-						EMenu.Spells[i.name]:Info("Empty12"..i.name, "")			
-						EMenu.Spells[i.name]:Slider("radius"..i.name,"Radius",(i.radius or 150), ((i.radius-50) or 50),((i.radius+100) or 250), 5)
-						if i.Dangerous then EMenu.Spells[i.name]:Slider("hp"..i.name, "HP to Dodge", 100, 1, 100, 5)
-						else EMenu.Spells[i.name]:Slider("hp"..i.name, "HP to Dodge", 85, 1, 100, 5)
+	DelayAction(function()
+		for _,i in pairs(self.Spells) do
+			for l,k in pairs(GetEnemyHeroes()) do
+				if not self.Spells[_] then return end
+				if i.charName == k.charName and self.supportedtypes[i.type].supported then
+					if i.displayname == "" then i.displayname = _ end
+					if i.danger == 0 then i.danger = 1 end
+					if not EMenu.Spells[_] then EMenu.Spells:Menu(_,""..i.charName.." | "..(self.str[i.slot] or "?").." - "..i.displayname) end
+						EMenu.Spells[_]:Boolean("Dodge".._, "Enable Dodge", true)
+						EMenu.Spells[_]:Boolean("Draw".._, "Enable Draw", true)
+						EMenu.Spells[_]:Boolean("Dashes".._, "Enable Dashes", true)
+						EMenu.Spells[_]:Info("Empty12".._, "")			
+						EMenu.Spells[_]:Slider("radius".._,"Radius",(i.radius or 150), ((i.radius-50) or 50),((i.radius+100) or 250), 5)
+						if i.dangerous then EMenu.Spells[_]:Slider("hp".._, "HP to Dodge", 100, 1, 100, 5)
+						else EMenu.Spells[_]:Slider("hp".._, "HP to Dodge", 85, 1, 100, 5)
 						end
-						EMenu.Spells[i.name]:Slider("d"..i.name,"Danger",(i.danger or 1), 1, 5, 1)
-						EMenu.Spells[i.name]:Info("Empty123"..i.name, "")
-						EMenu.Spells[i.name]:Boolean("IsD"..i.name,"Dangerous", i.Dangerous or false)
-						if i.collision then
-							EMenu.Spells[i.name]:Boolean("hColl"..i.name, "Hero Collision", true)
-							EMenu.Spells[i.name]:Boolean("mColl"..i.name, "Minion Collision", true)
-							EMenu.Spells[i.name]:Boolean("wColl"..i.name, "Wall Collision", true)
+						EMenu.Spells[_]:Slider("d".._,"Danger",(i.danger or 1), 1, 5, 1)
+						EMenu.Spells[_]:Info("Empty123".._, "")
+						EMenu.Spells[_]:Boolean("IsD".._,"Dangerous", i.dangerous or false)
+						if i.mcollision then
+							EMenu.Spells[_]:Boolean("hColl".._, "Hero Collision", true)
+							EMenu.Spells[_]:Boolean("mColl".._, "Minion Collision", true)
+							EMenu.Spells[_]:Boolean("wColl".._, "Wall Collision", true)
 						else
-							EMenu.Spells[i.name]:Info("nohColl"..i.name, "No Hero Collision available")
-							EMenu.Spells[i.name]:Info("nomColl"..i.name, "No Minion Collision available")
-							EMenu.Spells[i.name]:Info("nowColl"..i.name, "No Wall Collision available")
+							EMenu.Spells[_]:Info("nohColl".._, "No Hero Collision available")
+							EMenu.Spells[_]:Info("nomColl".._, "No Minion Collision available")
+							EMenu.Spells[_]:Info("nowColl".._, "No Wall Collision available")
 						end	
-					end
 				end
 			end
 		end
@@ -4657,7 +4658,7 @@ DelayAction(function()
 			EMenu.EvadeSpells.Flash:Boolean("DodgeFlash", "Enable Dodge", true)
 			EMenu.EvadeSpells.Flash:Slider("dFlash","Danger", 5, 1, 5, 1)
 		end
-end,.001)
+	end,.001)
 	
 	Callback.Add("Tick", function() self:Tickp() end)
 	Callback.Add("ProcessSpell", function(unit, spellProc) self:Detection(unit,spellProc) end)
@@ -4668,3177 +4669,199 @@ end,.001)
 	Callback.Add("IssueOrder", function(order) self:IssOrd(order) end)
 
 self.Spells = {
-
-	["Aatrox"] = {
-		{
-		charName = "Aatrox",
-		danger = 3,
-		name = "Dark Flight",
-		speed = 450,
-		radius = 285,
-		range = 650,
-		delay = 250,
-		Slot = 0,
-		spellName = "AatroxQ",
-		spellType = "Circular",
-		killTime = 0.225,
-		},
-		{
-		charName = "Aatrox",
-		danger = 1,
-		name = "Blade of Torment",
-		speed = 1200,
-		radius = 100,
-		range = 1075,
-		delay = 250,
-		Slot = 2,
-		spellName = "AatroxE",
-		spellType = "Line",
-		FoW = true,
-		},
-	},
-	--end Aatrox
-	["Ahri"] = {
-		{
-		charName = "Ahri",
-		danger = 2,
-		missileName = "AhriOrbMissile",
-		name = "Orb of Deception",
-		speed = 1750,
-		radius = 100,
-		range = 925,
-		delay = 250,
-		Slot = 0,
-		spellName = "AhriOrbofDeception",
-		spellType = "Line",
-		FoW = true,
-		},
-		{
-		charName = "Ahri",
-		danger = 3,
-		missileName = "AhriSeduceMissile",
-		name = "Charm",
-		speed = 1550,
-		radius = 60,
-		range = 1000,
-		delay = 250,
-		Slot = 2,
-		spellName = "AhriSeduce",
-		spellType = "Line",
-		collision = true,
-		Dangerous = true,
-		FoW = true,
-		},
-		{
-		charName = "Ahri",
-		danger = 3,
-		name = "Orb of Deception Back",
-		speed = 915,
-		radius = 100,
-		range = 925,
-		delay = 250,
-		Slot = 0,
-		spellName = "AhriOrbofDeception2",
-		spellType = "Line",
-		FoW = true,
-		},
-	},
-	--end Ahri
-	["Alistar"] = {
-		{
-		charName = "Alistar",
-		defaultOff = true,
-		danger = 3,
-		name = "Pulverize",
-		speed = math.huge,
-		delay = 0,
-		radius = 365,
-		range = 365,
-		Slot = 0,
-		spellName = "Pulverize",
-		spellType = "Circular",
-		killName = "Pulverize",
-		killTime = 0.2,
-		Dangerous = true,
-		},
-	},
-	--end Alistar
-	["Amumu"] = {
-		{
-		charName = "Amumu",
-		danger = 4,
-		name = "Curse of the Sad Mummy",
-		speed = math.huge,
-		radius = 560,
-		range = 560,
-		delay = 250,
-		Slot = 3,
-		spellName = "CurseoftheSadMummy",
-		spellType = "Circular",
-		killName = "CurseoftheSadMummy",
-		killTime = 1.25,
-		Dangerous = true,
-		},
-		{
-		charName = "Amumu",
-		danger = 3,
-		missileName = "SadMummyBandageToss",
-		name = "Bandage Toss",
-		speed = 2000,
-		radius = 80,
-		range = 1100,
-		delay = 250,
-		Slot = 0,
-		spellName = "BandageToss",
-		spellType = "Line",
-		collision = true,
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Amumu
-	["Anivia"] = {
-		{
-		charName = "Anivia",
-		danger = 3,
-		missileName = "FlashFrostSpell",
-		name = "Flash Frost",
-		speed = 850,
-		radius = 110,
-		range = 1250,
-		delay = 250,
-		Slot = 0,
-		spellName = "FlashFrostSpell",
-		spellType = "Line",
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Anivia
-	["Annie"] = {
-		{
-		angle = 35,
-		charName = "Annie",
-		danger = 2,
-		name = "Incinerate",
-		radius = 80,
-		range = 625,
-		delay = 250,
-		Slot = 2,
-		spellName = "Incinerate",
-		spellType = "Cone",
-		},
-		{
-		charName = "Annie",
-		danger = 4,
-		name = "InfernalGuardian",
-		speed = math.huge,
-		radius = 290,
-		range = 600,
-		delay = 250,
-		Slot = 3,
-		spellName = "InfernalGuardian",
-		spellType = "Circular",
-		Dangerous = true,
-		killTime = 0.3,
-		},
-	},
-	--end Annie
-	["Ashe"] = {
-		{
-		charName = "Ashe",
-		danger = 3,
-		name = "Enchanted Arrow",
-		speed = 1600,
-		radius = 130,
-		range = 25000,
-		delay = 250,
-		Slot = 3,
-		spellName = "EnchantedCrystalArrow",
-		spellType = "Line",
-		Dangerous = true,
-		collision = true,
-		FoW = true,
-		},
-		-- {
-		-- angle = 5,
-		-- charName = "Ashe",
-		-- danger = 2,
-		-- missileName = "VolleyAttack",
-		-- name = "Volley",
-		-- speed = 1500,
-		-- radius = 20,
-		-- range = 1200,
-		-- delay = 250,
-		-- Slot = 1,
-		-- spellName = "Volley",
-		-- spellType = "Line",
-		-- isSpecial = true,
-		-- collision = true,
-		-- },
-	},
-	["AurelionSol"] = {
-		{
-		charName = "AurelionSol",
-		danger = 2,
-		missileName = "AurelionSolQMissile",
-		name = "AurelionSolQ",
-		speed = 850,
-		radius = 180,
-		range = 1500,
-		fixedRange = true,
-		delay = 250,
-		Slot = 0,
-		spellName = "AurelionSolQ",
-		spellType = "Line",
-		Dangerous = true,
-		FoW = true,
-		},
-		{
-		charName = "AurelionSol",
-		danger = 3,
-		missileName = "AurelionSolRBeamMissile",
-		name = "AurelionSolR",
-		speed = 4600,
-		radius = 120,
-		range = 1420,
-		fixedRange = true,
-		delay = 300,
-		Slot = 3,
-		spellName = "AurelionSolR",
-		spellType = "Line",
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Ashe
-	["Azir"] = {
-		{
-		charName = "Azir",
-		danger = 2,
-		name = "AzirQ",
-		speed = 1000,
-		radius = 80,
-		range = 800,
-		delay = 250,
-		Slot = 0,
-		spellName = "AzirQ",
-		spellType = "Line",
-		FoW = true,
-		isSpecial = true,
-		},
-	},
-	--end Azir
-	["Bard"] = {
-		{
-		charName = "Bard",
-		danger = 2,
-		name = "BardQ",
-		missileName = "BardQMissile",
-		speed = 1600,
-		radius = 60,
-		range = 950,
-		delay = 250,
-		Slot = 0,
-		spellName = "BardQ",
-		spellType = "Line",
-		collision = true,
-		Dangerous = true,
-		FoW = true,
-		},
-		{
-		charName = "Bard",
-		danger = 2,
-		name = "BardR",
-		missileName = "BardR",
-		speed = 2100,
-		radius = 350,
-		range = 3400,
-		delay = 250,
-		Slot = 3,
-		spellName = "BardR",
-		spellType = "Circular",
-		killName = "BardR",
-		killTime = 1,
-		Dangerous = true,
-		},
-	},
-	--end Bard
-	["Blitzcrank"] = {
-		{
-		charName = "Blitzcrank",
-		danger = 3,
-		extraDelay = 75,
-		missileName = "RocketGrabMissile",
-		name = "Rocket Grab",
-		speed = 1800,
-		radius = 70,
-		range = 1050,
-		delay = 250,
-		Slot = 0,
-		spellName = "RocketGrab",
-		spellType = "Line",
-		collision = true,
-		Dangerous = true,
-		FoW = true,
-		},
-		{
-		charName = "Blitzcrank",
-		danger = 3,
-		name = "Static Field",
-		speed = math.huge,
-		radius = 500,
-		range = 0,
-		delay = 100,
-		Slot = 3,
-		spellName = "StaticField",
-		spellType = "Circular",
-		killTime = 0.2,
-		Dangerous = true,
-		},
-	},
-	--end Blitzcrank
-	["Brand"] = {
-		{
-		charName = "Brand",
-		danger = 3,
-		missileName = "BrandQMissile",
-		name = "Sear",
-		speed = 2000,
-		radius = 60,
-		range = 1100,
-		delay = 250,
-		Slot = 0,
-		spellName = "BrandQ",
-		spellType = "Line",
-		collision = true,
-		Dangerous = true,
-		FoW = true,	
-		},
-		{
-		charName = "Brand",
-		danger = 2,
-		name = "Pillar of Flame",
-		speed = math.huge,
-		radius = 250,
-		range = 1100,
-		delay = 850,
-		Slot = 1,
-		spellName = "BrandW",
-		spellType = "Circular",
-		killName = "BrandW",
-		killTime = 0.275,
-		},
-	},
-	--end Brand
-	["Braum"] = {
-		{
-		charName = "Braum",
-		danger = 4,
-		name = "Glacial Fissure",
-		speed = 1125,
-		radius = 100,
-		range = 1250,
-		delay = 500,
-		Slot = 3,
-		spellName = "BraumRWrapper",
-		spellType = "Line",
-		Dangerous = true,
-		FoW = true,
-		},
-		{
-		charName = "Braum",
-		danger = 3,
-		missileName = "BraumQMissile",
-		name = "Winter's Bite",
-		speed = 1200,
-		delay = 250,   
-		radius = 100,
-		range = 1000,             
-		Slot = 0,
-		spellName = "BraumQ",
-		spellType = "Line",
-		collision = true,
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Braum
-	["Caitlyn"] = {
-		{
-		charName = "Caitlyn",
-		danger = 2,
-		name = "Piltover Peacemaker",
-		speed = 2200,
-		radius = 90,
-		range = 1300,
-		delay = 625,
-		Slot = 0,
-		spellName = "CaitlynPiltoverPeacemaker",
-		spellType = "Line",
-		FoW = true,
-		},
-		{
-		charName = "Caitlyn",
-		danger = 2,
-		missileName = "CaitlynEntrapmentMissile",
-		name = "90 Caliber Net",
-		speed = 2000,
-		radius = 80,
-		range = 950,
-		delay = 125,
-		Slot = 2,
-		spellName = "CaitlynEntrapment",
-		spellType = "Line",
-		collision = true,
-		FoW = true,
-		},
-	},
-	--end Caitlyn
-	["Cassiopeia"] = {
-		{
-		angle = 50,
-		charName = "Cassiopeia",
-		danger = 4,
-		name = "Petrifying Gaze",
-		speed = math.huge,
-		radius = 20,
-		range = 825,
-		delay = 500,
-		Slot = 3,
-		spellName = "CassiopeiaR",
-		spellType = "Cone",
-		Dangerous = true,
-		},
-		{
-		charName = "Cassiopeia",
-		danger = 1,
-		name = "Noxious Blast",
-		speed = math.huge,
-		radius = 200,
-		range = 600,
-		delay = 825,
-		Slot = 0,
-		spellName = "CassiopeiaQ",
-		spellType = "Circular",
-		killName = "CassiopeiaQ",
-		killTime = 0.2,
-		},
-		-- {
-		-- charName = "Cassiopeia",
-		-- danger = 1,
-		-- name = "Miasma",
-		-- radius = 220,
-		-- range = 850,
-		-- delay = 250,
-		-- speed = 2500,
-		-- Slot = 1,
-		-- spellName = "CassiopeiaW",
-		-- spellType = "Circular",
-		-- killName = "CassiopeiaW",
-		-- killTime = 1.5,
-		-- },
-	},
-	--end Cassiopeia
-	["Chogath"] = {
-		{
-		angle = 30,
-		charName = "Chogath",
-		danger = 2,
-		name = "FeralScream",
-		speed = 2000,
-		radius = 20,
-		range = 650,
-		delay = 250,
-		Slot = 1,
-		spellName = "FeralScream",
-		spellType = "Cone",
-		},
-		{
-		charName = "Chogath",
-		danger = 3,
-		name = "Rupture",
-		speed = math.huge,
-		radius = 250,
-		range = 950,
-		delay = 1200,
-		Slot = 0,
-		spellName = "Rupture",
-		spellType = "Circular",
-		extraDrawHeight = 45,
-		killName = "Rupture",
-		killTime = 0.45,
-		Dangerous = true,
-		},
-	},
-	--end Chogath
-	["Corki"] = {
-		{
-		charName = "Corki",
-		danger = 1,
-		missileName = "MissileBarrageMissile2",
-		name = "Missile Barrage big",
-		speed = 2000,
-		radius = 40,
-		range = 1500,
-		delay = 175,
-		Slot = 3,
-		spellName = "MissileBarrage2",
-		spellType = "Line",
-		collision = true,
-		FoW = true,
-		},
-		{
-		charName = "Corki",
-		danger = 2,
-		missileName = "PhosphorusBombMissile",
-		name = "Phosphorus Bomb",
-		speed = 1125,
-		radius = 270,
-		range = 825,
-		delay = 500,
-		Slot = 0,
-		spellName = "PhosphorusBomb",
-		spellType = "Circular",
-		extraDrawHeight = 110,
-		killTime = 0.35,
-		},
-		{
-		charName = "Corki",
-		danger = 1,
-		missileName = "MissileBarrageMissile",
-		name = "Missile Barrage",
-		speed = 2000,
-		radius = 40,
-		range = 1300,
-		delay = 175,
-		Slot = 3,
-		spellName = "MissileBarrage",
-		spellType = "Line",
-		collision = true,
-		FoW = true,
-		},
-	},
-	--end Corki
-	["Darius"] = {
-		{
-		angle = 25,
-		charName = "Darius",
-		danger = 3,
-		name = "Apprehend",
-		radius = 20,
-		range = 570,
-		delay = 320,
-		Slot = 2,
-		spellName = "DariusAxeGrabCone",
-		spellType = "Cone",
-		Dangerous = true,
-		},
-	},
-	--end Darius
-	["Diana"] = {
-		{
-		charName = "Diana",
-		danger = 3,
-		name = "DianaArc",
-		speed = 1400,
-		radius = 50,
-		range = 850,
-		fixedRange = true,
-		delay = 250,
-		Slot = 0,
-		spellName = "DianaArc",
-		spellType = "Line",
-		hasEndExplosion = true,
-		secondaryRadius = 195,
-		extraEndTime = 250,
-		FoW = true,
-		},
-	},
-	--end Diana
-	["DrMundo"] = {
-		{
-		charName = "DrMundo",
-		danger = 1,
-		missileName = "InfectedCleaverMissile",
-		name = "Infected Cleaver",
-		speed = 2000,
-		radius = 60,
-		range = 1050,
-		delay = 250,
-		Slot = 0,
-		spellName = "InfectedCleaverMissileCast",
-		spellType = "Line",
-		collision = true,
-		FoW = true,
-		},
-	},
-	--end DrMundo
-	["Draven"] = {
-		{
-		charName = "Draven",
-		danger = 3,
-		missileName = "DravenR",
-		name = "Whirling Death",
-		speed = 2000,
-		radius = 160,
-		range = 25000,
-		delay = 500,
-		Slot = 3,
-		spellName = "DravenRCast",
-		spellType = "Line",
-		Dangerous = true,
-		FoW = true,
-		},
-		{
-		charName = "Draven",
-		danger = 2,
-		missileName = "DravenDoubleShotMissile",
-		name = "Stand Aside",
-		speed = 1400,
-		radius = 130,
-		range = 1100,
-		delay = 250,
-		Slot = 2,
-		spellName = "DravenDoubleShot",
-		spellType = "Line",
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Draven
-	["Ekko"] = {
-		{
-		charName = "Ekko",
-		danger = 3,
-		name = "Timewinder",
-		missileName = "EkkoQMis",
-		speed = 1650,
-		radius = 60,
-		range = 950,
-		delay = 250,
-		Slot = 0,
-		spellName = "EkkoQ",
-		spellType = "Line",
-		FoW = true,
-		},
-		{
-		charName = "Ekko",
-		danger = 3,
-		name = "Parallel Convergence",
-		speed = math.huge,
-		radius = 375,
-		range = 1600,
-		delay = 3750,
-		Slot = 1,
-		spellName = "EkkoW",
-		spellType = "Circular",
-		killName = "EkkoW",
-		killTime = 1.2,
-		Dangerous = true,
-		},
-		{
-		charName = "Ekko",
-		danger = 3,
-		name = "Chronobreak",
-		speed = math.huge,
-		radius = 375,
-		range = 1600,
-		delay = 250,
-		Slot = 3,
-		spellName = "EkkoR",
-		spellType = "Circular",
-		isSpecial = true,
-		killTime = 0.2,
-		},
-	},
-	--end Ekko
-	["Elise"] = {
-		{
-		charName = "Elise",
-		danger = 3,
-		name = "Cocoon",
-		speed = 1600,
-		radius = 70,
-		range = 1100,
-		delay = 250,
-		Slot = 2,
-		spellName = "EliseHumanE",
-		spellType = "Line",
-		collision = true,
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Elise
-	["Evelynn"] = {
-		{
-		charName = "Evelynn",
-		danger = 3,
-		name = "Agony's Embrace",
-		speed = math.huge,
-		radius = 350,
-		range = 650,
-		delay = 250,
-		Slot = 3,
-		spellName = "EvelynnR",
-		spellType = "Circular",
-		Dangerous = true,
-		killTime = 0.2,
-		},
-	},
-	--end Evelynn
-	["Ezreal"] = {
-		{
-		charName = "Ezreal",
-		danger = 2,
-		missileName = "EzrealMysticShotMissile",
-		name = "Mystic Shot",
-		speed = 2000,
-		radius = 60,
-		range = 1200,
-		delay = 250,
-		Slot = 0,
-		spellName = "EzrealMysticShot",
-		extraSpellNames = "ezrealmysticshotwrapper",
-		spellType = "Line",
-		collision = true,
-		FoW = true,
-		},
-		{
-		charName = "Ezreal",
-		danger = 3,
-		name = "Trueshot Barrage",
-		speed = 2000,
-		radius = 160,
-		range = 20000,
-		delay = 1000,
-		Slot = 3,
-		spellName = "EzrealTrueshotBarrage",
-		spellType = "Line",
-		Dangerous = true,
-		FoW = true,
-		},
-		{
-		charName = "Ezreal",
-		danger = 1,
-		missileName = "EzrealEssenceFluxMissile",
-		name = "Essence Flux",
-		speed = 1600,
-		radius = 80,
-		range = 1050,
-		delay = 250,
-		Slot = 1,
-		spellName = "EzrealEssenceFlux",
-		spellType = "Line",
-		FoW = true,
-		},
-	},
-	--end Ezreal
-	["Fiora"] = {
-		{
-		charName = "Fiora",
-		danger = 1,
-		missileName = "FioraWMissile",
-		name = "Riposte",
-		speed = 3200,
-		radius = 70,
-		range = 750,
-		delay = 500,
-		Slot = 1,
-		spellName = "FioraW",
-		spellType = "Line",
-		FoW = true,
-		},
-	},
-	--end Fiora
-	["Fizz"] = {
-		{
-		charName = "Fizz",
-		danger = 2,
-		name = "Playful / Trickster",
-		speed = 1400,
-		radius = 150,
-		range = 550,
-		delay = 0,
-		Slot = 2,
-		spellName = "FizzPiercingStrike",
-		spellType = "Circular",
-		isSpecial = true,
-		killTime = 0.3,
-		},
-		{
-		charName = "Fizz",
-		danger = 3,
-		missileName = "FizzMarinerDoomMissile",
-		name = "Chum the Waters",
-		speed = 1350,
-		radius = 120,
-		range = 1275,
-		delay = 250,
-		Slot = 3,
-		spellName = "FizzMarinerDoom",
-		spellType = "Line",
-		hasEndExplosion = true,
-		secondaryRadius = 250,
-		useEndPosition = true,
-		extraEndTime = 1000,
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Fizz
-	["Galio"] = {
-		{
-		charName = "Galio",
-		danger = 2,
-		name = "Righteous Gust",
-		missileName = "GalioRighteousGust",
-		speed = 1300,
-		radius = 160,
-		range = 1280,
-		Slot = 2,
-		spellName = "GalioRighteousGust",
-		spellType = "Line",
-		FoW = true,
-		},
-		{
-		charName = "Galio",
-		danger = 2,
-		name = "ResoluteSmite",
-		missileName = "GalioResoluteSmite",
-		speed = 1200,
-		radius = 235,
-		range = 1040,
-		delay = 250,
-		Slot = 0,
-		spellName = "GalioResoluteSmite",
-		spellType = "Circular",
-		killTime = 0.2,
-		},
-		{
-		charName = "Galio",
-		danger = 4,
-		name = "IdolOfDurand",
-		radius = 600,
-		range = 600,
-		Slot = 3,
-		spellName = "GalioIdolOfDurand",
-		spellType = "Circular",
-		Dangerous = true,
-		},
-	},
-	--end Galio
-	["Gnar"] = {
-		{
-		charName = "Gnar",
-		danger = 2,
-		name = "Boulder Toss",
-		missileName = "GnarBigQMissile",
-		speed = 2000,
-		radius = 90,
-		range = 1150,
-		delay = 500,
-		Slot = 0,
-		spellName = "GnarBigQ",
-		spellType = "Line",
-		collision = true,
-		FoW = true,
-		},
-		{
-		charName = "Gnar",
-		danger = 3,
-		name = "GnarUlt",
-		radius = 500,
-		range = 500,
-		delay = 250,
-		Slot = 3,
-		spellName = "GnarR",
-		spellType = "Circular",
-		Dangerous = true,
-		killTime = 0.3,
-		},
-		{
-		charName = "Gnar",
-		danger = 3,
-		name = "Wallop",
-		speed = math.huge,
-		radius = 100,
-		range = 600,
-		delay = 600,
-		Slot = 1,
-		spellName = "GnarBigW",
-		spellType = "Line",
-		FoW = true,
-		},
-		{
-		charName = "Gnar",
-		danger = 2,
-		name = "Boomerang Throw",
-		missileName = "GnarQMissile",
-		extraMissileNames = "GnarQMissileReturn",
-		speed = 2400,
-		radius = 60,
-		range = 1185,
-		delay = 250,
-		Slot = 0,
-		spellName = "GnarQ",
-		spellType = "Line",
-		collision = true,
-		FoW = true,
-		},
-		{
-		charName = "Gnar",
-		danger = 2,
-		name = "GnarE",
-		spellName = "GnarE",
-		range = 475,
-		delay = 0,
-		radius = 150,
-		fixedRange = true,
-		speed = 900,
-		Slot = 2,
-		spellType = "Circular",
-		killTime = 0.2,
-		},
-		{
-		charName = "Gnar",
-		danger = 2,
-		name = "GnarBigE",
-		spellName = "gnarbige",
-		range = 475,
-		delay = 0,
-		radius = 100,
-		fixedRange = true,
-		speed = 800,
-		Slot = 2,
-		spellType = "Circular",
-		killTime = 0.2,
-		},
-	},
-	--end Gnar
-	["Gragas"] = {
-		{
-		charName = "Gragas",
-		danger = 2,
-		name = "Barrel Roll",
-		speed = 1000,
-		radius = 300,
-		range = 975,
-		delay = 250,
-		Slot = 0,
-		spellName = "GragasQ",
-		spellType = "Circular",
-		killName = "GragasQToggle",
-		killTime = 2.5,
-		},
-		{
-		charName = "Gragas",
-		danger = 3,
-		name = "BodySlam",
-		speed = 1200,
-		radius = 200,
-		range = 950,
-		delay = 0,
-		Slot = 2,
-		spellName = "GragasE",
-		spellType = "Line",
-		Dangerous = true,
-		collision = true,
-		FoW = true,
-		},
-		{
-		charName = "Gragas",
-		danger = 4,
-		name = "ExplosiveCask",
-		speed = 1750,
-		radius = 350,
-		range = 1050,
-		delay = 250,
-		Slot = 3,
-		spellName = "GragasR",
-		spellType = "Circular",
-		Dangerous = true,
-		killTime = 0.3,
-		},
-	},
-	--end Gragas
-	["Graves"] = {
-		{
-		charName = "Graves",
-		danger = 2,
-		missileName = "GravesQLineMis",
-		extraMissileNames = "GravesQReturn",
-		name = "Buckshot",
-		speed = 3000,
-		radius = 100,
-		range = 825,
-		delay = 250,
-		Slot = 0,
-		spellName = "GravesQLineSpell",
-		spellType = "Line",
-		HasEndExplosion = true,
-		FoW = true,
-		},
-		{
-		charName = "Graves",
-		danger = 2,
-		missileName = "GravesSmokeGrenadeBoom",
-		name = "Smoke Screen",
-		speed = math.huge,
-		radius = 250,
-		range = 1000,
-		delay = 250,
-		Slot = 1,
-		spellName = "GravesSmokeGrenadeBoom",
-		spellType = "Circular",
-		Dangerous = false,
-		killTime = 3,
-		},
-		{
-		charName = "Graves",
-		danger = 3,
-		missileName = "GravesChargeShotShot",
-		name = "Collateral Damage",
-		speed = 2100,
-		radius = 125,
-		range = 1000,
-		delay = 250,
-		Slot = 3,
-		spellName = "GravesChargeShot",
-		spellType = "Line",
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Graves
-	["Hecarim"] = {
-		{
-		charName = "Hecarim",
-		danger = 4,
-		name = "HecarimR",
-		missileName = "hecarimultmissile",
-		speed = 1100,
-		radius = 300,
-		range = 1500,
-		delay = 10,
-		Slot = 3,
-		spellName = "HecarimUlt",
-		spellType = "Line",
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Hecarim
-	["Heimerdinger"] = {
-		{
-		charName = "Heimerdinger",
-		danger = 2,
-		missileName = "HeimerdingerESpell",
-		name = "HeimerdingerE",
-		speed = 1750,
-		radius = 135,
-		range = 925,
-		delay = 325,
-		Slot = 2,
-		spellName = "HeimerdingerE",
-		spellType = "Circular",
-		Dangerous = true,
-		killTime = 0.3,
-		},
-		{
-		charName = "Heimerdinger",
-		danger = 2,
-		name = "HeimerdingerW",
-		missileName = "HeimerdingerWAttack2",
-		speed = 2500,
-		radius = 35,
-		range = 1350,
-		fixedRange = true,
-		delay = 250,
-		Slot = 1,
-		spellName = "HeimerdingerW",
-		spellType = "Line",
-		defaultOff = true,
-		FoW = true,
-		},
-		{
-		charName = "Heimerdinger",
-		danger = 2,
-		name = "Turret Energy Blast",
-		speed = 1650,
-		radius = 50,
-		range = 1000,
-		delay = 435,
-		Slot = 0,
-		spellName = "HeimerdingerTurretEnergyBlast",
-		spellType = "Line",
-		isSpecial = true,
-		FoW = true,
-		},
-		{
-		charName = "Heimerdinger",
-		danger = 3,
-		name = "Turret Energy Blast",
-		speed = 1650,
-		radius = 75,
-		range = 1000,
-		delay = 350,
-		Slot = 0,
-		spellName = "HeimerdingerTurretBigEnergyBlast",
-		spellType = "Line",
-		FoW = true,
-		},
-	},
-	--end Heimerdinger
-	["Illaoi"] = {
-		{
-		charName = "Illaoi",
-		danger = 3,
-		name = "IllaoiQ",
-		speed = math.huge,
-		radius = 100,
-		range = 850,
-		delay = 750,
-		Slot = 0,
-		spellName = "IllaoiQ",
-		spellType = "Line",
-		FoW = true,
-		},
-		{
-		charName = "Illaoi",
-		danger = 3,
-		missileName = "Illaoiemis",
-		name = "IllaoiE",
-		speed = 1900,
-		radius = 50,
-		range = 950,
-		delay = 250,
-		Slot = 2,
-		spellName = "IllaoiE",
-		spellType = "Line",
-		Dangerous = true,
-		collision = true,
-		FoW = true,
-		},
-		{
-		charName = "Illaoi",
-		danger = 3,
-		name = "IllaoiR",
-		speed = math.huge,
-		range = 0,
-		radius = 450,
-		delay = 500,
-		Slot = 3,
-		spellName = "IllaoiR",
-		spellType = "Circular",
-		Dangerous = true,
-		killTime = 0.2,
-		},
-	},
-	--end Illaoi
-	["Irelia"] = {
-		{
-		charName = "Irelia",
-		danger = 1,
-		missileName = "ireliatranscendentbladesspell",
-		name = "IreliaTranscendentBlades",
-		speed = 1600,
-		radius = 120,
-		range = 1200,
-		Slot = 3,
-		delay = 0,
-		spellName = "IreliaTranscendentBlades",
-		spellType = "Line",
-		FoW = true,
-		},
-	},
-	--end Irelia
-	["Janna"] ={
-		{
-		charName = "Janna",
-		danger = 2,
-		missileName = "HowlingGaleSpell",
-		name = "HowlingGaleSpell",
-		speed = 900,
-		radius = 120,
-		delay = 1000,
-		range = 1700,
-		Slot = 0,
-		spellName = "HowlingGale",
-		spellType = "Line",
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Janna
-	["JarvanIV"] = {
-		{
-		charName = "JarvanIV",
-		danger = 2,
-		name = "DragonStrike",
-		speed = 2000,
-		radius = 80,
-		range = 845,
-		delay = 250,
-		Slot = 0,
-		spellName = "JarvanIVDragonStrike",
-		spellType = "Line",
-		},
-		{
-		charName = "JarvanIV",
-		danger = 2,
-		name = "DragonStrike",
-		speed = 1800,
-		radius = 120,
-		range = 845,
-		delay = 250,
-		Slot = 0,
-		spellName = "JarvanIVDragonStrike2",
-		spellType = "Line",
-		useEndPosition = true,
-		FoW = true,
-		},
-		{
-		charName = "JarvanIV",
-		danger = 3,
-		name = "Cataclysm",
-		speed = 1900,
-		radius = 350,
-		range = 825,
-		delay = 0,
-		Slot = 3,
-		spellName = "JarvanIVCataclysm",
-		spellType = "Circular",
-		Dangerous = true,
-		killName = "",
-		killTime = 1.5,
-		},
-	},
-	--end JarvanIV
-	["Jayce"] = {
-		{
-		charName = "Jayce",
-		danger = 3,
-		missileName = "JayceShockBlastMis",
-		name = "JayceShockBlastCharged",
-		speed = 2350,
-		radius = 70,
-		range = 1570,
-		delay = 250,
-		Slot = 0,
-		spellName = "JayceShockBlast",
-		spellType = "Line",
-		collision = true,
-		hasEndExplosion = true,
-		secondaryRadius = 250,
-		FoW = true,
-		},
-		{
-		charName = "Jayce",
-		danger = 2,
-		missileName = "JayceShockBlastMis",
-		name = "JayceShockBlast",
-		speed = 1450,
-		radius = 70,
-		range = 1050,
-		delay = 250,
-		Slot = 0,
-		spellName = "jayceshockblast",
-		spellType = "Line",
-		collision = true,
-		hasEndExplosion = true,
-		secondaryRadius = 175,
-		FoW = true,
-		},
-	},
-	--end Jayce
-	["Jinx"] = {
-		{
-		charName = "Jinx",
-		danger = 3,
-		name = "JinxR",
-		speed = 2000,
-		radius = 140,
-		range = 25000,
-		delay = 600,
-		Slot = 3,
-		spellName = "JinxR",
-		spellType = "Line",
-		Dangerous = true,
-		collision = true,
-		FoW = true,
-		},
-		{
-		charName = "Jinx",
-		danger = 3,
-		missileName = "JinxWMissile",
-		name = "Zap",
-		speed = 3300,
-		radius = 60,
-		range = 1500,
-		delay = 600,
-		Slot = 1,
-		spellName = "JinxWMissile",
-		spellType = "Line",
-		collision = true,
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Jinx
-	["Jhin"] = {
-		{
-		charName = "Jhin",
-		danger = 3,
-		missileName = "JhinWMissile",
-		name = "JhinW",
-		speed = 5000,
-		radius = 40,
-		range = 2250,
-		delay = 750,
-		Slot = 1,
-		spellName = "JhinW",
-		spellType = "Line",
-		fixedRange = true,
-		Dangerous = true,
-		FoW = true,
-		},
-		{
-		charName = "Jhin",
-		danger = 2,
-		missileName = "JhinRShotMis",
-		name = "JhinR",
-		speed = 5000,
-		radius = 80,
-		range = 3500,
-		delay = 250,
-		Slot = 3,
-		spellName = "JhinRShot",
-		extraSpellNames = "JhinRShotFinal",
-		spellType = "Line",
-		fixedRange = true,
-		extraMissileNames = "JhinRShotMis4",
-		Dangerous = true,
-		collision = true,
-		FoW = true,
-		},
-	},
-	--end
-	["Kalista"] = {
-		{
-		charName = "Kalista",
-		danger = 2,
-		missileName = "kalistamysticshotmistrue",
-		name = "KalistaQ",
-		speed = 2000,
-		radius = 70,
-		range = 1200,
-		delay = 350,
-		Slot = 0,
-		spellName = "KalistaMysticShot",
-		spellType = "Line",
-		collision = true,
-		FoW = true,
-		},
-	},
-	--end Kalista
-	["Karma"] = {
-		{
-		charName = "Karma",
-		danger = 2,
-		missileName = "KarmaQMissile",
-		name = "KarmaQ",
-		speed = 1700,
-		radius = 90,
-		range = 1050,
-		delay = 250,
-		Slot = 0,
-		spellName = "KarmaQ",
-		spellType = "Line",
-		collision = true,
-		FoW = true,
-		},
-		{
-		charName = "Karma",
-		danger = 2,
-		missileName = "KarmaQMissileMantra",
-		name = "KarmaQMantra",
-		speed = 1700,
-		radius = 90,
-		range = 1050,
-		delay = 250,
-		Slot = 0,
-		spellName = "KarmaQMissileMantra",
-		spellType = "Line",
-		collision = true,
-		FoW = true,
-		},
-	},
-	--end Karma
-	["Karthus"] = {
-		{
-		charName = "Karthus",
-		danger = 1,
-		name = "Lay Waste",
-		speed = math.huge,
-		radius = 190,
-		range = 875,
-		delay = 900,
-		Slot = 0,
-		spellName = "KarthusLayWaste",
-		spellType = "Circular",
-		extraSpellNames = {"karthuslaywastea2", "karthuslaywastea3", "karthuslaywastedeada1", "karthuslaywastedeada2", "karthuslaywastedeada3"},	--tostring
-		killTime = 0.2,
-		},
-	},
-	--end Karthus
-	["Kassadin"] = {
-		{
-		charName = "Kassadin",
-		danger = 1,
-		name = "RiftWalk",
-		radius = 270,
-		range = 700,
-		delay = 250,
-		Slot = 3,
-		spellName = "RiftWalk",
-		spellType = "Circular",
-		killTime = 0.3,
-		},
-		{
-		angle = 40,
-		charName = "Kassadin",
-		danger = 2,
-		name = "ForcePulse",
-		radius = 20,
-		range = 700,
-		delay = 250,
-		Slot = 2,
-		spellName = "ForcePulse",
-		spellType = "Cone",
-		},
-	},
-	--end Kassadin
-	["Kennen"] = {
-		{
-		charName = "Kennen",
-		danger = 2,
-		missileName = "KennenShurikenHurlMissile1",
-		name = "Thundering Shuriken",
-		speed = 1700,
-		radius = 50,
-		range = 1175,
-		delay = 180,
-		Slot = 0,
-		spellName = "KennenShurikenHurlMissile1",
-		spellType = "Line",
-		collision = true,
-		FoW = true,
-		},
-	},
-	--end Kennen
-	["Khazix"] = { 
-		{
-		charName = "Khazix",
-		danger = 1,
-		missileName = "KhazixWMissile",
-		name = "KhazixW",
-		speed = 1700,
-		radius = 70,
-		range = 1100,
-		delay = 250,
-		Slot = 1,
-		spellName = "KhazixW",
-		spellType = "Line",
-		collision = true,
-		FoW = true,
-		},
-		{
-		angle = 22,
-		charName = "Khazix",
-		danger = 1,
-		isThreeWay = true,
-		name = "KhazixWLong",
-		speed = 1700,
-		radius = 70,
-		range = 1025,
-		delay = 250,
-		Slot = 1,
-		spellName = "KhazixWLong",
-		spellType = "Line",
-		collision = true,
-		FoW = true,
-		},
-	},
-	--end Khazix
-	["KogMaw"] = {
-		{
-		charName = "KogMaw",
-		danger = 2,
-		name = "Caustic Spittle",
-		missileName = "KogMawQ",
-		speed = 1650,
-		radius = 70,
-		range = 1125,
-		delay = 250,
-		Slot = 0,
-		spellName = "KogMawQ",
-		spellType = "Line",
-		collision = true,
-		FoW = true,
-		},
-		{
-		charName = "KogMaw",
-		danger = 1,
-		name = "KogMawVoidOoze",
-		missileName = "KogMawVoidOozeMissile",
-		speed = 1400,
-		radius = 120,
-		range = 1360,
-		delay = 250,
-		Slot = 2,
-		spellName = "KogMawVoidOoze",
-		spellType = "Line",
-		FoW = true,
-		},
-		{
-		charName = "KogMaw",
-		danger = 2,
-		name = "Living Artillery",
-		speed = math.huge,
-		radius = 235,
-		range = 2200,
-		delay = 1100,
-		Slot = 3,
-		spellName = "KogMawLivingArtillery",
-		spellType = "Circular",
-		killTime = 0.5,
-		},
-	},
-	--end KogMaw
-	["Leblanc"] = {
-		{
-		charName = "Leblanc",
-		danger = 2,
-		name = "Ethereal Chains R",
-		missileName = "LeblancSoulShackleM",
-		speed = 1750,
-		radius = 55,
-		range = 960,
-		delay = 250,
-		Slot = 3,
-		spellName = "LeblancSoulShackleM",
-		spellType = "Line",
-		collision = true,
-		Dangerous = true,
-		FoW = true,
-		},
-		{
-		charName = "Leblanc",
-		danger = 2,
-		name = "Ethereal Chains",
-		missileName = "LeblancSoulShackle",
-		speed = 1750,
-		radius = 55,
-		range = 960,
-		delay = 250,
-		Slot = 2,
-		spellName = "LeblancSoulShackle",
-		spellType = "Line",
-		collision = true,
-		Dangerous = true,
-		FoW = true,
-		},
-		{
-		charName = "Leblanc",
-		danger = 1,
-		name = "LeblancSlideM",
-		speed = 1450,
-		radius = 250,
-		range = 725,
-		delay = 250,
-		Slot = 3,
-		spellName = "LeblancSlideM",
-		spellType = "Circular",
-		killTime = 0.2,
-		},
-		{
-		charName = "Leblanc",
-		danger = 1,
-		name = "LeblancSlide",
-		speed = 1450,
-		radius = 250,
-		range = 725,
-		delay = 250,
-		Slot = 1,
-		spellName = "LeblancSlide",
-		spellType = "Circular",
-		killTime = 0.2,
-		},
-	},
-	--end Leblanc
-	["LeeSin"] = {
-		{
-		charName = "LeeSin",
-		danger = 3,
-		name = "Sonic Wave",
-		speed = 1800,
-		radius = 60,
-		range = 1100,
-		delay = 250,
-		Slot = 0,
-		spellName = "BlindMonkQOne",
-		spellType = "Line",
-		collision = true,
-		Dangerous = true,
-		FoW = true,
-		},
-		--end LeeSin
-	},
-	["Leona"] = {
-		{
-		charName = "Leona",
-		danger = 4,
-		name = "Leona Solar Flare",
-		radius = 300,
-		range = 1200,
-		delay = 1000,
-		Slot = 3,
-		spellName = "LeonaSolarFlare",
-		spellType = "Circular",
-		killName = "LeonaSolarFlare",
-		killTime = 1,
-		Dangerous = true,
-		},
-		{
-		charName = "Leona",
-		danger = 3,
-		extraDistance = 65,
-		missileName = "LeonaZenithBladeMissile",
-		name = "Zenith Blade",
-		speed = 2000,
-		radius = 70,
-		range = 975,
-		delay = 200,
-		Slot = 2,
-		spellName = "LeonaZenithBlade",
-		spellType = "Line",
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Leona
-	["Lissandra"] = {
-		{
-		charName = "Lissandra",
-		danger = 3,
-		name = "LissandraW",
-		speed = math.huge,
-		radius = 450,
-		range = 725,
-		delay = 250,
-		Slot = 1,
-		spellName = "LissandraW",
-		spellType = "Circular",
-		Dangerous = true,
-		killTime = 0.2,
-		},
-		{
-		charName = "Lissandra",
-		danger = 2,
-		name = "Ice Shard",
-		speed = 2250,
-		radius = 75,
-		range = 825,
-		delay = 250,
-		Slot = 0,
-		spellName = "LissandraQ",
-		spellType = "Line",
-		FoW = true,
-		},
-	},
-	--end Lissandra
-	["Lucian"] = {
-		{
-		charName = "Lucian",
-		danger = 1,
-		defaultOff = true,
-		name = "LucianW",
-		speed = 1600,
-		radius = 80,
-		range = 1000,
-		delay = 300,
-		Slot = 1,
-		spellName = "LucianW",
-		spellType = "Line",
-		collision = true,
-		HasEndExplosion = true,
-		FoW = true,
-		},
-		{
-		charName = "Lucian",
-		danger = 2,
-		defaultOff = true,
-		isSpecial = true,
-		name = "LucianQ",
-		speed = math.huge,
-		radius = 65,
-		range = 1140,
-		delay = 350,
-		Slot = 0,
-		spellName = "LucianQ",
-		spellType = "Line",
-		FoW = true,
-		},
-	},
-	--end Lucian
-	["Lulu"] = {
-		{
-		charName = "Lulu",
-		danger = 2,
-		missileName = "LuluQMissile",
-		extraMissileNames = "LuluQMissileTwo",
-		name = "LuluQ",
-		speed = 1450,
-		radius = 80,
-		range = 925,
-		delay = 250,
-		Slot = 0,
-		spellName = "LuluQ",
-		extraSpellNames = "LuluQMissile",
-		spellType = "Line",
-		isSpecial = true,
-		FoW = true,
-		},
-	},
-	--end Lulu
-	["Lux"] = {
-		{
-		charName = "Lux",
-		danger = 2,
-		name = "LuxLightStrikeKugel",
-		speed = 1400,
-		radius = 350,
-		range = 1100,
-		extraEndTime = 1000,
-		delay = 250,
-		Slot = 2,
-		spellName = "LuxLightStrikeKugel",
-		spellType = "Circular",
-		killName = "LuxLightstrikeToggle",
-		killTime = 5.25,
-		},
-		{
-		charName = "Lux",
-		danger = 3,
-		missilename = "LuxMaliceCannon",
-		name = "LuxMaliceCannon",
-		speed = math.huge,
-		radius = 190,
-		range = 3500,
-		delay = 1000,
-		Slot = 3,
-		spellName = "LuxMaliceCannon",
-		spellType = "Line",
-		Dangerous = true,
-		killTime = .8,
-		},
-		{
-		charName = "Lux",
-		danger = 3,
-		missileName = "LuxLightBindingMis",
-		name = "Light Binding",
-		speed = 1200,                
-		radius = 70,
-		range = 1300,
-		delay = 250,
-		Slot = 0,
-		spellName = "LuxLightBinding",
-		spellType = "Line",
-		collision = true,
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Lux
-	["Malphite"] = {
-		{
-		charName = "Malphite",
-		danger = 4,
-		name = "UFSlash",
-		speed = 2000,
-		radius = 300,
-		range = 1000,
-		delay = 0,
-		Slot = 3,
-		spellName = "UFSlash",
-		spellType = "Circular",
-		Dangerous = true,
-		killTime = 0.4,
-		},
-	},
-	--end Malphite
-	["Malzahar"] = {
-		{
-		charName = "Malzahar",
-		danger = 2,
-		extraEndTime = 750,
-		defaultOff = true,
-		isSpecial = true,
-		isWall = true,
-		missileName = "MalzaharQMissile",
-		name = "MalzaharQ",
-		speed = 1600,
-		radius = 85,
-		radius2 = 475,
-		range = 900,
-		sideRadius = 400,
-		delay = 1000,
-		Slot = 0,
-		spellName = "MalzaharQ",
-		spellType = "Line",
-		FoW = true,
-		},
-	},
-	--end Malzahar
-	["MonkeyKing"] = {
-		{
-		charName = "MonkeyKing",
-		danger = 3,
-		name = "MonkeyKingSpinToWin",
-		radius = 225,
-		range = 300,
-		delay = 250,
-		Slot = 3,
-		spellName = "MonkeyKingSpinToWin",
-		spellType = "Circular",
-		defaultOff = true,
-		killName = "",
-		killTime = 1,
-		},
-	},
-	--end MonkeyKing
-	["Morgana"] = {
-		{
-		charName = "Morgana",
-		danger = 3,
-		name = "Dark Binding",
-		speed = 1200,
-		radius = 80,
-		range = 1300,
-		delay = 150,
-		Slot = 0,
-		spellName = "DarkBindingMissile",
-		spellType = "Line",
-		collision = true,
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Morgana
-	["Nami"] = {
-		{
-		charName = "Nami",
-		danger = 3,
-		name = "NamiQ",
-		speed = math.huge,
-		radius = 200,
-		range = 875,
-		delay = 1000,
-		Slot = 0,
-		spellName = "NamiQ",
-		spellType = "Circular",
-		Dangerous = true,
-		killTime = 0.35,
-		},
-		{
-		charName = "Nami",
-		danger = 4,
-		missileName = "NamiRMissile",
-		name = "NamiR",
-		speed = 850,
-		radius = 250,
-		range = 2750,
-		delay = 500,
-		Slot = 3,
-		spellName = "NamiR",
-		spellType = "Line",
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Nami
-	["Nautilus"] = {
-		{
-		charName = "Nautilus",
-		danger = 3,
-		missileName = "NautilusAnchorDragMissile",
-		name = "Dredge Line",
-		speed = 2000,
-		radius = 90,
-		range = 1250,
-		delay = 250,
-		Slot = 0,
-		spellName = "NautilusAnchorDrag",
-		spellType = "Line",
-		collision = true,
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Nautilus
-	["Nidalee"] = {
-		{
-		charName = "Nidalee",
-		danger = 2,
-		missileName = "JavelinToss",
-		name = "Javelin Toss",
-		speed = 1300,
-		radius = 60,
-		range = 1500,
-		delay = 250,
-		Slot = 0,
-		spellName = "JavelinToss",
-		spellType = "Line",
-		collision = true,
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Nidalee
-	["Nocturne"] = {
-		{
-		charName = "Nocturne",
-		danger = 1,
-		name = "NocturneDuskbringer",
-		speed = 1400,
-		radius = 60,
-		range = 1125,
-		delay = 250,
-		Slot = 0,
-		spellName = "NocturneDuskbringer",
-		spellType = "Line",
-		FoW = true,
-		},
-	},
-	--end Nocturne
-	["Olaf"] = {
-		{
-		charName = "Olaf",
-		danger = 1,
-		name = "Undertow",
-		speed = 1600,
-		radius = 90,
-		range = 1000,
-		delay = 250,
-		Slot = 0,
-		spellName = "OlafAxeThrowCast",
-		spellType = "Line",
-		FoW = true,
-		},
-	},
-	--end Olaf
-	["Orianna"] = {
-		{
-		charName = "Orianna",
-		danger = 2,
-		hasEndExplosion = true,
-		name = "IzunaCommand",
-		speed = 1200,
-		radius = 80,
-		secondaryRadius = 170,
-		range = 2000,
-		delay = 250,
-		Slot = 0,
-		spellName = "OrianaIzunaCommand",
-		spellType = "Line",
-		isSpecial = true,
-		useEndPosition = true,
-		FoW = true,
-		},
-		{
-		charName = "Orianna",
-		danger = 4,
-		name = "DetonateCommand",
-		speed = math.huge,
-		radius = 410,
-		range = 410,
-		delay = 500,
-		Slot = 3,
-		spellName = "OrianaDetonateCommand",
-		spellType = "Circular",
-		Dangerous = true,
-		killTime = 0.3,
-		},
-		{
-		charName = "Orianna",
-		danger = 2,
-		name = "DissonanceCommand",
-		speed = math.huge,
-		radius = 250,
-		range = 1825,
-		delay = 0,
-		Slot = 1,
-		spellName = "OrianaDissonanceCommand",
-		spellType = "Circular",
-		killTime = 0.1,
-		},
-	},
-	--end Orianna
-	["Pantheon"] = {
-		{
-		angle = 35,
-		charName = "Pantheon",
-		danger = 2,
-		name = "Heartseeker",
-		speed = math.huge,
-		radius = 100,
-		range = 650,
-		delay = 1000,
-		Slot = 2,
-		spellName = "PantheonE",
-		spellType = "Cone",
-		},
-	},
-	--end Pantheon
-	["Poppy"] = {
-		{
-		charName = "Poppy",
-		danger = 2,
-		name = "Hammer Shock",
-		speed = math.huge,
-		radius = 100,
-		range = 450,
-		delay = 500,
-		Slot = 0,
-		spellName = "PoppyQ",
-		spellType = "Line",
-		FoW = true,
-		},
-		{
-		charName = "Poppy",
-		danger = 3,
-		name = "Keeper's Verdict",
-		radius = 110,
-		speed = math.huge,
-		range = 450,
-		delay = 300,
-		Slot = 3,
-		spellName = "PoppyRSpellInstant",
-		spellType = "Line",
-		Dangerous = true,
-		FoW = true,
-		},
-		{
-		charName = "Poppy",
-		danger = 3,
-		name = "Keeper's Verdict",
-		radius = 100,
-		range = 1150,
-		speed = 1750,
-		delay = 300,
-		Slot = 3,
-		spellName = "PoppyRSpell",
-		missileName = "PoppyRMissile",
-		spellType = "Line",
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end
-	["Quinn"] = {
-		{
-		charName = "Quinn",
-		danger = 2,
-		missileName = "QuinnQMissile",
-		name = "QuinnQ",
-		speed = 1550,
-		radius = 80,
-		range = 1050,
-		delay = 250,
-		Slot = 0,
-		spellName = "QuinnQ",
-		spellType = "Line",
-		collision = true,
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Quinn
-	["RekSai"] = {
-		{
-		charName = "RekSai",
-		danger = 2,
-		missileName = "RekSaiQBurrowedMis",
-		name = "RekSaiQ",
-		speed = 1950,
-		radius = 65,
-		range = 1500,
-		delay = 125,
-		Slot = 0,
-		spellName = "ReksaiQBurrowed",
-		spellType = "Line",
-		collision = true,
-		FoW = true,
-		},
-	},
-	--end RekSai
-	["Rengar"] = {
-		{
-		charName = "Rengar",
-		danger = 2,
-		missileName = "RengarEFinal",
-		name = "Bola Strike",
-		speed = 1500,
-		radius = 70,
-		range = 1000,
-		delay = 250,
-		Slot = 2,
-		spellName = "RengarE",
-		spellType = "Line",
-		extraMissileNames = "RengarEFinalMAX",
-		collision = true,
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Rengar
-	["Riven"] = {
-		{
-		angle = 15,
-		charName = "Riven",
-		danger = 2,
-		isThreeWay = true,
-		name = "WindSlash",
-		speed = 1600,
-		radius = 100,
-		range = 1100,
-		delay = 250,
-		Slot = 3,
-		spellName = "RivenIzunaBlade",
-		spellType = "Line",
-		isSpecial = true,
-		Dangerous = true,
-		FoW = true,
-		},
-		{
-		charName = "Riven",
-		danger = 2,
-		defaultOff = true,
-		name = "RivenW",
-		speed = 1500,
-		radius = 280,
-		range = 650,
-		delay = 267,
-		Slot = 1,
-		spellName = "RivenMartyr",
-		spellType = "Circular",
-		killTime = 0.3,
-		},
-	},
-	--end Riven
-	["Rumble"] = {
-		{
-		charName = "Rumble",
-		danger = 1,
-		missileName = "RumbleGrenadeMissile",
-		name = "RumbleGrenade",
-		speed = 2000,
-		radius = 90,
-		range = 950,
-		delay = 250,
-		Slot = 2,
-		spellName = "RumbleGrenade",
-		spellType = "Line",
-		collision = true,
-		FoW = true,
-		},
-	},
-	--end Rumble
-	["Ryze"] = {
-		{
-		charName = "Ryze",
-		danger = 2,
-		missileName = "RyzeQ",
-		name = "RyzeQ",
-		speed = 1700,
-		radius = 60,
-		range = 900,
-		delay = 250,
-		Slot = 0,
-		spellName = "RyzeQ",
-		spellType = "Line",
-		collision = true,
-		FoW = true,
-		},
-	},
-	--end Ryze
-	["Sejuani"] = {
-		{
-		charName = "Sejuani",
-		danger = 3,
-		name = "Arctic Assault",
-		speed = 1600,
-		radius = 70,
-		range = 900,
-		delay = 0,
-		Slot = 0,
-		spellName = "SejuaniArcticAssault",
-		spellType = "Line",
-		Dangerous = true,
-		collision = true,
-		FoW = true,
-		},
-		{
-		charName = "Sejuani",
-		danger = 4,
-		missileName = "SejuaniGlacialPrison",
-		name = "SejuaniR",
-		speed = 1600,
-		radius = 110,
-		range = 1200,
-		delay = 250,
-		Slot = 3,
-		spellName = "SejuaniGlacialPrisonCast",
-		spellType = "Line",
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Sejuani
-	["Shen"] = {
-		{
-		charName = "Shen",
-		danger = 3,
-		missileName = "ShenE",
-		name = "ShadowDash",
-		speed = 1600,
-		radius = 60,
-		range = 675,
-		delay = 0,
-		Slot = 2,
-		spellName = "ShenE",
-		spellType = "Line",
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Shen
-	["Shyvana"] = {
-		{
-		charName = "Shyvana",
-		danger = 1,
-		name = "ShyvanaFireball",
-		speed = 1700,
-		radius = 60,
-		range = 950,
-		Slot = 2,
-		spellName = "ShyvanaFireball",
-		spellType = "Line",
-		FoW = true,
-		},
-		{
-		charName = "Shyvana",
-		danger = 3,
-		name = "ShyvanaTransformCast",
-		speed = 1100,
-		radius = 160,
-		range = 1000,
-		delay = 10,
-		Slot = 3,
-		spellName = "ShyvanaTransformCast",
-		spellType = "Line",
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Shyvana
-	["Sion"] = {
-		{
-		charName = "Sion",
-		danger = 2,
-		missileName = "SionEMissile",
-		name = "SionE",
-		speed = 1800,
-		radius = 80,
-		range = 800,
-		delay = 250,
-		Slot = 2,
-		spellName = "SionE",
-		spellType = "Line",
-		isSpecial = true,
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Sion
-	["Sivir"] = {
-		{
-		charName = "Sivir",
-		danger = 2,
-		missileName = "SivirQMissile",
-		name = "Boomerang Blade",
-		speed = 1350,
-		radius = 100,
-		range = 1275,
-		delay = 250,
-		Slot = 0,
-		spellName = "SivirQ",
-		extraMissileNames = "SivirQMissileReturn",
-		spellType = "Line",
-		FoW = true,
-		},
-	},
-	--end Sivir
-	["Skarner"] = {
-		{
-		charName = "Skarner",
-		danger = 2,
-		missileName = "SkarnerFractureMissile",
-		name = "SkarnerFracture",
-		speed = 1400,
-		radius = 60,
-		range = 1000,
-		delay = 250,
-		Slot = 2,
-		spellName = "SkarnerFracture",
-		spellType = "Line",
-		FoW = true,
-		},
-	},
-	--end Skarner
-	["Sona"] = {
-		{
-		charName = "Sona",
-		danger = 4,
-		name = "Crescendo",
-		speed = 2400,
-		radius = 150,
-		range = 1000,
-		delay = 250,
-		Slot = 3,
-		spellName = "SonaR",
-		spellType = "Line",
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Sona
-	["Soraka"] = {
-		{
-		charName = "Soraka",
-		danger = 2,
-		name = "SorakaQ",
-		speed = 1100,
-		radius = 260,
-		range = 970,
-		delay = 250,
-		Slot = 0,
-		spellName = "SorakaQ",
-		spellType = "Circular",
-		killTime = 0.275,
-		},
-		{
-		charName = "Soraka",
-		danger = 3,
-		name = "SorakaE",
-		speed = math.huge,
-		radius = 275,
-		range = 925,
-		delay = 1750,
-		Slot = 2,
-		spellName = "SorakaE",
-		spellType = "Circular",
-		killTime = 0.8,
-		},
-	},
-	--end Soraka
-	["Swain"] = {
-		{
-		charName = "Swain",
-		danger = 3,
-		name = "Nevermove",
-		speed = math.huge,
-		radius = 250,
-		range = 900,
-		delay = 1100,
-		Slot = 1,
-		spellName = "SwainShadowGrasp",
-		spellType = "Circular",
-		Dangerous = true,
-		killTime = 0.5,
-		},
-	},
-	--end Swain
-	["Syndra"] = {
-		{
-		angle = 30,
-		charName = "Syndra",
-		danger = 3,
-		name = "SyndraE",
-		missileName = "SyndraE",
-		speed = 1500,
-		radius = 140,
-		range = 800,
-		delay = 250,
-		Slot = 2,
-		spellName = "SyndraE",
-		spellType = "Line",
-		Dangerous = true,
-		FoW = true,
-		},
-		{
-		charName = "Syndra",
-		danger = 2,
-		name = "SyndraW",
-		speed = 1450,
-		radius = 220,
-		range = 925,
-		delay = 0,
-		Slot = 1,
-		spellName = "SyndraWCast",
-		spellType = "Circular",
-		killTime = 0.2,
-		},
-		{
-		charName = "Syndra",
-		danger = 2,
-		name = "SyndraQ",
-		radius = 210,
-		range = 800,
-		delay = 600,
-		Slot = 0,
-		spellName = "SyndraQ",
-		missileName = "SyndraQSpell",
-		spellType = "Circular",
-		killTime = 0.2,
-		},
-	},
-	--end Syndra
-	["TahmKench"] = {
-		{
-		charName = "TahmKench",
-		danger = 2,
-		missileName = "TahmkenchQMissile",
-		name = "TahmKenchQ",
-		speed = 2000,
-		delay = 250,
-		radius = 100,
-		range = 951,
-		Slot = 0,
-		spellName = "TahmKenchQ",
-		spellType = "Line",
-		collision = true,
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end TahmKench
-	["Talon"] = {
-		{
-		angle = 20,
-		charName = "Talon",
-		danger = 2,
-		isThreeWay = true,
-		name = "TalonRake",
-		speed = 2300,
-		radius = 75,
-		range = 780,
-		Slot = 1,
-		spellName = "TalonRake",
-		spellType = "Line",
-		splits = 3,
-		isSpecial = true,
-		FoW = true,
-		},
-	},
-	["Taliyah"] = {
-		{
-		charName = "Taliyah",
-		danger = 1,
-		name = "TaliyahQ",
-		speed = 3500,
-		radius = 50,
-		delay = 250,
-		range = 1000,
-		Slot = 0,
-		spellName = "TaliyahQ",
-		spellType = "Line",
-		FoW = true,
-		},
-		{
-		charName = "Taliyah",
-		danger = 3,
-		name = "TaliyahW",
-		speed = math.huge,
-		radius = 170,
-		delay = 250,
-		range = 900,
-		Slot = 1,
-		spellName = "TaliyahW",
-		spellType = "Circular",
-		FoW = true,
-		killTime = 1,
-		},
-		{
-		charName = "Taliyah",
-		name = "TaliyahE",
-		danger = 1,
-		speed = math.huge,
-		radius = 325,
-		delay = 250,
-		range = 800,
-		Slot = 2,
-		spellName = "TaliyahE",
-		spellType = "Line",
-		FoW = true,
-		},
-		{
-		charName = "Taliyah",
-		danger = 3,
-		name = "TaliyahR",
-		speed = math.huge,
-		radius = 130,
-		delay = 250,
-		range = 3000,
-		Slot = 3,
-		spellName = "TaliyahR",
-		spellType = "Line",
-		FoW = true,
-		},
-	},
-	--end Talon
-	["Thresh"] = {
-		{
-		charName = "Thresh",
-		danger = 3,
-		missileName = "ThreshQMissile",
-		name = "ThreshQ",
-		speed = 1900,
-		radius = 70,
-		range = 1100,
-		delay = 500,
-		Slot = 0,
-		spellName = "ThreshQ",
-		spellType = "Line",
-		collision = true,
-		Dangerous = true,
-		FoW = true,
-		},
-		{
-		charName = "Thresh",
-		danger = 3,
-		missileName = "ThreshEMissile1",
-		name = "ThreshE",
-		speed = 2000,
-		radius = 250,
-		range = 1075,
-		delay = 0,
-		Slot = 2,
-		spellName = "ThreshE",
-		spellType = "Line",
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Thresh
-	["TwistedFate"] = {
-		{
-		angle = 28,
-		charName = "TwistedFate",
-		danger = 2,
-		isThreeWay = true,
-		missileName = "SealFateMissile",
-		name = "Loaded Dice",
-		speed = 1000,
-		radius = 40,
-		range = 1450,
-		delay = 250,
-		Slot = 0,
-		spellName = "WildCards",
-		spellType = "Line",
-		isSpecial = true,
-		FoW = true,
-		},
-	},
-	--end TwistedFate
-	["Twitch"] = {
-		{
-		charName = "Twitch",
-		danger = 2,
-		name = "Loaded Dice",
-		speed = 4000,
-		radius = 60,
-		range = 1100,
-		delay = 250,
-		Slot = 3,
-		spellName = "TwitchSprayandPrayAttack",
-		spellType = "Line",
-		FoW = true,
-		},
-	},
-	--end Twitch
-	["Urgot"] = {
-		{
-		charName = "Urgot",
-		danger = 1,
-		name = "Acid Hunter",
-		speed = 1600,
-		radius = 60,
-		range = 1000,
-		delay = 175,
-		Slot = 0,
-		spellName = "UrgotHeatseekingLineMissile",
-		spellType = "Line",
-		collision = true,
-		FoW = true,
-		},
-		{
-		charName = "Urgot",
-		danger = 2,
-		name = "Plasma Grenade",
-		speed = 1750,
-		radius = 250,
-		range = 900,
-		delay = 250,
-		Slot = 2,
-		spellName = "UrgotPlasmaGrenade",
-		spellType = "Circular",
-		killTime = 0.3,
-		},
-	},
-	--end Urgot
-	["Varus"] = {
-		{
-		charName = "Varus",
-		danger = 1,
-		name = "Varus E",
-		missileName = "VarusEMissile",
-		speed = 1500,
-		radius = 235,
-		range = 925,
-		delay = 250,
-		Slot = 2,
-		spellName = "VarusE",
-		extraSpellNames = "VarusEMissile",
-		spellType = "Circular",
-		killTime = 0.5,
-		},
-		{
-		charName = "Varus",
-		danger = 2,
-		missileName = "VarusQMissile",
-		name = "VarusQMissile",
-		speed = 1900,
-		radius = 70,
-		range = 1600,
-		delay = 0,
-		Slot = 0,
-		spellName = "VarusQ",
-		spellType = "Line",
-		FoW = true,
-		},
-		{
-		charName = "Varus",
-		danger = 3,
-		name = "VarusR",
-		missileName = "VarusRMissile",
-		speed = 1950,
-		radius = 100,
-		range = 1200,
-		delay = 250,
-		Slot = 3,
-		spellName = "VarusR",
-		spellType = "Line",
-		Dangerous = true,
-		collision = true,
-		FoW = true,
-		},
-	},
-	--end Varus
-	["Veigar"] = {
-		{
-		charName = "Veigar",
-		danger = 2,
-		name = "VeigarBalefulStrike",
-		radius = 70,
-		range = 950,
-		delay = 250,
-		speed = 1750,
-		Slot = 0,
-		spellName = "VeigarBalefulStrike",
-		missileName = "VeigarBalefulStrikeMis",
-		spellType = "Line",
-		FoW = true,
-		},
-		{
-		charName = "Veigar",
-		danger = 2,
-		name = "VeigarDarkMatter",
-		speed = math.huge,
-		radius = 225,
-		range = 900,
-		delay = 1350,
-		Slot = 1,
-		spellName = "VeigarDarkMatter",
-		spellType = "Circular",
-		killName = "VeigarDarkMatter",
-		killTime = 0.5,
-		},
-		{
-		charName = "Veigar",
-		danger = 3,
-		name = "VeigarEventHorizon",
-		speed = math.huge,
-		radius = 425,
-		range = 700,
-		delay = 500,
-		extraEndTime = 3500,
-		Slot = 2,
-		spellName = "VeigarEventHorizon",
-		spellType = "Circular",
-		defaultOff = true,
-		Dangerous = true,
-		killName = "VeigarEventHorizon",
-		killTime = 3.5,
-		},
-	},
-	--end Veigar
-	["Velkoz"] = {
-		{
-		charName = "Velkoz",
-		danger = 2,
-		name = "VelkozE",
-		speed = 1500,
-		delay = 250,
-		radius = 225,
-		range = 950,
-		Slot = 2,
-		spellName = "VelkozE",
-		spellType = "Circular",
-		Dangerous = true,
-		killTime = 0.5,
-		},
-		{
-		charName = "Velkoz",
-		danger = 1,
-		name = "VelkozW",
-		speed = 1700,
-		radius = 88,
-		range = 1100,
-		Slot = 1,
-		spellName = "VelkozW",
-		spellType = "Line",
-		FoW = true,
-		},
-		{
-		charName = "Velkoz",
-		danger = 2,
-		name = "VelkozQMissileSplit",
-		speed = 2100,
-		radius = 45,
-		range = 1100,
-		Slot = 0,
-		spellName = "VelkozQMissileSplit",
-		spellType = "Line",
-		FoW = true,
-
-		collision = true,
-		},
-		{
-		charName = "Velkoz",
-		danger = 2,
-		name = "VelkozQ",
-		speed = 1300,
-		radius = 50,
-		range = 1250,
-		Slot = 0,
-		missileName = "VelkozQMissile",
-		spellName = "VelkozQ",
-		spellType = "Line",
-		collision = true,
-		FoW = true,
-		},
-	},
-	--end Velkoz
-	["Vi"] = {
-		{
-		charName = "Vi",
-		danger = 3,
-		name = "ViQMissile",
-		speed = 1500,
-		radius = 90,
-		range = 725,
-		Slot = 0,
-		spellName = "ViQMissile",
-		spellType = "Line",
-		Dangerous = true,
-		defaultOff = true,
-		FoW = true,
-		},
-	},
-	--end Vi
-	["Viktor"] = {
-		{
-		charName = "Viktor",
-		danger = 2,
-		missileName = "ViktorDeathRayMissile",
-		name = "ViktorDeathRay",
-		speed = 1050,
-		delay = 100,
-		radius = 80,
-		range = 800,
-		Slot = 2,
-		spellName = "ViktorDeathRay",
-		extraMissileNames = "ViktorEAugMissile",
-		spellType = "Line",
-		FoW = true,
-		},
-		{
-		charName = "Viktor",
-		danger = 2,
-		name = "ViktorDeathRay3",
-		speed = math.huge,
-		delay = 500,
-		radius = 80,
-		range = 800,
-		Slot = 2,
-		spellName = "ViktorDeathRay3",
-		spellType = "Line",  
-		FoW = true,	
-		},
-		{
-		charName = "Viktor",
-		danger = 2,
-		missileName = "ViktorDeathRayMissile2",
-		name = "ViktorDeathRay2",
-		speed = 1500,
-		radius = 80,
-		range = 800,
-		Slot = 2,
-		spellName = "ViktorDeathRay2",
-		spellType = "Line",
-		FoW = true,
-		},
-		{
-		charName = "Viktor",
-		danger = 2,
-		name = "GravitonField",
-		speed = math.huge,
-		radius = 300,
-		range = 625,
-		delay = 1500,
-		Slot = 1,
-		spellName = "ViktorGravitonField",
-		spellType = "Circular",
-		defaultOff = true,
-		Dangerous = true,
-		killTime = 1,
-		},
-	},
-	--end Viktor
-	["Vladimir"] = {
-		{
-		charName = "Vladimir",
-		danger = 3,
-		name = "VladimirR",
-		radius = 375,
-		range = 700,
-		delay = 389,
-		Slot = 3,
-		spellName = "VladimirR",
-		spellType = "Circular",
-		Dangerous = true,
-		killTime = 0.3,
-		},
-	},
-	--end Vladimir
-	["Xerath"] = {
-		{
-		charName = "Xerath",
-		danger = 2,
-		name = "XerathArcaneBarrage2",
-		speed = math.huge,
-		radius = 280,
-		range = 1100,
-		delay = 750,
-		Slot = 1,
-		spellName = "XerathArcaneBarrage2",
-		spellType = "Circular",
-		extraDrawHeight = 45,
-		killTime = 0.3,
-		},
-		{
-		charName = "Xerath",
-		danger = 3,
-		name = "XerathArcanopulse2",
-		speed = math.huge,
-		radius = 70,
-		range = 1525,
-		delay = 500,
-		Slot = 0,
-		spellName = "XerathArcanopulse2",
-		useEndPosition = true,
-		spellType = "Line",
-		FoW = true,
-		},
-		{
-		charName = "Xerath",
-		danger = 2,
-		name = "XerathLocusOfPower2",
-		missileName = "XerathLocusPulse",
-		speed = math.huge,
-		radius = 200,
-		range = 5600,
-		delay = 600,
-		Slot = 3,
-		spellName = "XerathRMissileWrapper",
-		extraSpellNames = "XerathLocusPulse",
-		spellType = "Circular",
-		Dangerous = true,
-		killTime = 0.4,
-		},
-		{
-		charName = "Xerath",
-		danger = 3,
-		missileName = "XerathMageSpearMissile",
-		name = "XerathMageSpear",
-		speed = 1600,
-		delay = 200,
-		radius = 60,
-		range = 1125,
-		Slot = 2,
-		spellName = "XerathMageSpear",
-		spellType = "Line",
-		collision = true,
-		Dangerous = true,
-		FoW = true,
-		},
-	},
-	--end Xerath
-	["Yasuo"] = {
-		{
-		charName = "Yasuo",
-		danger = 3,
-		missileName = "YasuoQ3",
-		name = "Steel Tempest 3",
-		speed = 1200,
-		radius = 90,
-		range = 1100,
-		delay = 250,
-		Slot = 0,
-		spellName = "YasuoQ3W",
-		extraMissileNames = "YasuoQ3Mis",
-		spellType = "Line",
-		Dangerous = true,
-		FoW = true,
-		},
-		{
-		charName = "Yasuo",
-		danger = 2,
-		name = "Steel Tempest 2",
-		speed = math.huge,
-		radius = 35,
-		range = 525,
-		fixedRange = true,
-		delay = 350,
-		Slot = 0,
-		spellName = "YasuoQ2",
-		spellType = "Line",
-		FoW = true,
-		},
-		{
-		charName = "Yasuo",
-		danger = 2,
-		name = "Steel Tempest 1",
-		speed = math.huge,
-		radius = 35,
-		range = 525,
-		fixedRange = true,
-		delay = 350,
-		Slot = 0,
-		spellName = "YasuoQ2",
-		spellType = "Line",
-		FoW = true,
-		},
-	},
-	--end Yasuo
-	["Zac"] = {
-		{
-		charName = "Zac",
-		danger = 2,
-		name = "ZacQ",
-		speed = math.huge,
-		fixedRange = true,
-		radius = 120,
-		range = 550,
-		delay = 500,
-		Slot = 0,
-		spellName = "ZacQ",
-		spellType = "Line",
-		FoW = true,
-		},
-	},
-	--end Zac
-	["Zed"] = {
-		{
-		charName = "Zed",
-		danger = 2,
-		missileName = "ZedQMissile",
-		name = "ZedQ",                
-		speed = 1700,
-		radius = 50,
-		range = 925,
-		delay = 250,
-		Slot = 0,
-		spellName = "ZedQ",
-		spellType = "Line",
-		FoW = true,
-		},
-		{
-		charName = "Zed",
-		danger = 1,
-		name = "ZedE",
-		speed = math.huge,
-		delay = 0,
-		radius = 290,
-		range = 290,
-		Slot = 2,
-		spellName = "ZedE",
-		spellType = "Circular",
-		isSpecial = true,
-		defaultOff = true,
-		killTime = 0.1,
-		},
-	},
-	--end Zed
-	["Ziggs"] = {
-		{
-		charName = "Ziggs",
-		danger = 1,
-		name = "ZiggsE",
-		speed = 3000,
-		radius = 235,
-		range = 2000,
-		delay = 250,
-		Slot = 2,
-		spellName = "ZiggsE",
-		spellType = "Circular",
-		killName = "ZiggsE",
-		killTime = 1.5,
-		},
-		{
-		charName = "Ziggs",
-		danger = 1,
-		name = "ZiggsW",
-		speed = 3000,
-		radius = 275,
-		range = 2000,
-		delay = 250,
-		Slot = 1,
-		spellName = "ZiggsW",
-		spellType = "Circular",
-		killName = "ZiggsW",
-		killTime = 1.25,
-		},
-		{
-		charName = "Ziggs",
-		danger = 2,
-		name = "ZiggsQ",
-		speed = 1700,
-		radius = 150,
-		range = 850,                
-		delay = 250,
-		Slot = 0,
-		spellName = "ZiggsQ",
-		spellType = "Circular",
-		isSpecial = true,
-		noProcess = true,
-		killName = "ZiggsQ",
-		killTime = 0.2,
-		},
-		{
-		charName = "Ziggs",
-		danger = 4,
-		name = "ZiggsR",
-		speed = 1500,
-		radius = 550,
-		range = 5300,
-		delay = 1500,
-		Slot = 3,
-		spellName = "ZiggsR",
-		spellType = "Circular",
-		killName = "ZiggsR",
-		killTime = 1.75,
-		Dangerous = true,
-		},
-	},
-	--end Ziggs
-	["Zilean"] = {
-		{
-		charName = "Zilean",
-		danger = 2,
-		name = "ZileanQ",
-		speed = 2000,
-		radius = 250,
-		range = 900,
-		delay = 300,
-		Slot = 0,
-		spellName = "ZileanQ",
-		spellType = "Circular",
-		killTime = 1.5,
-		},
-	},
-	--end Zilean
-	["Zyra"] = {
-		{
-		charName = "Zyra",
-		danger = 3,
-		name = "Grasping Roots",
-		speed = 1400,
-		radius = 70,
-		range = 1150,
-		delay = 250,
-		Slot = 2,
-		spellName = "ZyraE",
-		spellType = "Line",
-		Dangerous = true,
-		FoW = true,
-		},
-		{
-		charName = "Zyra",
-		danger = 2,
-		name = "Deadly Bloom",
-		speed = math.huge,
-		radius = 140,
-		radius2 = 400,
-		range = 825,
-		delay = 800,
-		Slot = 0,
-		spellName = "ZyraQ",
-		spellType = "Rectangle",
-		killName = "ZyraQ",
-		killTime = 0.275,
-		},
-		{
-		charName = "Zyra",
-		danger = 4,
-		name = "ZyraR",
-		speed = math.huge,
-		radius = 550,
-		range = 700,
-		delay = 500,
-		Slot = 3,
-		spellName = "ZyraRSplash",
-		spellType = "Circular",
-		killName = "ZyraRSplash",
-		killTime = 1.2,
-		Dangerous = true,
-		},
-	},
---end Zyra
-
+	["AatroxQ"]={charName="Aatrox",slot=0,type="Circle",delay=0.6,range=650,radius=250,speed=2000,addHitbox=true,danger=3,dangerous=true,proj="nil",killTime=0.225,displayname="Dark Flight",mcollision=false},
+	["AatroxE"]={charName="Aatrox",slot=2,type="Line",delay=0.25,range=1075,radius=35,speed=1250,addHitbox=true,danger=3,dangerous=false,proj="AatroxEConeMissile",killTime=0,displayname="Blade of Torment",mcollision=false},
+	["AhriOrbofDeception"]={charName="Ahri",slot=0,type="Line",delay=0.25,range=1000,radius=100,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="AhriOrbMissile",killTime=0,displayname="Orb of Deception",mcollision=false},
+	["AhriOrbReturn"]={charName="Ahri",slot=0,type="Line",delay=0.25,range=1000,radius=100,speed=915,addHitbox=true,danger=2,dangerous=false,proj="AhriOrbReturn",killTime=0,displayname="Orb of Deception2",mcollision=false},
+	["AhriSeduce"]={charName="Ahri",slot=2,type="Line",delay=0.25,range=1000,radius=60,speed=1600,addHitbox=true,danger=3,dangerous=true,proj="AhriSeduceMissile",killTime=0,displayname="Charm",mcollision=true},
+	["Pulverize"]={charName="Alistar",slot=0,type="Circle",delay=0.25,range=1000,radius=200,speed=math.huge,addHitbox=true,danger=5,dangerous=true,proj="nil",killTime=0.25,displayname="Pulverize",mcollision=false},
+	["BandageToss"]={charName="Amumu",slot=0,type="Line",delay=0.25,range=1000,radius=90,speed=2000,addHitbox=true,danger=3,dangerous=true,proj="SadMummyBandageToss",killTime=0,displayname="Bandage Toss",mcollision=true},
+	["CurseoftheSadMummy"]={charName="Amumu",slot=3,type="Circle",delay=0.25,range=0,radius=550,speed=math.huge,addHitbox=false,danger=5,dangerous=true,proj="nil",killTime=1.25,displayname="Curse of the Sad Mummy",mcollision=false},
+	["FlashFrost"]={charName="Anivia",slot=0,type="Line",delay=0.25,range=1200,radius=110,speed=850,addHitbox=true,danger=3,dangerous=true,proj="FlashFrostSpell",killTime=0,displayname="Flash Frost",mcollision=false},
+	["Incinerate"]={charName="Annie",slot=1,type="Cone",delay=0.25,range=825,radius=80,speed=math.huge,angle=50,addHitbox=false,danger=2,dangerous=false,proj="nil",killTime=0,displayname="",mcollision=false},
+	["InfernalGuardian"]={charName="Annie",slot=3,type="Circle",delay=0.25,range=600,radius=251,speed=math.huge,addHitbox=true,danger=5,dangerous=true,proj="nil",killTime=0.3,displayname="",mcollision=false},
+	["Volley"]={charName="Ashe",slot=1,type="Line",delay=0.25,range=1200,radius=60,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="VolleyAttack",killTime=0,displayname="",mcollision=false},
+	["EnchantedCrystalArrow"]={charName="Ashe",slot=3,type="Line",delay=0.2,range=20000,radius=130,speed=1600,addHitbox=true,danger=5,dangerous=true,proj="EnchantedCrystalArrow",killTime=0,displayname="Enchanted Arrow",mcollision=false},
+	["AurelionSolQ"]={charName="AurelionSol",slot=0,type="Line",delay=0.25,range=1500,radius=180,speed=850,addHitbox=true,danger=2,dangerous=false,proj="AurelionSolQMissile",killTime=0,displayname="AurelionSolQ",mcollision=false},
+	["AurelionSolR"]={charName="AurelionSol",slot=3,type="Line",delay=0.3,range=1420,radius=120,speed=4500,addHitbox=true,danger=3,dangerous=true,proj="AurelionSolRBeamMissile",killTime=0,displayname="AurelionSolR",mcollision=false},
+	["BardQ"]={charName="Bard",slot=0,type="Line",delay=0.25,range=850,radius=60,speed=1600,addHitbox=true,danger=3,dangerous=true,proj="BardQMissile",killTime=0,displayname="BardQ",mcollision=true},
+	["BardR"]={charName="Bard",slot=3,type="Circle",delay=0.5,range=3400,radius=350,speed=2100,addHitbox=true,danger=2,dangerous=false,proj="BardR",killTime=1,displayname="BardR",mcollision=false},
+	["RocketGrab"]={charName="Blitzcrank",slot=0,type="Line",delay=0.25,range=1050,radius=70,speed=1800,addHitbox=true,danger=4,dangerous=true,proj="RocketGrabMissile",killTime=0,displayname="Rocket Grab",mcollision=true},
+	["StaticField"]={charName="Blitzcrank",slot=3,type="Circle",delay=0.25,range=0,radius=600,speed=math.huge,addHitbox=false,danger=2,dangerous=false,proj="nil",killTime=0.2,displayname="Static Field",mcollision=false},
+	["BrandQ"]={charName="Brand",slot=0,type="Line",delay=0.25,range=1050,radius=60,speed=1600,addHitbox=true,danger=3,dangerous=true,proj="BrandQMissile",killTime=0,displayname="Sear",mcollision=true},
+	["BrandW"]={charName="Brand",slot=1,type="Circle",delay=0.85,range=900,radius=240,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=0.275,displayname="Pillar of Flame"}, -- doesnt work
+	["BraumQ"]={charName="Braum",slot=0,type="Line",delay=0.25,range=1000,radius=60,speed=1700,addHitbox=true,danger=3,dangerous=true,proj="BraumQMissile",killTime=0,displayname="Winter's Bite",mcollision=true},
+	["BraumRWrapper"]={charName="Braum",slot=3,type="Line",delay=0.5,range=1250,radius=115,speed=1400,addHitbox=true,danger=4,dangerous=true,proj="braumrmissile",killTime=0,displayname="Glacial Fissure",mcollision=false},
+	["CaitlynPiltoverPeacemaker"]={charName="Caitlyn",slot=0,type="Line",delay=0.625,range=1300,radius=90,speed=1800,addHitbox=true,danger=2,dangerous=false,proj="CaitlynPiltoverPeacemaker",killTime=0,displayname="Piltover Peacemaker",mcollision=false},
+	["CaitlynEntrapment"]={charName="Caitlyn",slot=2,type="Line",delay=0.4,range=1000,radius=70,speed=1600,addHitbox=true,danger=1,dangerous=false,proj="CaitlynEntrapmentMissile",killTime=0,displayname="90 Caliber Net",mcollision=true},
+	["CassiopeiaNoxiousBlast"]={charName="Cassiopeia",slot=0,type="Circle",delay=0.75,range=850,radius=150,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="CassiopeiaNoxiousBlast",killTime=0.2,displayname="Noxious Blast",mcollision=false},
+	["CassiopeiaPetrifyingGaze"]={charName="Cassiopeia",slot=3,type="Cone",delay=0.6,range=825,radius=80,speed=math.huge,angle=80,addHitbox=false,danger=5,dangerous=true,proj="CassiopeiaPetrifyingGaze",killTime=0,displayname="Petrifying Gaze",mcollision=false},
+	["Rupture"]={charName="Chogath",slot=0,type="Circle",delay=1.2,range=950,radius=250,speed=math.huge,addHitbox=true,danger=3,dangerous=false,proj="Rupture",killTime=0.8,displayname="Rupture",mcollision=false},
+	["PhosphorusBomb"]={charName="Corki",slot=0,type="Circle",delay=0.3,range=825,radius=250,speed=1000,addHitbox=true,danger=2,dangerous=false,proj="PhosphorusBombMissile",killTime=0.35,displayname="Phosphorus Bomb",mcollision=false},
+	["MissileBarrage"]={charName="Corki",slot=3,type="Line",delay=0.2,range=1300,radius=40,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="MissileBarrageMissile",killTime=0,displayname="Missile Barrage",mcollision=true},
+	["MissileBarrage2"]={charName="Corki",slot=3,type="Line",delay=0.2,range=1500,radius=40,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="MissileBarrageMissile2",killTime=0,displayname="Missile Barrage big",mcollision=true},
+	["DariusCleave"]={charName="Darius",slot=0,type="Circle",delay=0.75,range=0,radius=425 - 50,speed=math.huge,addHitbox=true,danger=3,dangerous=false,proj="DariusCleave",killTime=0,displayname="Cleave",mcollision=false},
+	["DariusAxeGrabCone"]={charName="Darius",slot=2,type="Cone",delay=0.25,range=550,radius=80,speed=math.huge,angle=30,addHitbox=false,danger=3,dangerous=true,proj="DariusAxeGrabCone",killTime=0,displayname="Apprehend",mcollision=false},
+	["DianaArc"]={charName="Diana",slot=0,type="Circle",delay=0.25,range=835,radius=195,speed=1400,addHitbox=true,danger=3,dangerous=true,proj="DianaArcArc",killTime=0,displayname="",mcollision=false},
+	["DianaArcArc"]={charName="Diana",slot=0,type="Arc",delay=0.25,range=835,radius=195,speed=1400,addHitbox=true,danger=3,dangerous=true,proj="DianaArcArc",killTime=0,displayname="",mcollision=false},
+	["InfectedCleaverMissileCast"]={charName="DrMundo",slot=0,type="Line",delay=0.25,range=1050,radius=60,speed=2000,addHitbox=true,danger=3,dangerous=false,proj="InfectedCleaverMissile",killTime=0,displayname="Infected Cleaver",mcollision=true},
+	["DravenDoubleShot"]={charName="Draven",slot=2,type="Line",delay=0.25,range=1100,radius=130,speed=1400,addHitbox=true,danger=3,dangerous=true,proj="DravenDoubleShotMissile",killTime=0,displayname="Stand Aside",mcollision=false},
+	["DravenRCast"]={charName="Draven",slot=3,type="Line",delay=0.5,range=25000,radius=160,speed=2000,addHitbox=true,danger=5,dangerous=true,proj="DravenR",killTime=0,displayname="Whirling Death",mcollision=false},
+	["EkkoQ"]={charName="Ekko",slot=0,type="Line",delay=0.25,range=925,radius=60,speed=1650,addHitbox=true,danger=4,dangerous=true,proj="ekkoqmis",killTime=0,displayname="Timewinder",mcollision=false},
+	["EkkoW"]={charName="Ekko",slot=1,type="Circle",delay=3.75,range=1600,radius=375,speed=1650,addHitbox=false,danger=3,dangerous=false,proj="EkkoW",killTime=1.2,displayname="Parallel Convergence",mcollision=false},
+	["EkkoR"]={charName="Ekko",slot=3,type="Circle",delay=0.25,range=1600,radius=375,speed=1650,addHitbox=true,danger=3,dangerous=false,proj="EkkoR",killTime=0.2,displayname="Chronobreak",mcollision=false},
+	["EliseHumanE"]={charName="Elise",slot=2,type="Line",delay=0.25,range=925,radius=55,speed=1600,addHitbox=true,danger=4,dangerous=true,proj="EliseHumanE",killTime=0,displayname="Cocoon",mcollision=true},
+	["EvelynnR"]={charName="Evelynn",slot=3,type="Circle",delay=0.25,range=650,radius=350,speed=math.huge,addHitbox=true,danger=5,dangerous=true,proj="EvelynnR",killTime=0.2,displayname="Agony's Embrace"},
+	["EzrealMysticShot"]={charName="Ezreal",slot=0,type="Line",delay=0.25,range=1300,radius=50,speed=1975,addHitbox=true,danger=2,dangerous=false,proj="EzrealMysticShotMissile",killTime=0.25,displayname="Mystic Shot",mcollision=true},
+	["EzrealEssenceFlux"]={charName="Ezreal",slot=1,type="Line",delay=0.25,range=1000,radius=80,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="EzrealEssenceFluxMissile",killTime=0,displayname="Essence Flux",mcollision=false},
+	["EzrealTrueshotBarrage"]={charName="Ezreal",slot=3,type="Line",delay=1,range=20000,radius=150,speed=2000,addHitbox=true,danger=3,dangerous=true,proj="EzrealTrueshotBarrage",killTime=0,displayname="Trueshot Barrage",mcollision=false},
+	["FioraW"]={charName="Fiora",slot=1,type="Line",delay=0.5,range=800,radius=70,speed=3200,addHitbox=true,danger=2,dangerous=false,proj="FioraWMissile",killTime=0,displayname="Riposte",mcollision=false},
+	["FizzMarinerDoom"]={charName="Fizz",slot=3,type="Line",delay=0.25,range=1150,radius=120,speed=1350,addHitbox=true,danger=5,dangerous=true,proj="FizzMarinerDoomMissile",killTime=0,displayname="Chum the Waters",mcollision=false},
+	["GalioResoluteSmite"]={charName="Galio",slot=0,type="Circle",delay=0.25,range=900,radius=200,speed=1300,addHitbox=true,danger=2,dangerous=false,proj="GalioResoluteSmite",killTime=0.2,displayname="Resolute Smite",mcollision=false},
+	["GalioRighteousGust"]={charName="Galio",slot=2,type="Line",delay=0.25,range=1000,radius=120,speed=1200,addHitbox=true,danger=2,dangerous=false,proj="GalioRighteousGust",killTime=0,displayname="Righteous Ghost",mcollision=false},
+	["GalioIdolOfDurand"]={charName="Galio",slot=3,type="Circle",delay=0.25,range=0,radius=550,speed=math.huge,addHitbox=false,danger=5,dangerous=true,proj="nil",killTime=1,displayname="Idol of Durand",mcollision=false},
+	["GnarQ"]={charName="Gnar",slot=0,type="Line",delay=0.25,range=1200,radius=60,speed=1225,addHitbox=true,danger=2,dangerous=false,proj="gnarqmissile",killTime=0,displayname="Boomerang Throw",mcollision=false},
+	["GnarQReturn"]={charName="Gnar",slot=0,type="Line",delay=0,range=1200,radius=75,speed=1225,addHitbox=true,danger=2,dangerous=false,proj="GnarQMissileReturn",killTime=0,displayname="Boomerang Throw2",mcollision=false},
+	["GnarBigQ"]={charName="Gnar",slot=0,type="Line",delay=0.5,range=1150,radius=90,speed=2100,addHitbox=true,danger=2,dangerous=false,proj="GnarBigQMissile",killTime=0,displayname="Boulder Toss",mcollision=true},
+	["GnarBigW"]={charName="Gnar",slot=1,type="Line",delay=0.6,range=600,radius=80,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="GnarBigW",killTime=0,displayname="Wallop",mcollision=false},
+	["GnarE"]={charName="Gnar",slot=2,type="Circle",delay=0,range=473,radius=150,speed=903,addHitbox=true,danger=2,dangerous=false,proj="GnarE",killTime=0.2,displayname="GnarE",mcollision=false},
+	["GnarBigE"]={charName="Gnar",slot=2,type="Circle",delay=0.25,range=475,radius=200,speed=1000,addHitbox=true,danger=2,dangerous=false,proj="GnarBigE",killTime=0.2,displayname="GnarBigE",mcollision=false},
+	["GnarR"]={charName="Gnar",slot=3,type="Circle",delay=0.25,range=0,radius=500,speed=math.huge,addHitbox=false,danger=5,dangerous=true,proj="nil",killTime=0.3,displayname="GnarUlt",mcollision=false},
+	["GragasQ"]={charName="Gragas",slot=0,type="Circle",delay=0.25,range=1100,radius=275,speed=1300,addHitbox=true,danger=2,dangerous=false,proj="GragasQMissile",killTime=2.5,displayname="Barrel Roll",mcollision=false,killName="GragasQToggle"},
+	["GragasE"]={charName="Gragas",slot=2,type="Line",delay=0,range=950,radius=200,speed=1200,addHitbox=true,danger=2,dangerous=false,proj="GragasE",killTime=0,displayname="Body Slam",mcollision=true},
+	["GragasR"]={charName="Gragas",slot=3,type="Circle",delay=0.25,range=1050,radius=375,speed=1800,addHitbox=true,danger=5,dangerous=true,proj="GragasRBoom",killTime=0.3,displayname="Explosive Cask",mcollision=false},
+	["GravesQLineSpell"]={charName="Graves",slot=0,type="Line",delay=0.2,range=750,radius=40,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="GravesQLineMis",killTime=0,displayname="Buckshot",mcollision=false},
+	["GravesChargeShot"]={charName="Graves",slot=3,type="Line",delay=0.2,range=1000,radius=100,speed=2100,addHitbox=true,danger=5,dangerous=true,proj="GravesChargeShotShot",killTime=0,displayname="Collateral Damage",mcollision=false},
+	["HeimerdingerW"]={charName="Heimerdinger",slot=1,type="Cone",delay=0.25,range=800,radius=70,speed=1800,angle=10,addHitbox=true,danger=2,dangerous=false,proj="HeimerdingerWAttack2",killTime=0,displayname="HeimerdingerUltW",mcollision=true},
+	["HeimerdingerE"]={charName="Heimerdinger",slot=2,type="Circle",delay=0.25,range=925,radius=100,speed=1200,addHitbox=true,danger=2,dangerous=false,proj="heimerdingerespell",killTime=0.3,displayname="HeimerdingerE",mcollision=false},
+	["IllaoiQ"]={charName="Illaoi",slot=0,type="Line",delay=0.75,range=750,radius=160,speed=math.huge,addHitbox=true,danger=3,dangerous=true,proj="illaoiemis",killTime=0,displayname="",mcollision=false},
+	["IllaoiE"]={charName="Illaoi",slot=2,type="Line",delay=0.25,range=1100,radius=50,speed=1900,addHitbox=true,danger=3,dangerous=true,proj="illaoiemis",killTime=0,displayname="",mcollision=true},
+	["IllaoiR"]={charName="Illaoi",slot=3,type="Circle",delay=0.5,range=0,radius=450,speed=math.huge,addHitbox=false,danger=3,dangerous=true,proj="nil",killTime=0.2,displayname="",mcollision=false},
+	["IreliaTranscendentBlades"]={charName="Irelia",slot=3,type="Line",delay=0,range=1200,radius=65,speed=1600,addHitbox=true,danger=2,dangerous=false,proj="IreliaTranscendentBlades",killTime=0,displayname="Transcendent Blades",mcollision=false},
+	["HowlingGale"]={charName="Janna",slot=0,type="Line",delay=0.25,range=1700,radius=120,speed=900,addHitbox=true,danger=2,dangerous=false,proj="HowlingGaleSpell",killTime=0,displayname="HowlingGale",mcollision=false},
+	["JarvanIVDragonStrike"]={charName="JarvanIV",slot=0,type="Line",delay=0.6,range=770,radius=70,speed=math.huge,addHitbox=true,danger=3,dangerous=false,proj="nil",killTime=0,displayname="DragonStrike",mcollision=false},
+	["JarvanIVEQ"]={charName="JarvanIV",slot=0,type="Line",delay=0.25,range=880,radius=70,speed=1450,addHitbox=true,danger=3,dangerous=true,proj="nil",killTime=0,displayname="DragonStrike2",mcollision=false},
+	["JarvanIVDemacianStandard"]={charName="JarvanIV",slot=2,type="Circle",delay=0.5,range=860,radius=175,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="JarvanIVDemacianStandard",killTime=1.5,displayname="Demacian Standard",mcollision=false},
+	["jayceshockblast"]={charName="Jayce",slot=0,type="Line",delay=0.25,range=1300,radius=70,speed=1450,addHitbox=true,danger=2,dangerous=false,proj="JayceShockBlastMis",killTime=0,displayname="ShockBlast",mcollision=true},
+	["JayceQAccel"]={charName="Jayce",slot=0,type="Line",delay=0.25,range=1300,radius=70,speed=2350,addHitbox=true,danger=2,dangerous=false,proj="JayceShockBlastWallMis",killTime=0,displayname="ShockBlastCharged",mcollision=true},
+	["JhinW"]={charName="Jhin",slot=1,type="Line",delay=0.75,range=2550,radius=40,speed=5000,addHitbox=true,danger=3,dangerous=true,proj="JhinWMissile",killTime=0,displayname="",mcollision=false},
+	["JhinRShot"]={charName="Jhin",slot=3,type="Line",delay=0.25,range=3500,radius=80,speed=5000,addHitbox=true,danger=3,dangerous=true,proj="JhinRShotMis",killTime=0,displayname="JhinR",mcollision=false},
+	["JinxW"]={charName="Jinx",slot=1,type="Line",delay=0.6,range=1400,radius=60,speed=3300,addHitbox=true,danger=3,dangerous=true,proj="JinxWMissile",killTime=0,displayname="Zap",mcollision=true},
+	["JinxR"]={charName="Jinx",slot=3,type="Line",delay=0.6,range=20000,radius=140,speed=1700,addHitbox=true,danger=5,dangerous=true,proj="JinxR",killTime=0,displayname="",mcollision=false},
+	["KalistaMysticShot"]={charName="Kalista",slot=0,type="Line",delay=0.25,range=1200,radius=40,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="kalistamysticshotmis",killTime=0,displayname="MysticShot",mcollision=true},
+	["KarmaQ"]={charName="Karma",slot=0,type="Line",delay=0.25,range=1050,radius=60,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="KarmaQMissile",killTime=0,displayname="",mcollision=true},
+	["KarmaQMantra"]={charName="Karma",slot=0,type="Line",delay=0.25,range=950,radius=80,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="KarmaQMissileMantra",killTime=0,displayname="",mcollision=true},
+	["KarthusLayWasteA2"]={charName="Karthus",slot=0,type="Circle",delay=0.625,range=875,radius=160,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=0.2,displayname="Lay Waste",mcollision=false},
+	["RiftWalk"]={charName="Kassadin",slot=3,type="Circle",delay=0.25,range=450,radius=270,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="RiftWalk",killTime=0.3,displayname="",mcollision=false},
+	["KennenShurikenHurlMissile1"]={charName="Kennen",slot=0,type="Line",delay=0.18,range=1050,radius=50,speed=1650,addHitbox=true,danger=2,dangerous=false,proj="KennenShurikenHurlMissile1",killTime=0,displayname="Thundering Shuriken",mcollision=true},
+	["KhazixW"]={charName="Khazix",slot=1,type="Line",delay=0.25,range=1025,radius=70,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="KhazixWMissile",killTime=0,displayname="",mcollision=true},
+	["KhazixE"]={charName="Khazix",slot=2,type="Circle",delay=0.25,range=600,radius=300,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="KhazixE",killTime=0.2,displayname="",mcollision=false},
+	["KogMawQ"]={charName="Kogmaw",slot=0,type="Line",delay=0.25,range=975,radius=70,speed=1650,addHitbox=true,danger=2,dangerous=false,proj="KogMawQ",killTime=0,displayname="",mcollision=true},
+	["KogMawVoidOoze"]={charName="Kogmaw",slot=2,type="Line",delay=0.25,range=1200,radius=120,speed=1400,addHitbox=true,danger=2,dangerous=false,proj="KogMawVoidOozeMissile",killTime=0,displayname="Void Ooze",mcollision=false},
+	["KogMawLivingArtillery"]={charName="Kogmaw",slot=3,type="Circle",delay=1.2,range=1800,radius=225,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="KogMawLivingArtillery",killTime=0.5,displayname="LivingArtillery",mcollision=false},
+	["LeblancSlide"]={charName="Leblanc",slot=1,type="Circle",delay=0,range=600,radius=220,speed=1450,addHitbox=true,danger=2,dangerous=false,proj="LeblancSlide",killTime=0.2,displayname="Slide",mcollision=false},
+	["LeblancSlideM"]={charName="Leblanc",slot=3,type="Circle",delay=0,range=600,radius=220,speed=1450,addHitbox=true,danger=2,dangerous=false,proj="LeblancSlideM",killTime=0.2,displayname="Slide R",mcollision=false},
+	["LeblancSoulShackle"]={charName="Leblanc",slot=2,type="Line",delay=0,range=950,radius=70,speed=1750,addHitbox=true,danger=3,dangerous=true,proj="LeblancSoulShackle",killTime=0,displayname="Ethereal Chains R",mcollision=true},
+	["LeblancSoulShackleM"]={charName="Leblanc",slot=3,type="Line",delay=0,range=950,radius=70,speed=1750,addHitbox=true,danger=3,dangerous=true,proj="LeblancSoulShackleM",killTime=0,displayname="Ethereal Chains",mcollision=true},
+	["BlindMonkQOne"]={charName="LeeSin",slot=0,type="Line",delay=0.1,range=1000,radius=65,speed=1800,addHitbox=true,danger=3,dangerous=true,proj="BlindMonkQOne",killTime=0,displayname="Sonic Wave",mcollision=true},
+	["LeonaZenithBlade"]={charName="Leona",slot=2,type="Line",delay=0.25,range=875,radius=70,speed=1750,addHitbox=true,danger=3,dangerous=true,proj="LeonaZenithBladeMissile",killTime=0,displayname="Zenith Blade",mcollision=false},
+	["LeonaSolarFlare"]={charName="Leona",slot=3,type="Circle",delay=1,range=1200,radius=300,speed=math.huge,addHitbox=true,danger=5,dangerous=true,proj="LeonaSolarFlare",killTime=0.5,displayname="Solar Flare",mcollision=false},
+	["LissandraQ"]={charName="Lissandra",slot=0,type="Line",delay=0.25,range=700,radius=75,speed=2200,addHitbox=true,danger=2,dangerous=false,proj="LissandraQMissile",killTime=0,displayname="Ice Shard",mcollision=false},
+	["LissandraQShards"]={charName="Lissandra",slot=0,type="Line",delay=0.25,range=700,radius=90,speed=2200,addHitbox=true,danger=2,dangerous=false,proj="lissandraqshards",killTime=0,displayname="Ice Shard2",mcollision=false},
+	["LissandraE"]={charName="Lissandra",slot=2,type="Line",delay=0.25,range=1025,radius=125,speed=850,addHitbox=true,danger=2,dangerous=false,proj="LissandraEMissile",killTime=0,displayname="",mcollision=false},
+	["LucianQ"]={charName="Lucian",slot=0,type="Line",delay=0.5,range=800,radius=65,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="LucianQ",killTime=0,displayname="",mcollision=false},
+	["LucianW"]={charName="Lucian",slot=1,type="Line",delay=0.2,range=1000,radius=55,speed=1600,addHitbox=true,danger=2,dangerous=false,proj="lucianwmissile",killTime=0,displayname="",mcollision=true},
+	["LucianRMis"]={charName="Lucian",slot=3,type="Line",delay=0.5,range=1400,radius=110,speed=2800,addHitbox=true,danger=2,dangerous=false,proj="lucianrmissileoffhand",killTime=0,displayname="LucianR",mcollision=true},
+	["LuluQ"]={charName="Lulu",slot=0,type="Line",delay=0.25,range=950,radius=60,speed=1450,addHitbox=true,danger=2,dangerous=false,proj="LuluQMissile",killTime=0,displayname="",mcollision=false},
+	["LuluQPix"]={charName="Lulu",slot=0,type="Line",delay=0.25,range=950,radius=60,speed=1450,addHitbox=true,danger=2,dangerous=false,proj="LuluQMissileTwo",killTime=0,displayname="",mcollision=false},
+	["LuxLightBinding"]={charName="Lux",slot=0,type="Line",delay=0.225,range=1300,radius=70,speed=1200,addHitbox=true,danger=3,dangerous=true,proj="LuxLightBindingMis",killTime=0,displayname="Light Binding",mcollision=true},
+	["LuxLightStrikeKugel"]={charName="Lux",slot=2,type="Circle",delay=0.25,range=1100,radius=275,speed=1300,addHitbox=true,danger=2,dangerous=false,proj="LuxLightStrikeKugel",killTime=5.25,displayname="LightStrikeKugel",mcollision=false,killName="LuxLightstrikeToggle"},
+	["LuxMaliceCannon"]={charName="Lux",slot=3,type="Line",delay=1,range=3500,radius=190,speed=math.huge,addHitbox=true,danger=5,dangerous=true,proj="LuxMaliceCannon",killTime=0,displayname="Malice Cannon",mcollision=false},
+	["UFSlash"]={charName="Malphite",slot=3,type="Circle",delay=0,range=1000,radius=270,speed=1500,addHitbox=true,danger=5,dangerous=true,proj="UFSlash",killTime=0.4,displayname="",mcollision=false},
+	["MalzaharQ"]={charName="Malzahar",slot=0,type="Rectangle",delay=0.75,range=900,radius2=475,radius=140,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="MalzaharQ",killTime=0,displayname="",mcollision=false},
+	["DarkBindingMissile"]={charName="Morgana",slot=0,type="Line",delay=0.2,range=1300,radius=80,speed=1200,addHitbox=true,danger=3,dangerous=true,proj="DarkBindingMissile",killTime=0,displayname="Dark Binding",mcollision=true},
+	["NamiQ"]={charName="Nami",slot=0,type="Circle",delay=0.95,range=1625,radius=150,speed=math.huge,addHitbox=true,danger=3,dangerous=true,proj="namiqmissile",killTime=0.35,displayname="",mcollision=false},
+	["NamiR"]={charName="Nami",slot=3,type="Line",delay=1,range=2750,radius=260,speed=850,addHitbox=true,danger=2,dangerous=false,proj="NamiRMissile",killTime=0,displayname="",mcollision=false},
+	["NautilusAnchorDrag"]={charName="Nautilus",slot=0,type="Line",delay=0.25,range=1080,radius=90,speed=2000,addHitbox=true,danger=3,dangerous=true,proj="NautilusAnchorDragMissile",killTime=0,displayname="Anchor Drag",mcollision=true},
+	["NocturneDuskbringer"]={charName="Nocturne",slot=0,type="Line",delay=0.25,range=1125,radius=60,speed=1400,addHitbox=true,danger=2,dangerous=false,proj="NocturneDuskbringer",killTime=0,displayname="Duskbringer",mcollision=false},
+	["JavelinToss"]={charName="Nidalee",slot=0,type="Line",delay=0.25,range=1500,radius=40,speed=1300,addHitbox=true,danger=3,dangerous=true,proj="JavelinToss",killTime=0,displayname="JavelinToss",mcollision=true},
+	["OlafAxeThrowCast"]={charName="Olaf",slot=0,type="Line",delay=0.25,range=1000,radius=105,speed=1600,addHitbox=true,danger=2,dangerous=false,proj="olafaxethrow",killTime=0,displayname="Axe Throw",mcollision=false},
+	["OriannasQ"]={charName="Orianna",slot=0,type="Line",delay=0,range=1500,radius=80,speed=1200,addHitbox=true,danger=2,dangerous=false,proj="orianaizuna",killTime=0,displayname="",mcollision=false},
+	["OriannaQend"]={charName="Orianna",slot=0,type="Circle",delay=0,range=1500,radius=90,speed=1200,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=0.1,displayname="",mcollision=false},
+	["OrianaDissonanceCommand-"]={charName="Orianna",slot=1,type="Circle",delay=0.25,range=0,radius=255,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="OrianaDissonanceCommand-",killTime=0.3,displayname="",mcollision=false},
+	["OriannasE"]={charName="Orianna",slot=2,type="Line",delay=0,range=1500,radius=85,speed=1850,addHitbox=true,danger=2,dangerous=false,proj="orianaredact",killTime=0,displayname="",mcollision=false},
+	["OrianaDetonateCommand-"]={charName="Orianna",slot=3,type="Circle",delay=0.7,range=0,radius=410,speed=math.huge,addHitbox=true,danger=5,dangerous=true,proj="OrianaDetonateCommand-",killTime=0.5,displayname="",mcollision=false},
+	["QuinnQ"]={charName="Quinn",slot=0,type="Line",delay=0,range=1050,radius=60,speed=1550,addHitbox=true,danger=2,dangerous=false,proj="QuinnQ",killTime=0,displayname="",mcollision=true},
+	["PoppyQ"]={charName="Poppy",slot=0,type="Line",delay=0.5,range=430,radius=100,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="PoppyQ",killTime=0,displayname="",mcollision=false},
+	["PoppyRSpell"]={charName="Poppy",slot=3,type="Line",delay=0.3,range=1200,radius=100,speed=1600,addHitbox=true,danger=3,dangerous=true,proj="PoppyRMissile",killTime=0,displayname="PoppyR",mcollision=false},
+	["RengarE"]={charName="Rengar",slot=2,type="Line",delay=0.25,range=1000,radius=70,speed=1500,addHitbox=true,danger=3,dangerous=true,proj="RengarEFinal",killTime=0,displayname="",mcollision=true},
+	["reksaiqburrowed"]={charName="RekSai",slot=0,type="Line",delay=0.5,range=1050,radius=60,speed=1550,addHitbox=true,danger=3,dangerous=false,proj="RekSaiQBurrowedMis",killTime=0,displayname="RekSaiQ",mcollision=true},
+	["RivenIzunaBlade"]={charName="Riven",slot=3,type="Cone",delay=0.25,range=1100,radius=125,speed=1600,angle=50,addHitbox=false,danger=5,dangerous=true,proj="RivenLightsaberMissile",killTime=0,displayname="WindSlash",mcollision=false},
+	["RumbleGrenade"]={charName="Rumble",slot=2,type="Line",delay=0.25,range=850,radius=60,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="RumbleGrenade",killTime=0,displayname="Grenade",mcollision=true},
+	["RumbleCarpetBombM"]={charName="Rumble",slot=3,type="Line",delay=0.4,range=1700,radius=200,speed=1600,addHitbox=true,danger=4,dangerous=false,proj="RumbleCarpetBombMissile",killTime=0,displayname="Carpet Bomb",mcollision=false}, --doesnt work
+	["RyzeQ"]={charName="Ryze",slot=0,type="Line",delay=0,range=900,radius=50,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="RyzeQ",killTime=0,displayname="",mcollision=true},
+	["ryzerq"]={charName="Ryze",slot=0,type="Line",delay=0,range=900,radius=50,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="ryzerq",killTime=0,displayname="RyzeQ R",mcollision=true},
+	["SejuaniArcticAssault"]={charName="Sejuani",slot=0,type="Line",delay=0,range=900,radius=70,speed=1600,addHitbox=true,danger=3,dangerous=true,proj="nil",killTime=0,displayname="ArcticAssault",mcollision=true},
+	["SejuaniGlacialPrisonStart"]={charName="Sejuani",slot=3,type="Line",delay=0.25,range=1200,radius=110,speed=1600,addHitbox=true,danger=3,dangerous=true,proj="sejuaniglacialprison",killTime=0,displayname="GlacialPrisonStart",mcollision=false},
+	["SionE"]={charName="Sion",slot=2,type="Line",delay=0.25,range=800,radius=80,speed=1800,addHitbox=true,danger=3,dangerous=true,proj="SionEMissile",killTime=0,displayname="",mcollision=false},
+	["SionR"]={charName="Sion",slot=3,type="Line",delay=0.5,range=20000,radius=120,speed=1000,addHitbox=true,danger=3,dangerous=true,proj="nil",killTime=0,displayname="",mcollision=false},
+	["SorakaQ"]={charName="Soraka",slot=0,type="Circle",delay=0.5,range=950,radius=300,speed=1750,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=0.25,displayname="",mcollision=false},
+	["SorakaE"]={charName="Soraka",slot=2,type="Circle",delay=0.25,range=925,radius=275,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=1,displayname="",mcollision=false},
+	["ShenE"]={charName="Shen",slot=2,type="Line",delay=0,range=650,radius=50,speed=1600,addHitbox=true,danger=3,dangerous=true,proj="ShenE",killTime=0,displayname="Shadow Dash",mcollision=false},
+	["ShyvanaFireball"]={charName="Shyvana",slot=2,type="Line",delay=0.25,range=925,radius=60,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="ShyvanaFireballMissile",killTime=0,displayname="Fireball",mcollision=false},
+	["ShyvanaTransformCast"]={charName="Shyvana",slot=3,type="Line",delay=0.25,range=750,radius=150,speed=1500,addHitbox=true,danger=3,dangerous=true,proj="ShyvanaTransformCast",killTime=0,displayname="Transform Cast",mcollision=false},
+	["shyvanafireballdragon2"]={charName="Shyvana",slot=3,type="Line",delay=0.25,range=925,radius=70,speed=2000,addHitbox=true,danger=3,dangerous=false,proj="ShyvanaFireballDragonFxMissile",killTime=0,displayname="Fireball Dragon",mcollision=false},
+	["SivirQReturn"]={charName="Sivir",slot=0,type="Line",delay=0,range=1075,radius=100,speed=1350,addHitbox=true,danger=2,dangerous=false,proj="SivirQMissileReturn",killTime=0,displayname="SivirQ2",mcollision=false},
+	["SivirQ"]={charName="Sivir",slot=0,type="Line",delay=0.25,range=1075,radius=90,speed=1350,addHitbox=true,danger=2,dangerous=false,proj="SivirQMissile",killTime=0,displayname="SivirQ",mcollision=false},
+	["SkarnerFracture"]={charName="Skarner",slot=2,type="Line",delay=0.35,range=350,radius=70,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="SkarnerFractureMissile",killTime=0,displayname="Fracture",mcollision=false},
+	["SonaR"]={charName="Sona",slot=3,type="Line",delay=0.25,range=900,radius=140,speed=2400,addHitbox=true,danger=5,dangerous=true,proj="SonaR",killTime=0,displayname="Crescendo",mcollision=false},
+	["SwainShadowGrasp"]={charName="Swain",slot=1,type="Circle",delay=1.1,range=900,radius=180,speed=math.huge,addHitbox=true,danger=3,dangerous=true,proj="SwainShadowGrasp",killTime=0.5,displayname="Shadow Grasp",mcollision=false},
+	["SyndraQ"]={charName="Syndra",slot=0,type="Circle",delay=0.6,range=800,radius=150,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="SyndraQ",killTime=0.2,displayname="",mcollision=false},
+	["syndrawcast"]={charName="Syndra",slot=1,type="Circle",delay=0.25,range=950,radius=210,speed=1450,addHitbox=true,danger=2,dangerous=false,proj="syndrawcast",killTime=0.2,displayname="SyndraW",mcollision=false},
+	["syndrae5"]={charName="Syndra",slot=2,type="Line",delay=0,range=950,radius=100,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="syndrae5",killTime=0,displayname="SyndraE",mcollision=false},
+	["SyndraE"]={charName="Syndra",slot=2,type="Line",delay=0,range=950,radius=100,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="SyndraE",killTime=0,displayname="SyndraE2",mcollision=false},
+	["TalonRake"]={charName="Talon",slot=1,type="Cone",delay=0.25,range=800,radius=80,speed=2300,angle=45,addHitbox=true,danger=2,dangerous=true,proj="talonrakemissileone",killTime=0,displayname="Rake",mcollision=false},
+	["TalonRakeReturn"]={charName="Talon",slot=1,type="Cone",delay=0.25,range=800,radius=80,speed=1850,angle=45,addHitbox=true,danger=2,dangerous=true,proj="talonrakemissiletwo",killTime=0,displayname="Rake2",mcollision=false},
+	["TahmKenchQ"]={charName="TahmKench",slot=0,type="Line",delay=0.25,range=951,radius=90,speed=2800,addHitbox=true,danger=3,dangerous=true,proj="tahmkenchqmissile",killTime=0,displayname="Tongue Slash",mcollision=true},
+	["TaricE"]={charName="Taric",slot=2,type="Line",delay=1,range=750,radius=100,speed=math.huge,addHitbox=true,danger=3,dangerous=true,proj="TaricE",killTime=0,displayname="",mcollision=false},
+	["ThreshQ"]={charName="Thresh",slot=0,type="Line",delay=0.5,range=1050,radius=70,speed=1900,addHitbox=true,danger=3,dangerous=true,proj="ThreshQMissile",killTime=0,displayname="",mcollision=true},
+	["ThreshEFlay"]={charName="Thresh",slot=2,type="Line",delay=0.125,range=500,radius=110,speed=2000,addHitbox=true,danger=3,dangerous=true,proj="ThreshEMissile1",killTime=0,displayname="Flay",mcollision=false},
+	["RocketJump"]={charName="Tristana",slot=1,type="Circle",delay=0.5,range=900,radius=270,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="RocketJump",killTime=0.3,displayname="",mcollision=false},
+	["slashCast"]={charName="Tryndamere",slot=2,type="Line",delay=0,range=660,radius=93,speed=1300,addHitbox=true,danger=2,dangerous=false,proj="slashCast",killTime=0,displayname="",mcollision=false},
+	["WildCards"]={charName="TwistedFate",slot=0,type="Threeway",delay=0.25,range=1450,radius=40,speed=1000,addHitbox=true,danger=2,dangerous=false,proj="SealFateMissile",killTime=0,displayname="",mcollision=false},
+	["TwitchVenomCask"]={charName="Twitch",slot=1,type="Circle",delay=0.25,range=900,radius=275,speed=1400,addHitbox=true,danger=2,dangerous=false,proj="TwitchVenomCaskMissile",killTime=0.3,displayname="Venom Cask",mcollision=false},
+	["UrgotHeatseekingLineMissile"]={charName="Urgot",slot=0,type="Line",delay=0.125,range=1000,radius=60,speed=1600,addHitbox=true,danger=2,dangerous=false,proj="UrgotHeatseekingLineMissile",killTime=0,displayname="Heatseeking Line",mcollision=true},
+	["UrgotPlasmaGrenade"]={charName="Urgot",slot=2,type="Circle",delay=0.25,range=1100,radius=210,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="UrgotPlasmaGrenadeBoom",killTime=0.3,displayname="PlasmaGrenade",mcollision=false},
+	["VarusQMissile"]={charName="Varus",slot=0,type="Line",delay=0.25,range=1475,radius=70,speed=1900,addHitbox=true,danger=2,dangerous=false,proj="VarusQMissile",killTime=0,displayname="VarusQ",mcollision=false},
+	["VarusE"]={charName="Varus",slot=2,type="Circle",delay=1,range=925,radius=235,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="VarusE",killTime=1.5,displayname="",mcollision=false},
+	["VarusR"]={charName="Varus",slot=3,type="Line",delay=0.25,range=800,radius=120,speed=1950,addHitbox=true,danger=3,dangerous=true,proj="VarusRMissile",killTime=0,displayname="",mcollision=false},
+	["VeigarBalefulStrike"]={charName="Veigar",slot=0,type="Line",delay=0.25,range=900,radius=70,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="VeigarBalefulStrikeMis",killTime=0,displayname="BalefulStrike",mcollision=false},
+	["VeigarDarkMatter"]={charName="Veigar",slot=1,type="Circle",delay=1.35,range=900,radius=225,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=0.5,displayname="DarkMatter",mcollision=false},
+	["VeigarEventHorizon"]={charName="Veigar",slot=2,type="Ring",delay=0.5,range=700,radius=80,speed=math.huge,addHitbox=false,danger=3,dangerous=true,proj="nil",killTime=3.5,displayname="EventHorizon",mcollision=false},
+	["VelkozQ"]={charName="Velkoz",slot=0,type="Line",delay=0.25,range=1100,radius=50,speed=1300,addHitbox=true,danger=2,dangerous=false,proj="VelkozQMissile",killTime=0,displayname="",mcollision=true},
+	["VelkozQSplit"]={charName="Velkoz",slot=0,type="Line",delay=0.25,range=1100,radius=55,speed=2100,addHitbox=true,danger=2,dangerous=false,proj="VelkozQMissileSplit",killTime=0,displayname="",mcollision=true},
+	["VelkozW"]={charName="Velkoz",slot=1,type="Line",delay=0.25,range=1050,radius=88,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="VelkozWMissile",killTime=0,displayname="",mcollision=false},
+	["VelkozE"]={charName="Velkoz",slot=2,type="Circle",delay=0.5,range=800,radius=225,speed=1500,addHitbox=false,danger=2,dangerous=false,proj="VelkozEMissile",killTime=0.5,displayname="",mcollision=false},
+	["Vi-q"]={charName="Vi",slot=0,type="Line",delay=0.25,range=715,radius=90,speed=1500,addHitbox=true,danger=3,dangerous=true,proj="ViQMissile",killTime=0,displayname="Vi-Q",mcollision=false},
+	["VladimirR"] = {charName = "Vladimir",slot=3,type="Circle",delay=0.25,range=700,radius=175,speed=math.huge,addHitbox=true,danger=4,dangerous=true,proj="nil",killTime=0,displayname = "Hemoplague",mcollision=false},
+	["Laser"]={charName="Viktor",slot=2,type="Line",delay=0.25,range=1200,radius=80,speed=1050,addHitbox=true,danger=2,dangerous=false,proj="ViktorDeathRayMissile",killTime=0,displayname="",mcollision=false},
+	["xeratharcanopulse2"]={charName="Xerath",slot=0,type="Line",delay=0.6,range=1600,radius=95,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="xeratharcanopulse2",killTime=0,displayname="Arcanopulse",mcollision=false},
+	["XerathArcaneBarrage2"]={charName="Xerath",slot=1,type="Circle",delay=0.7,range=1000,radius=200,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="XerathArcaneBarrage2",killTime=0.3,displayname="ArcaneBarrage",mcollision=false},
+	["XerathMageSpear"]={charName="Xerath",slot=2,type="Line",delay=0.2,range=1050,radius=60,speed=1400,addHitbox=true,danger=2,dangerous=true,proj="XerathMageSpearMissile",killTime=0,displayname="MageSpear",mcollision=true},
+	["xerathrmissilewrapper"]={charName="Xerath",slot=3,type="Circle",delay=0.7,range=5600,radius=130,speed=math.huge,addHitbox=true,danger=3,dangerous=true,proj="xerathrmissilewrapper",killTime=0.4,displayname="XerathLocusPulse",mcollision=false},
+	["yasuoqw"]={charName="Yasuo",slot=0,type="Line",delay=0.4,range=550,radius=20,speed=math.huge,addHitbox=true,danger=2,dangerous=true,proj="yasuoq",killTime=0,displayname="Steel Tempest 1",mcollision=false},
+	["yasuoq2"]={charName="Yasuo",slot=0,type="Line",delay=0.4,range=550,radius=20,speed=math.huge,addHitbox=true,danger=2,dangerous=true,proj="yasuoq2",killTime=0,displayname="Steel Tempest 2",mcollision=false},
+	["yasuoq3"]={charName="Yasuo",slot=0,type="Line",delay=0.5,range=1200,radius=90,speed=1500,addHitbox=true,danger=3,dangerous=true,proj="yasuoq3w",killTime=0,displayname="Steel Tempest 3",mcollision=false},
+	["ZacQ"]={charName="Zac",slot=0,type="Line",delay=0.5,range=550,radius=120,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="ZacQ",killTime=0,displayname="",mcollision=false},
+	["ZedQ"]={charName="Zed",slot=0,type="Line",delay=0.25,range=925,radius=50,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="ZedQMissile",killTime=0,displayname="",mcollision=false},
+	["ZiggsQ"]={charName="Ziggs",slot=0,type="Line",delay=0.5,range=1100,radius=100,speed=1750,addHitbox=true,danger=2,dangerous=false,proj="ZiggsQSpell",killTime=0.2,displayname="",mcollision=true},
+	["ZiggsW"]={charName="Ziggs",slot=1,type="Circle",delay=0.25,range=1000,radius=275,speed=1750,addHitbox=true,danger=2,dangerous=false,proj="ZiggsW",killTime=3,displayname="",mcollision=false,killName="ZiggsWToggle"},
+	["ZiggsE"]={charName="Ziggs",slot=2,type="Circle",delay=0.5,range=900,radius=235,speed=1750,addHitbox=true,danger=2,dangerous=false,proj="ZiggsE",killTime=3.25,displayname="",mcollision=false},
+	["ZiggsR"]={charName="Ziggs",slot=3,type="Circle",delay=0,range=5300,radius=500,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="ZiggsR",killTime=1.25,displayname="",mcollision=false},
+	["ZileanQ"]={charName="Zilean",slot=0,type="Circle",delay=0.3,range=900,radius=210,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="ZileanQMissile",killTime=1.5,displayname="",mcollision=false},
+	["ZyraQ"]={charName="Zyra",slot=0,type="Rectangle",delay=0.4,range=800,radius2=400,radius=140,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="ZyraQ",killTime=0.35,displayname="",mcollision=false},
+	["ZyraE"]={charName="Zyra",slot=2,type="Line",delay=0.25,range=1100,radius=70,speed=1300,addHitbox=true,danger=3,dangerous=true,proj="ZyraE",killTime=0,displayname="Grasping Roots",mcollision=false},
+	["ZyraRSplash"]={charName="Zyra",slot=3,type="Circle",delay=0.7,range=700,radius=550,speed=math.huge,addHitbox=true,danger=4,dangerous=false,proj="ZyraRSplash",killTime=1,displayname="Splash",mcollision=false},
 }
 
 self.EvadeSpells = {
@@ -7946,11 +4969,12 @@ self.EvadeSpells = {
 	-- },
 }
 DelayAction(function()
-	for _,k in pairs(GetEnemyHeroes()) do
-		if self.Spells[GetObjectName(k)] then
-			for m,i in pairs(self.Spells[GetObjectName(k)]) do
-				if self.supportedtypes[i.spellType].supported == false then
-					print("<font color=\"#FFFFF\"><b>"..m.." - spell : "..self.str[i.Slot].." | "..i.name.. "<font color=\"#FFFFFF\"> is not supported </b></font>")
+	for _,i in pairs(self.Spells) do
+		for kk,k in pairs(GetEnemyHeroes()) do
+			if i.displayname == "" then i.displayname = _ end
+			if i.charName == k.charName then
+				if self.supportedtypes[i.type].supported == false then
+					print("<font color=\"#FFFFF\"><b>"..i.charName.." - spell : "..self.str[i.slot].." | "..i.displayname.. "<font color=\"#FFFFFF\"> is not supported </b></font>")
 				end
 			end
 		end
@@ -7962,10 +4986,10 @@ end
 function SLEvade:Tickp()
 	heroes[myHero.networkID] = myHero
 	for _,i in pairs(self.obj) do
-		if i.o and EMenu.Advanced.LDR:Value() and i.spell.spellType == "Line" and GetDistance(myHero,i.o) >= 3000 and not self.globalults[i.spell.spellName] then return end
-		if i.p and EMenu.Advanced.LDR:Value() and i.spell.spellType == "Circle" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.globalults[i.spell.spellName] then return end
-		if i.p and EMenu.Advanced.LDR:Value() and i.spell.spellType == "Rectangle" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.globalults[i.spell.spellName] then return end
-		if i.p and EMenu.Advanced.LDR:Value() and i.spell.spellType == "Cone" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.globalults[i.spell.spellName] then return end
+		if i.o and EMenu.Advanced.LDR:Value() and i.spell.type == "Line" and GetDistance(myHero,i.o) >= 3000 and not self.globalults[_] then return end
+		if i.p and EMenu.Advanced.LDR:Value() and i.spell.type == "Circle" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.globalults[_] then return end
+		if i.p and EMenu.Advanced.LDR:Value() and i.spell.type == "Rectangle" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.globalults[_] then return end
+		if i.p and EMenu.Advanced.LDR:Value() and i.spell.type == "Cone" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.globalults[_] then return end
 		for kk,k in pairs(GetEnemyHeroes()) do
 			if not i.jp or not i.safe then
 				self.asd = false
@@ -7979,22 +5003,22 @@ function SLEvade:Tickp()
 			end
 			if i.p then
 				self:CleanObj() 
-				self:Dodge()
-				self:Mpos()
-				self:UDodge()
+				self:Dodge() 
 				self:Pathfinding()
+				self:UDodge()
+				self:Mpos()
 			end
-			self.position = self:Position()
 		end
 	end
+	self:ItemMenu()
 end
 
 function SLEvade:Drawp()
 	for _,i in pairs(self.obj) do
-		if i.o and EMenu.Advanced.LDR:Value() and i.spell.spellType == "Line" and GetDistance(myHero,i.o) >= 3000 and not self.globalults[i.spell.spellName] then return end
-		if i.p and EMenu.Advanced.LDR:Value() and i.spell.spellType == "Circular" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.globalults[i.spell.spellName] then return end
-		if i.p and EMenu.Advanced.LDR:Value() and i.spell.spellType == "Rectangle" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.globalults[i.spell.spellName] then return end
-		if i.p and EMenu.Advanced.LDR:Value() and i.spell.spellType == "Cone" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.globalults[i.spell.spellName] then return end
+		if i.o and EMenu.Advanced.LDR:Value() and i.spell.type == "Line" and GetDistance(myHero,i.o) >= 3000 and not self.globalults[_] then return end
+		if i.p and EMenu.Advanced.LDR:Value() and i.spell.type == "Circle" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.globalults[_] then return end
+		if i.p and EMenu.Advanced.LDR:Value() and i.spell.type == "Rectangle" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.globalults[_] then return end
+		if i.p and EMenu.Advanced.LDR:Value() and i.spell.type == "Cone" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.globalults[_] then return end
 		for kk,k in pairs(GetEnemyHeroes()) do
 			if i.o then
 				i.p = {}
@@ -8003,7 +5027,7 @@ function SLEvade:Drawp()
 			end
 			if i.p then
 				self.endposs = Vector(i.p.startPos)+Vector(Vector(i.p.endPos)-i.p.startPos):normalized()*(i.spell.range+i.spell.radius)
-				i.spell.radius = EMenu.Spells[i.spell.name]["radius"..i.spell.name]:Value()
+				self.Spells[_].radius = EMenu.Spells[_]["radius".._]:Value()
 				self.opos = self:sObjpos()
 				self.cpos = self:sCircPos()
 				self:Drawings()
@@ -8014,12 +5038,11 @@ function SLEvade:Drawp()
 	self:HeroCollsion()
 	self:MinionCollision()
 	self:WallCollision()
-	self:ItemMenu()
 end
 
 function SLEvade:MinionCollision()
 	for _,i in pairs(self.obj) do
-		if i.spell.spellType == "Line" and i.spell.collision and i.p and EMenu.Advanced.EMC:Value() and EMenu.Spells[i.spell.name]["mColl"..i.spell.name]:Value() then
+		if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EMC:Value() and EMenu.Spells[_]["mColl".._]:Value() then
 			for m,p in pairs(minionManager.objects) do
 				local vI = nil 
 				local helperVec = nil
@@ -8054,7 +5077,7 @@ end
 
 function SLEvade:HeroCollsion()
 	for _,i in pairs(self.obj) do
-		if i.spell.spellType == "Line" and i.spell.collision and i.p and EMenu.Advanced.EHC:Value() and EMenu.Spells[i.spell.name]["hColl"..i.spell.name]:Value() then
+		if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EHC:Value() and EMenu.Spells[_]["hColl".._]:Value() then
 			for m,p in pairs(heroes) do
 				local vI = nil 
 				local helperVec = nil
@@ -8089,7 +5112,7 @@ end
 
 function SLEvade:WallCollision()
 	for _,i in pairs(self.obj) do
-		if i.spell.spellType == "Line" and i.spell.collision and i.p and EMenu.Advanced.EWC:Value() and EMenu.Spells[i.spell.name]["wColl"..i.spell.name]:Value() then
+		if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EWC:Value() and EMenu.Spells[_]["wColl".._]:Value() then
 			if self.YasuoWall then
 				for m,p in pairs(self.YasuoWall) do
 					local vI = nil 
@@ -8127,7 +5150,7 @@ end
 function SLEvade:sObjpos()
 	for _,i in pairs(self.obj) do
 		if i.spell.speed ~= math.huge and i.p then
-			return i.p.startPos+Vector(Vector(self.endposs)-i.p.startPos):normalized()*(i.spell.speed*(os.clock()-i.spell.delay*.001-i.startTime) + i.spell.radius+myHero.boundingRadius+EMenu.Advanced.ew:Value())
+			return i.p.startPos+Vector(Vector(self.endposs)-i.p.startPos):normalized()*(i.spell.speed*(os.clock()-i.spell.delay-i.startTime) + i.spell.radius+myHero.boundingRadius+EMenu.Advanced.ew:Value())
 		else
 			return Vector(i.p.startPos)
 		end
@@ -8137,7 +5160,7 @@ end
 function SLEvade:sCircPos()
 	for _,i in pairs(self.obj) do
 		if i.p then
-			return (i.spell.radius*(os.clock()-((i.spell.killTime or 0) + GetDistance(i.caster,i.p.endPos)/i.spell.speed + i.spell.delay*.001)-i.startTime) + i.spell.radius)
+			return (i.spell.radius*(os.clock()-(i.spell.killTime + GetDistance(i.caster,i.p.endPos)/i.spell.speed + i.spell.delay)-i.startTime) + i.spell.radius)
 		end
 	end
 end
@@ -8191,7 +5214,7 @@ end
 
 function SLEvade:Mpos()
 	for _,i in pairs(self.obj) do
-		if i.spell.spellType == "Circular" then 
+		if i.spell.type == "Circle" then 
 			if i.p and GetDistance(myHero,i.p.endPos) < i.spell.radius + myHero.boundingRadius and not i.safe then
 				if not i.mpos and not self.mposs then
 					i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
@@ -8201,17 +5224,19 @@ function SLEvade:Mpos()
 				self.mposs = nil
 				i.mpos = nil
 			end
-		elseif i.spell.spellType == "Line" then
+		elseif i.spell.type == "Line" then
 			if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe then
-				if not i.mpos and not self.mposs2 then
-					i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
-					self.mposs2 = GetMousePos()
-				end	
+				--if GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular(),jp) >= GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular2(),jp) then
+					if not i.mpos and not self.mposs2 then
+						i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
+						self.mposs2 = GetMousePos()
+					end	
+				--end
 			else
 				self.mposs2 = nil
 				i.mpos = nil
 			end
-		elseif i.spell.spellType == "Rectangle" then
+		elseif i.spell.type == "Rectangle" then
 			if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe then
 				if not i.mpos and not self.mposs3 then
 					i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * (i.spell.radius+EMenu.Advanced.ew:Value())
@@ -8221,7 +5246,7 @@ function SLEvade:Mpos()
 				self.mposs3 = nil
 				i.mpos = nil
 			end
-		elseif i.spell.spellType == "Cone" then
+		elseif i.spell.type == "Cone" then
 			if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe then
 				if not i.mpos and not self.mposs4 then
 					i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
@@ -8236,32 +5261,32 @@ function SLEvade:Mpos()
 end
 
 function SLEvade:UDodge()
-	if EMenu.Keys.DoD:Value() or EMenu.Keys.DoD2:Value() then
-			self.DodgeOnlyDangerous = true
-		else
-			self.DodgeOnlyDangerous = false
-	end
 	for _,i in pairs(self.obj) do
-		if i.safe and i.spell.spellType == "Line" and i.p then
-			if GetDistance(self.opos)/i.spell.speed + i.spell.delay*.001  < (GetDistance(i.safe)/2)/myHero.ms then 
+		if EMenu.Keys.DoD:Value() or EMenu.Keys.DoD2:Value() then
+				self.DodgeOnlyDangerous = true
+			else
+				self.DodgeOnlyDangerous = false
+		end
+		if i.safe and i.spell.type == "Line" and i.p then
+			if GetDistance(self.opos)/i.spell.speed + i.spell.delay < (GetDistance(i.safe)/2)/myHero.ms then 
 					i.uDodge = true 
 				else
 					i.uDodge = false
 			end
-		elseif i.safe and i.spell.spellType == "Circular" and i.p then
-			if GetDistance(i.p.endPos)/i.spell.speed + i.spell.delay*.001  < GetDistance(i.safe)/myHero.ms then
+		elseif i.safe and i.spell.type == "Circle" and i.p then
+			if GetDistance(i.p.endPos)/i.spell.speed + i.spell.delay < GetDistance(i.safe)/myHero.ms then
 					i.uDodge = true 
 				else
 					i.uDodge = false
 			end
-		elseif i.safe and i.spell.spellType == "Rectangle" and i.p then
-			if GetDistance(i.p.endPos)/i.spell.speed + i.spell.delay*.001  < GetDistance(i.safe)/myHero.ms then
+		elseif i.safe and i.spell.type == "Rectangle" and i.p then
+			if GetDistance(i.p.endPos)/i.spell.speed + i.spell.delay < (GetDistance(i.safe)/2)/myHero.ms then
 					i.uDodge = true 
 				else
 					i.uDodge = false
 			end
-		elseif i.safe and i.spell.spellType == "Cone" and i.p then
-			if GetDistance(i.p.endPos)/i.spell.speed + i.spell.delay*.001 < GetDistance(i.safe)/myHero.ms then
+		elseif i.safe and i.spell.type == "Cone" and i.p then
+			if GetDistance(i.p.endPos)/i.spell.speed + i.spell.delay < GetDistance(i.safe)/myHero.ms then
 					i.uDodge = true 
 				else
 					i.uDodge = false
@@ -8272,7 +5297,7 @@ end
 
 function SLEvade:Pathfinding()
 	for _,i in pairs(self.obj) do
-		if i.spell.spellType == "Line" then
+		if i.spell.type == "Line" then
 				i.p.startPos = Vector(i.p.startPos)
 				i.p.endPos = Vector(i.p.endPos)
 			if GetDistance(i.p.startPos) < i.spell.range + myHero.boundingRadius and GetDistance(self.endposs) < i.spell.range + myHero.boundingRadius then
@@ -8280,23 +5305,25 @@ function SLEvade:Pathfinding()
 				local v4 = Vector(i.p.startPos-i.p.endPos):perpendicular()
 				local jp = Vector(VectorIntersection(i.p.startPos,i.p.endPos,v3,v4).x,myHero.pos.y,VectorIntersection(i.p.startPos,i.p.endPos,v3,v4).y)
 				i.jp = jp
-				if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe and i.mpos then
-					self.asd = true
-					self.patha = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
-					self.patha2 = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
-					if self.mposs2 and GetDistance(self.mposs2,self.patha) > GetDistance(self.mposs2,self.patha2) then
-						if not MapPosition:inWall(self.patha2) then
-								i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
-							else 
-								i.safe = jp + Vector(i.p.startPos - i.p.endPos):perpendicular2():normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
+				if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe and i.mpos and not i.coll then
+					--if GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular(),jp) >= GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular2(),jp) then
+						self.asd = true
+						self.patha = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
+						self.patha2 = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
+						if self.mposs2 and GetDistance(self.mposs2,self.patha) > GetDistance(self.mposs2,self.patha2) then
+							if not MapPosition:inWall(self.patha2) then
+									i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
+								else 
+									i.safe = jp + Vector(i.p.startPos - i.p.endPos):perpendicular2():normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
+							end
+						else
+							if not MapPosition:inWall(self.patha) then
+									i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
+								else 
+									i.safe = jp + Vector(i.p.startPos - i.p.endPos):perpendicular2():normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
+							end
 						end
-					else
-						if not MapPosition:inWall(self.patha) then
-								i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
-							else 
-								i.safe = jp + Vector(i.p.startPos - i.p.endPos):perpendicular2():normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
-						end
-					end
+					--end
 					i.isEvading = true
 				else
 					self.asd = false
@@ -8307,7 +5334,7 @@ function SLEvade:Pathfinding()
 					DisableAll(false)
 				end
 			end
-		elseif i.spell.spellType == "Circular" then
+		elseif i.spell.type == "Circle" then
 			if GetDistance(myHero,i.p.endPos) < i.spell.radius + myHero.boundingRadius and not i.safe and i.mpos then
 				self.asd = true
 				self.pathb = Vector(i.p.endPos) + (GetOrigin(myHero) - Vector(i.p.endPos)):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
@@ -8334,7 +5361,7 @@ function SLEvade:Pathfinding()
 				DisableHoldPosition(false)
 				DisableAll(false)
 			end
-		elseif i.spell.spellType == "Rectangle" then
+		elseif i.spell.type == "Rectangle" then
 			local startp = Vector(i.p.endPos) - (Vector(i.p.endPos) - Vector(i.p.startPos)):normalized():perpendicular() * (i.spell.radius2 or 400)
 			local endp = Vector(i.p.endPos) + (Vector(i.p.endPos) - Vector(i.p.startPos)):normalized():perpendicular() * (i.spell.radius2 or 400)
 			if GetDistance(startp) < i.spell.range + myHero.boundingRadius and GetDistance(endp) < i.spell.range + myHero.boundingRadius then
@@ -8368,7 +5395,7 @@ function SLEvade:Pathfinding()
 				DisableHoldPosition(false)
 				DisableAll(false)
 			end
-		elseif i.spell.spellType == "Cone" then
+		elseif i.spell.type == "Cone" then
 			i.p.startPos = Vector(i.p.startPos)
 				i.p.endPos = Vector(i.p.endPos)
 			if GetDistance(i.p.startPos) < i.spell.range + myHero.boundingRadius and GetDistance(self.endposs) < i.spell.range + myHero.boundingRadius then
@@ -8409,8 +5436,8 @@ end
 
 function SLEvade:Drawings()
 	for _,i in pairs(self.obj) do
-		if EMenu.Spells[i.spell.name]["Draw"..i.spell.name]:Value() then
-			if i.spell.spellType == "Line" and not EMenu.Keys.DDraws:Value() then
+		if EMenu.Spells[_]["Draw".._]:Value() then
+			if i.spell.type == "Line" and not EMenu.Keys.DDraws:Value() then
 				local sPos = Vector(self.opos)
 				local ePos = Vector(self.endposs)
 				if EMenu.Draws.DSPath:Value() then
@@ -8419,24 +5446,27 @@ function SLEvade:Drawings()
 						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius+EMenu.Advanced.ew:Value(), EMenu.Draws.SD.t:Value()+0.5, EMenu.Draws.SD.c:Value())
 					end
 				end			
-			elseif i.spell.spellType == "Circular" and not EMenu.Keys.DDraws:Value() then
+			elseif i.spell.type == "Circle" and not EMenu.Keys.DDraws:Value() then
 				if EMenu.Draws.DSPath:Value() then
 					DrawCircle(i.p.endPos,i.spell.radius,EMenu.Draws.SD.t:Value()+0.5,20,EMenu.Draws.SD.c:Value())	
 					DrawCircle(i.p.endPos,self.cpos,EMenu.Draws.SD.t:Value()+0.5,20,GoS.Yellow)
 				end	
-			elseif i.spell.spellType == "Rectangle" and not EMenu.Keys.DDraws:Value() then
+			elseif i.spell.type == "Rectangle" and not EMenu.Keys.DDraws:Value() then
 				DrawRectangle(i.p.startPos,i.p.endPos,i.spell.radius+myHero.boundingRadius,i.spell.radius2,EMenu.Draws.SD.t:Value()+0.5,EMenu.Draws.SD.c:Value())
-			elseif i.spell.spellType == "Cone" and not EMenu.Keys.DDraws:Value() then
+			elseif i.spell.type == "Cone" and not EMenu.Keys.DDraws:Value() then
 				DrawCone(i.p.startPos,Vector(self.endposs),i.spell.angle or 40,EMenu.Draws.SD.t:Value()+0.5,EMenu.Draws.SD.c:Value())
+				-- if i.jp then
+					-- DrawCircle(i.jp,50,1,20,GoS.Green)
+				-- end
 			end
 		end
-		if i.jp and (GetDistance(myHero,i.jp) > i.spell.radius + myHero.boundingRadius) and i.safe and i.spell.spellType == "Line" then
+		if i.jp and (GetDistance(myHero,i.jp) > i.spell.radius + myHero.boundingRadius) and i.safe and i.spell.type == "Line" then
 			i.safe = nil
-		elseif i.p and (GetDistance(myHero,i.p.endPos) > i.spell.radius + myHero.boundingRadius) and i.safe and i.spell.spellType == "Circular" then
+		elseif i.p and (GetDistance(myHero,i.p.endPos) > i.spell.radius + myHero.boundingRadius) and i.safe and i.spell.type == "Circle" then
 			i.safe = nil
-		elseif i.jp and (GetDistance(myHero,i.jp) > i.spell.radius + myHero.boundingRadius) and i.safe and i.spell.spellType == "Rectangle" then
+		elseif i.jp and (GetDistance(myHero,i.jp) > i.spell.radius + myHero.boundingRadius) and i.safe and i.spell.type == "Rectangle" then
 			i.safe = nil
-		elseif i.jp and (GetDistance(myHero,i.jp) > i.spell.radius + myHero.boundingRadius) and i.safe and i.spell.spellType == "Cone" then
+		elseif i.jp and (GetDistance(myHero,i.jp) > i.spell.radius + myHero.boundingRadius) and i.safe and i.spell.type == "Cone" then
 			i.safe = nil
 		end
 	end
@@ -8449,8 +5479,11 @@ function SLEvade:Drawings2()
 				DrawCircle(i.jp,50,1,20,GoS.Red) 
 			end 
 		end
-		if EMenu.Draws.DEPos:Value() and not EMenu.Keys.DDraws:Value() and i.safe and ((not self.DodgeOnlyDangerous and EMenu.d:Value() <= EMenu.Spells[i.spell.name]["d"..i.spell.name]:Value()) or (self.DodgeOnlyDangerous and EMenu.Spells[i.spell.name]["IsD"..i.spell.name]:Value())) and EMenu.Spells[i.spell.name]["Dodge"..i.spell.name]:Value() and EMenu.Spells[i.spell.name]["Draw"..i.spell.name]:Value() then			
-			dArrow(myHero.pos,i.safe,3,ARGB(255,0,255,0))
+		if EMenu.Draws.DEPos:Value() and not EMenu.Keys.DDraws:Value() and i.safe and ((not self.DodgeOnlyDangerous and EMenu.d:Value() <= EMenu.Spells[_]["d".._]:Value()) or (self.DodgeOnlyDangerous and EMenu.Spells[_]["IsD".._]:Value())) and EMenu.Spells[_]["Dodge".._]:Value() and EMenu.Spells[_]["Draw".._]:Value() then			
+				dArrow(myHero.pos,i.safe,3,ARGB(255,0,255,0))
+		end
+		if EMenu.Draws.DevOpt:Value() then
+			DrawCircle(self:Position(),50,1,20,GoS.Blue)
 		end
 	end
 end
@@ -8459,9 +5492,9 @@ function SLEvade:Dodge()
 	for _,i in pairs(self.obj) do
 	 local oT = i.spell.delay + GetDistance(myHero,i.p.startPos) / i.spell.speed
 	  local fT = .75
-		--DashP = Dash - Position, DashS = Dash - Self, DashT = Dash - Targeted, SpellShieldS = SpellShield - Self, SpellShieldT = SpellShield - Targeted, WindWallP = WindWall - Position, 
+				--DashP = Dash - Position, DashS = Dash - Self, DashT = Dash - Targeted, SpellShieldS = SpellShield - Self, SpellShieldT = SpellShield - Targeted, WindWallP = WindWall - Position, 
 		if EMenu.Keys.DD:Value() then return end
-			if i.safe and ((not self.DodgeOnlyDangerous and EMenu.d:Value() <= EMenu.Spells[i.spell.name]["d"..i.spell.name]:Value()) or (self.DodgeOnlyDangerous and EMenu.Spells[i.spell.name]["IsD"..i.spell.name]:Value())) and EMenu.Spells[i.spell.name]["Dodge"..i.spell.name]:Value() and GetPercentHP(myHero) <= EMenu.Spells[i.spell.name]["hp"..i.spell.name]:Value() then
+			if i.safe and ((not self.DodgeOnlyDangerous and EMenu.d:Value() <= EMenu.Spells[_]["d".._]:Value()) or (self.DodgeOnlyDangerous and EMenu.Spells[_]["IsD".._]:Value())) and EMenu.Spells[_]["Dodge".._]:Value() and GetPercentHP(myHero) <= EMenu.Spells[_]["hp".._]:Value() then
 				if self.asd == true then 
 					DisableHoldPosition(true)
 					DisableAll(true) 
@@ -8470,9 +5503,9 @@ function SLEvade:Dodge()
 					DisableAll(false) 
 				end
 				MoveToXYZ(i.safe)
-				if EMenu.Spells[i.spell.name]["Dashes"..i.spell.name]:Value() then
+				if EMenu.Spells[_]["Dashes".._]:Value() then
 					for op = 0,3 do
-						if self.EvadeSpells[GetObjectName(myHero)] and self.EvadeSpells[GetObjectName(myHero)][op] and EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].name]["Dodge"..self.EvadeSpells[GetObjectName(myHero)][op].name]:Value() and self.EvadeSpells[GetObjectName(myHero)][op].evadeType and self.EvadeSpells[GetObjectName(myHero)][op].spellKey and EMenu.Spells[i.spell.name]["d"..i.spell.name]:Value() >= EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].name]["d"..self.EvadeSpells[GetObjectName(myHero)][op].name]:Value() then 
+						if self.EvadeSpells[GetObjectName(myHero)] and self.EvadeSpells[GetObjectName(myHero)][op] and EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].name]["Dodge"..self.EvadeSpells[GetObjectName(myHero)][op].name]:Value() and self.EvadeSpells[GetObjectName(myHero)][op].evadeType and self.EvadeSpells[GetObjectName(myHero)][op].spellKey and EMenu.Spells[_]["d".._]:Value() >= EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].name]["d"..self.EvadeSpells[GetObjectName(myHero)][op].name]:Value() then 
 							if i.uDodge == true and self.usp == false and self.ut == false then
 								if self.EvadeSpells[GetObjectName(myHero)][op].evadeType == "DashP" and CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].spellKey) == READY then
 										self.ues = true
@@ -8513,14 +5546,14 @@ function SLEvade:Dodge()
 							end
 						end
 					end
-				if self.Flash and Ready(self.Flash) and i.uDodge == true and EMenu.EvadeSpells.Flash.DodgeFlash:Value() and EMenu.Spells[i.spell.name]["d"..i.spell.name]:Value() >= EMenu.EvadeSpells.Flash.dFlash:Value() and self.ues == false and self.ut == false then
+				if self.Flash and Ready(self.Flash) and i.uDodge == true and EMenu.EvadeSpells.Flash.DodgeFlash:Value() and EMenu.Spells[_]["d".._]:Value() >= EMenu.EvadeSpells.Flash.dFlash:Value() and self.ues == false and self.ut == false then
 					self.usp = true
 					CastSkillShot(self.Flash, i.safe)
 				else
 					self.usp = false
 				end		
 				for item,c in pairs(self.SI) do
-					if c.State and Ready(GetItemSlot(myHero,item)) and EMenu.invulnerable[c.Name]["Dodge"..c.Name]:Value() and i.uDodge == false and GetPercentHP(myHero) <= EMenu.invulnerable[c.Name]["hp"..c.Name]:Value() and EMenu.Spells[i.spell.name]["d"..i.spell.name]:Value() >= EMenu.invulnerable[c.Name]["d"..c.Name]:Value() and self.ues == false and self.usp == false then
+					if c.State and Ready(GetItemSlot(myHero,item)) and EMenu.invulnerable[c.Name]["Dodge"..c.Name]:Value() and i.uDodge == false and GetPercentHP(myHero) <= EMenu.invulnerable[c.Name]["hp"..c.Name]:Value() and EMenu.Spells[_]["d".._]:Value() >= EMenu.invulnerable[c.Name]["d"..c.Name]:Value() and self.ues == false and self.usp == false then
 						self.ut = true
 						DelayAction(function()
 							CastSpell(GetItemSlot(myHero,item))
@@ -8530,7 +5563,7 @@ function SLEvade:Dodge()
 					end
 				end
 				for item,c in pairs(self.D) do
-					if c.State and Ready(GetItemSlot(myHero,item)) and EMenu.EvadeSpells[c.Name]["Dodge"..c.Name]:Value() and i.uDodge == true and GetPercentHP(myHero) <= EMenu.EvadeSpells[c.Name]["hp"..c.Name]:Value() and EMenu.Spells[i.spell.name]["d"..i.spell.name]:Value() >= EMenu.EvadeSpells[c.Name]["d"..c.Name]:Value() and self.ues == false and self.usp == false then
+					if c.State and Ready(GetItemSlot(myHero,item)) and EMenu.EvadeSpells[c.Name]["Dodge"..c.Name]:Value() and i.uDodge == true and GetPercentHP(myHero) <= EMenu.EvadeSpells[c.Name]["hp"..c.Name]:Value() and EMenu.Spells[_]["d".._]:Value() >= EMenu.EvadeSpells[c.Name]["d"..c.Name]:Value() and self.ues == false and self.usp == false then
 						self.ut = true
 						CastSkillShot(GetItemSlot(myHero,item), i.safe)
 					else
@@ -8546,49 +5579,38 @@ function SLEvade:Dodge()
 end
 
 function SLEvade:IssOrd(order)
-	for _,i in pairs(self.obj) do
-		if order.flag == 2 then
-			if i.jp and i.spell.spellType == "Line" then
-				if GetDistance(self.position,i.jp) < i.spell.radius+myHero.boundingRadius+EMenu.Advanced.ew:Value() and not i.safe then
-					BlockOrder()
-				end
-			elseif i.p and i.spell.spellType == "Circular" then
-				if GetDistance(self.position,i.p.endPos) < i.spell.radius+myHero.boundingRadius+EMenu.Advanced.ew:Value() and not i.safe then
-					BlockOrder()
-				end
-			elseif i.jp and i.spell.spellType == "Rectangle" then
-				if GetDistance(self.position,i.jp) < i.spell.radius+myHero.boundingRadius+EMenu.Advanced.ew:Value() and not i.safe then
-					BlockOrder()
-				end
-			elseif i.jp and i.spell.spellType == "Cone" then
-				if GetDistance(self.position,i.jp) < i.spell.radius+myHero.boundingRadius+EMenu.Advanced.ew:Value() and not i.safe then
-					BlockOrder()
-				end
-			end
-		end
-	end
+	-- for _,i in pairs(self.obj) do
+		-- if order.flag == 2 and i.jp and i.spell.type == "Line" then
+			-- if (GetDistance(self:Position(),i.jp) < ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())) and not i.safe and not i.mpos and (GetDistance(i.jp) > ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())) then
+				-- BlockOrder()
+			-- end
+		-- elseif order.flag == 2 and i.p and i.spell.type == "Circle" then
+			-- if (GetDistance(self:Position(),i.p.endPos) < ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())) and not i.safe and not i.mpos and (GetDistance(i.p.endPos) > ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())) then
+				-- BlockOrder()
+			-- end
+		-- end
+	-- end
 end
 
 function SLEvade:CreateObject(obj)
-		if obj and obj.isSpell and obj.spellOwner.isHero and not obj.spellName:lower():find("attack") and not obj.spellName:lower():find("plant") then
-			for _,hero in pairs(GetEnemyHeroes()) do
-				if not self.Spells[hero.charName] or obj.spellOwner.team ~= MINION_ENEMY then return end
-				if EMenu.Draws.DevOpt:Value() then 
-					print(obj.spellName) 
-				end
-				for m,l in pairs(self.Spells[hero.charName]) do
-					if (l.missileName == obj.spellName or obj.spellName:lower():find(l.name:lower()) or obj.spellName:lower():find(l.spellName:lower()) or (tostring(l.extraMissileNames) and l.extraMissileNames == obj.spellName)) then
-						if not self.obj[obj.spellName] then self.obj[obj.spellName] = {} end
-						self.obj[obj.spellName].o = obj
-						self.obj[obj.spellName].caster = obj.spellOwner
-						self.obj[obj.spellName].mpos = nil
-						self.obj[obj.spellName].uDodge = nil
-						self.obj[obj.spellName].startTime = os.clock()
-						self.obj[obj.spellName].spell = l
-					end
-				end
+	if obj and obj.isSpell and obj.spellOwner.isHero and obj.spellOwner.team == MINION_ENEMY then
+		if EMenu.Draws.DevOpt:Value() then
+			print(obj.spellName)
+		end
+		for _,l in pairs(self.Spells) do
+			if self.Spells[obj.spellName] and EMenu.Spells[obj.spellName] and EMenu.d:Value() <= EMenu.Spells[obj.spellName]["d"..obj.spellName]:Value() and (l.proj == obj.spellName or _ == obj.spellName or obj.spellName:lower():find(_:lower()) or obj.spellName:lower():find(l.proj:lower())) then
+				if not self.obj[obj.spellName] then self.obj[obj.spellName] = {} end
+				self.obj[obj.spellName].o = obj
+				self.obj[obj.spellName].caster = GetObjectSpellOwner(obj)
+				self.obj[obj.spellName].mpos = nil
+				self.obj[obj.spellName].uDodge = nil
+				self.obj[obj.spellName].startTime = os.clock()
+				self.obj[obj.spellName].spell = l
+				self.obj[obj.spellName].samples = {}
+				self.obj[obj.spellName].coll = false
 			end
 		end
+	end
 	if (obj.spellName == "YasuoWMovingWallR" or obj.spellName == "YasuoWMovingWallL" or obj.spellName == "YasuoWMovingWallMisVis") and obj and obj.isSpell and obj.spellOwner.isHero and obj.spellOwner.team == myHero.team then
 		if not self.YasuoWall[obj.spellName] then self.YasuoWall[obj.spellName] = {} end
 		self.YasuoWall[obj.spellName].obj = obj
@@ -8596,26 +5618,23 @@ function SLEvade:CreateObject(obj)
 end
 
 function SLEvade:Detection(unit,spellProc)
-	if unit and unit.team == MINION_ENEMY and unit.isHero then
-		if self.Spells[unit.charName] then
-			for _,l in pairs(self.Spells[unit.charName]) do
-				if (l.missileName == spellProc.name or spellProc.name:lower():find(l.name:lower()) or spellProc.name:lower():find(l.spellName:lower()) or (tostring(l.extraMissileNames) and l.extraMissileNames == spellProc.name)) then
-					if not self.obj[spellProc.name] then self.obj[spellProc.name] = {} end
-					self.obj[spellProc.name].p = spellProc
-					self.obj[spellProc.name].spell = l
-					self.obj[spellProc.name].caster = unit
-					self.obj[spellProc.name].mpos = nil
-					self.obj[spellProc.name].uDodge = nil
-					self.obj[spellProc.name].startTime = os.clock()
-					if l.killTime then
-						DelayAction(function() self.obj[spellProc.name] = nil end, l.killTime + GetDistance(unit,spellProc.endPos)/l.speed + l.delay*.001)
-					else
-						DelayAction(function() self.obj[spellProc.name] = nil end, l.delay*.001 + 1.3*GetDistance(myHero.pos,spellProc.startPos)/l.speed)
-					end
-					if l.killName and l.killName == spellProc.name then
-						self.obj[spellProc.name] = nil
-					end				
+	if unit and unit.isHero and unit.team == MINION_ENEMY then
+		for _,l in pairs(self.Spells) do
+			if self.Spells[spellProc.name] and EMenu.Spells[spellProc.name] and EMenu.d:Value() <= EMenu.Spells[spellProc.name]["d"..spellProc.name]:Value() and (l.proj == spellProc.name or _ == spellProc.name or spellProc.name:lower():find(_:lower()) or spellProc.name:lower():find(l.proj:lower())) then
+				if not self.obj[spellProc.name] then self.obj[spellProc.name] = {} end
+				self.obj[spellProc.name].p = spellProc
+				self.obj[spellProc.name].spell = l
+				self.obj[spellProc.name].caster = unit
+				self.obj[spellProc.name].mpos = nil
+				self.obj[spellProc.name].uDodge = nil
+				self.obj[spellProc.name].startTime = os.clock()
+				self.obj[spellProc.name].coll = false
+				if l.killTime then
+					DelayAction(function() self.obj[spellProc.name] = nil end, l.killTime + GetDistance(unit,spellProc.endPos)/l.speed + l.delay)
 				end
+				if l.killName and l.killName == spellProc.name then
+					self.obj[spellProc.name] = nil
+				end				
 			end
 		end
 	end
