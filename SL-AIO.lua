@@ -5532,7 +5532,7 @@ function SLEvade:Dodge()
 					DisableHoldPosition(false)
 					DisableAll(false) 
 				end
-				-- MoveToXYZ(i.safe)
+				MoveToXYZ(i.safe)
 				if (i.debug or EMenu.Spells[_]["Dashes".._]:Value()) then
 					for op = 0,3 do
 						if self.EvadeSpells[GetObjectName(myHero)] and self.EvadeSpells[GetObjectName(myHero)][op] and EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].name]["Dodge"..self.EvadeSpells[GetObjectName(myHero)][op].name]:Value() and self.EvadeSpells[GetObjectName(myHero)][op].evadeType and self.EvadeSpells[GetObjectName(myHero)][op].spellKey and (i.debug or EMenu.Spells[_]["d".._]:Value() >= EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].name]["d"..self.EvadeSpells[GetObjectName(myHero)][op].name]:Value()) then 
