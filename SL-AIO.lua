@@ -134,10 +134,6 @@ local function dArrow(s, e, w, c)--startpos,endpos,width,color
 	DrawLine3D(s3.x,s3.y,s3.z,e.x,e.y,e.z,w,c)
 end
 
-local function Sample(o)
-    return {x=GetOrigin(o).x, y=GetOrigin(o).y, z=GetOrigin(o).z, time=GetTickCount()/1000 }
-end
-
 require 'OpenPredict'
 require 'DamageLib'
 
@@ -4796,7 +4792,10 @@ self.Spells = {
 	["PoppyRSpell"]={charName="Poppy",slot=3,type="Line",delay=0.3,range=1200,radius=100,speed=1600,addHitbox=true,danger=3,dangerous=true,proj="PoppyRMissile",killTime=0,displayname="PoppyR",mcollision=false},
 	["RengarE"]={charName="Rengar",slot=2,type="Line",delay=0.25,range=1000,radius=70,speed=1500,addHitbox=true,danger=3,dangerous=true,proj="RengarEFinal",killTime=0,displayname="",mcollision=true},
 	["reksaiqburrowed"]={charName="RekSai",slot=0,type="Line",delay=0.5,range=1050,radius=60,speed=1550,addHitbox=true,danger=3,dangerous=false,proj="RekSaiQBurrowedMis",killTime=0,displayname="RekSaiQ",mcollision=true},
-	["RivenIzunaBlade"]={charName="Riven",slot=3,type="Cone",delay=0.25,range=1100,radius=125,speed=1600,angle=50,addHitbox=false,danger=5,dangerous=true,proj="RivenLightsaberMissile",killTime=0,displayname="WindSlash",mcollision=false},
+	["RivenWindslashMissileRight"]={charName="Riven",slot=3,type="Line",delay=0.25,range=1100,radius=125,speed=1600,addHitbox=false,danger=5,dangerous=true,proj="RivenLightsaberMissile",killTime=0,displayname="WindSlash Right",mcollision=false},
+	["RivenWindslashMissileCenter"]={charName="Riven",slot=3,type="Line",delay=0.25,range=1100,radius=125,speed=1600,addHitbox=false,danger=5,dangerous=true,proj="RivenLightsaberMissile",killTime=0,displayname="WindSlash Center",mcollision=false},
+	["RivenWindslashMissileLeft"]={charName="Riven",slot=3,type="Line",delay=0.25,range=1100,radius=125,speed=1600,addHitbox=false,danger=5,dangerous=true,proj="RivenLightsaberMissile",killTime=0,displayname="WindSlash Left",mcollision=false},
+	["RivenMartyr"]={charName="Riven",slot=1,type="Circle",delay=0.25,range=0,radius=300,speed=math.huge,addHitbox=false,danger=5,dangerous=true,proj="nil",killTime=0.2,displayname="RivenW",mcollision=false},
 	["RumbleGrenade"]={charName="Rumble",slot=2,type="Line",delay=0.25,range=850,radius=60,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="RumbleGrenade",killTime=0,displayname="Grenade",mcollision=true},
 	["RumbleCarpetBombM"]={charName="Rumble",slot=3,type="Line",delay=0.4,range=1700,radius=200,speed=1600,addHitbox=true,danger=4,dangerous=false,proj="RumbleCarpetBombMissile",killTime=0,displayname="Carpet Bomb",mcollision=false}, --doesnt work
 	["RyzeQ"]={charName="Ryze",slot=0,type="Line",delay=0,range=900,radius=50,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="RyzeQ",killTime=0,displayname="",mcollision=true},
@@ -4828,7 +4827,7 @@ self.Spells = {
 	["ThreshEFlay"]={charName="Thresh",slot=2,type="Line",delay=0.125,range=500,radius=110,speed=2000,addHitbox=true,danger=3,dangerous=true,proj="ThreshEMissile1",killTime=0,displayname="Flay",mcollision=false},
 	["RocketJump"]={charName="Tristana",slot=1,type="Circle",delay=0.5,range=900,radius=270,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="RocketJump",killTime=0.3,displayname="",mcollision=false},
 	["slashCast"]={charName="Tryndamere",slot=2,type="Line",delay=0,range=660,radius=93,speed=1300,addHitbox=true,danger=2,dangerous=false,proj="slashCast",killTime=0,displayname="",mcollision=false},
-	["WildCards"]={charName="TwistedFate",slot=0,type="Threeway",delay=0.25,range=1450,radius=40,speed=1000,addHitbox=true,danger=2,dangerous=false,proj="SealFateMissile",killTime=0,displayname="",mcollision=false},
+	["WildCards"]={charName="TwistedFate",slot=0,type="Line",delay=0.25,range=1450,radius=40,speed=1000,angle=28,addHitbox=true,danger=2,dangerous=false,proj="SealFateMissile",killTime=0,displayname="",mcollision=false},
 	["TwitchVenomCask"]={charName="Twitch",slot=1,type="Circle",delay=0.25,range=900,radius=275,speed=1400,addHitbox=true,danger=2,dangerous=false,proj="TwitchVenomCaskMissile",killTime=0.3,displayname="Venom Cask",mcollision=false},
 	["UrgotHeatseekingLineMissile"]={charName="Urgot",slot=0,type="Line",delay=0.125,range=1000,radius=60,speed=1600,addHitbox=true,danger=2,dangerous=false,proj="UrgotHeatseekingLineMissile",killTime=0,displayname="Heatseeking Line",mcollision=true},
 	["UrgotPlasmaGrenade"]={charName="Urgot",slot=2,type="Circle",delay=0.25,range=1100,radius=210,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="UrgotPlasmaGrenadeBoom",killTime=0.3,displayname="PlasmaGrenade",mcollision=false},
@@ -5267,8 +5266,8 @@ function SLEvade:UDodge()
 			else
 				self.DodgeOnlyDangerous = false
 		end
-		if i.safe and i.spell.type == "Line" and i.p then
-			if GetDistance(self.opos)/i.spell.speed + i.spell.delay < (GetDistance(i.safe)/2)/myHero.ms then 
+		if i.safe and i.spell.type == "Line" and i.o then
+			if GetDistance(i.o)/i.spell.speed < GetDistance(i.safe)/myHero.ms then 
 					i.uDodge = true 
 				else
 					i.uDodge = false
@@ -5280,7 +5279,7 @@ function SLEvade:UDodge()
 					i.uDodge = false
 			end
 		elseif i.safe and i.spell.type == "Rectangle" and i.p then
-			if GetDistance(i.p.endPos)/i.spell.speed + i.spell.delay < (GetDistance(i.safe)/2)/myHero.ms then
+			if GetDistance(i.p.endPos)/i.spell.speed + i.spell.delay < GetDistance(i.safe)/myHero.ms then
 					i.uDodge = true 
 				else
 					i.uDodge = false
@@ -5297,9 +5296,9 @@ end
 
 function SLEvade:Pathfinding()
 	for _,i in pairs(self.obj) do
-		if i.spell.type == "Line" then
+		if i.spell.type == "Line" and i.p then
 				i.p.startPos = Vector(i.p.startPos)
-				i.p.endPos = Vector(i.p.endPos)
+				i.p.endPos = Vector(self.endposs)
 			if GetDistance(i.p.startPos) < i.spell.range + myHero.boundingRadius and GetDistance(self.endposs) < i.spell.range + myHero.boundingRadius then
 				local v3 = Vector(myHero.pos)
 				local v4 = Vector(i.p.startPos-i.p.endPos):perpendicular()
@@ -5397,7 +5396,7 @@ function SLEvade:Pathfinding()
 			end
 		elseif i.spell.type == "Cone" then
 			i.p.startPos = Vector(i.p.startPos)
-				i.p.endPos = Vector(i.p.endPos)
+				i.p.endPos = Vector(self.endposs)
 			if GetDistance(i.p.startPos) < i.spell.range + myHero.boundingRadius and GetDistance(self.endposs) < i.spell.range + myHero.boundingRadius then
 				local v3 = Vector(myHero.pos)
 				local v4 = Vector(i.p.startPos-i.p.endPos):perpendicular()
@@ -5455,9 +5454,6 @@ function SLEvade:Drawings()
 				DrawRectangle(i.p.startPos,i.p.endPos,i.spell.radius+myHero.boundingRadius,i.spell.radius2,EMenu.Draws.SD.t:Value()+0.5,EMenu.Draws.SD.c:Value())
 			elseif i.spell.type == "Cone" and not EMenu.Keys.DDraws:Value() then
 				DrawCone(i.p.startPos,Vector(self.endposs),i.spell.angle or 40,EMenu.Draws.SD.t:Value()+0.5,EMenu.Draws.SD.c:Value())
-				-- if i.jp then
-					-- DrawCircle(i.jp,50,1,20,GoS.Green)
-				-- end
 			end
 		end
 		if i.jp and (GetDistance(myHero,i.jp) > i.spell.radius + myHero.boundingRadius) and i.safe and i.spell.type == "Line" then
@@ -5490,8 +5486,10 @@ end
 
 function SLEvade:Dodge()
 	for _,i in pairs(self.obj) do
-	 local oT = i.spell.delay + GetDistance(myHero,i.p.startPos) / i.spell.speed
-	  local fT = .75
+		if i.p then
+			local oT = i.spell.delay + GetDistance(myHero,i.p.startPos) / i.spell.speed
+			local fT = .75
+		end
 				--DashP = Dash - Position, DashS = Dash - Self, DashT = Dash - Targeted, SpellShieldS = SpellShield - Self, SpellShieldT = SpellShield - Targeted, WindWallP = WindWall - Position, 
 		if EMenu.Keys.DD:Value() then return end
 			if i.safe and ((not self.DodgeOnlyDangerous and EMenu.d:Value() <= EMenu.Spells[_]["d".._]:Value()) or (self.DodgeOnlyDangerous and EMenu.Spells[_]["IsD".._]:Value())) and EMenu.Spells[_]["Dodge".._]:Value() and GetPercentHP(myHero) <= EMenu.Spells[_]["hp".._]:Value() then
@@ -5606,8 +5604,6 @@ function SLEvade:CreateObject(obj)
 				self.obj[obj.spellName].uDodge = nil
 				self.obj[obj.spellName].startTime = os.clock()
 				self.obj[obj.spellName].spell = l
-				self.obj[obj.spellName].samples = {}
-				self.obj[obj.spellName].coll = false
 			end
 		end
 	end
@@ -5619,6 +5615,9 @@ end
 
 function SLEvade:Detection(unit,spellProc)
 	if unit and unit.isHero and unit.team == MINION_ENEMY then
+		if EMenu.Draws.DevOpt:Value() then
+			print(spellProc.name)
+		end
 		for _,l in pairs(self.Spells) do
 			if self.Spells[spellProc.name] and EMenu.Spells[spellProc.name] and EMenu.d:Value() <= EMenu.Spells[spellProc.name]["d"..spellProc.name]:Value() and (l.proj == spellProc.name or _ == spellProc.name or spellProc.name:lower():find(_:lower()) or spellProc.name:lower():find(l.proj:lower())) then
 				if not self.obj[spellProc.name] then self.obj[spellProc.name] = {} end
@@ -5628,7 +5627,6 @@ function SLEvade:Detection(unit,spellProc)
 				self.obj[spellProc.name].mpos = nil
 				self.obj[spellProc.name].uDodge = nil
 				self.obj[spellProc.name].startTime = os.clock()
-				self.obj[spellProc.name].coll = false
 				if l.killTime then
 					DelayAction(function() self.obj[spellProc.name] = nil end, l.killTime + GetDistance(unit,spellProc.endPos)/l.speed + l.delay)
 				end
