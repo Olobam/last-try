@@ -66,7 +66,7 @@ end
 local ta = {_G.HoldPosition, _G.AttackUnit}
 local function DisableHoldPosition(boolean)
 	if boolean then
-		_G.HoldPosition, _G.AttackUnit = function() end, function() end, function() end
+		_G.HoldPosition, _G.AttackUnit = function() end, function() end
 	else
 		_G.HoldPosition, _G.AttackUnit = ta[1], ta[2]
 	end
@@ -4608,6 +4608,7 @@ function SLEvade:__init()
 	EMenu.Keys:KeyBinding("DDraws", "Disable Drawings", string.byte("J"), true)
 	EMenu.Keys:KeyBinding("DoD", "Dodge only Dangerous", string.byte(" "))
 	EMenu.Keys:KeyBinding("DoD2", "Dodge only Dangerous 2", string.byte("V"))
+	EMenu:Boolean("D","DEBUG",false)
 	
 	DelayAction(function()
 		for _,i in pairs(self.Spells) do
@@ -4662,7 +4663,7 @@ function SLEvade:__init()
 	Callback.Add("DeleteObj", function(obj) self:DeleteObject(obj) end)
 	Callback.Add("Draw", function() self:Drawp() end)
 	Callback.Add("ProcessWaypoint", function(unit,wp) self:prwp(unit,wp) end)
-	Callback.Add("IssueOrder", function(order) self:IssOrd(order) end)
+	Callback.Add("WndMsg", function(s1,s2) self:WndMsg(s1,s2) end)
 
 self.Spells = {
 	["AatroxQ"]={charName="Aatrox",slot=0,type="Circle",delay=0.6,range=650,radius=250,speed=2000,addHitbox=true,danger=3,dangerous=true,proj="nil",killTime=0.225,displayname="Dark Flight",mcollision=false},
@@ -4982,6 +4983,40 @@ end,001.25)
 
 end
 
+function SLEvade:WndMsg(s1,s2)
+	if s2 == string.byte("Y") and s1 == 257 and EMenu.D:Value() then
+		self:Skillshot()
+	end
+end
+
+function SLEvade:Skillshot()
+		local s = {}
+		s.spell = {}
+		s.p = {}
+		s.p.startPos = Vector(2874,95,2842)
+		s.spell.name = "DarkBindingMissile"
+		s.spell.charName = myHero.charName
+		s.spell.proj = nil
+		s.spell.danger = 2
+		s.spell.displayname = "DarkBinding"
+        s.spell.killTime = 0.25
+        s.spell.mcollision = false	
+        s.spell.dangerous = false
+        s.spell.radius = 130
+        s.spell.speed = 250
+        s.spell.range = 1300
+        s.spell.delay = 0.25
+        s.p.endPos = Vector(2104,95,3196)
+        s.spell.type = "Line"
+        s.uDodge = false 
+        s.caster = myHero
+        s.mpos = nil
+		s.debug = true
+        s.startTime = os.clock()
+        self.obj[s.spell.name] = s
+		DelayAction(function() self.obj[s.spell.name] = nil end,5.2)
+end
+
 function SLEvade:Tickp()
 	heroes[myHero.networkID] = myHero
 	for _,i in pairs(self.obj) do
@@ -4989,26 +5024,25 @@ function SLEvade:Tickp()
 		if i.p and EMenu.Advanced.LDR:Value() and i.spell.type == "Circle" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.globalults[_] then return end
 		if i.p and EMenu.Advanced.LDR:Value() and i.spell.type == "Rectangle" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.globalults[_] then return end
 		if i.p and EMenu.Advanced.LDR:Value() and i.spell.type == "Cone" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.globalults[_] then return end
-		for kk,k in pairs(GetEnemyHeroes()) do
-			if not i.jp or not i.safe then
-				self.asd = false
-				DisableHoldPosition(false)
-				DisableAll(false)
-			end
-			if i.o then
-				i.p = {}
-				i.p.startPos = Vector(i.o.startPos)
-				i.p.endPos = Vector(i.o.endPos)
-			end
-			if i.p then
-				self:CleanObj() 
-				self:Dodge() 
-				self:Pathfinding()
-				self:UDodge()
-				self:Mpos()
-			end
+		if not i.jp or not i.safe then
+			self.asd = false
+			DisableHoldPosition(false)
+			DisableAll(false)
+		end
+		if i.o then
+			i.p = {}
+			i.p.startPos = Vector(i.o.startPos)
+			i.p.endPos = Vector(i.o.endPos)
+		end
+		if i.p then
+			self:CleanObj() 
+			self:Dodge() 
+			self:Pathfinding()
+			self:UDodge()
+			self:Mpos()
 		end
 	end
+	self:BlockMov()
 	self:ItemMenu()
 end
 
@@ -5018,30 +5052,35 @@ function SLEvade:Drawp()
 		if i.p and EMenu.Advanced.LDR:Value() and i.spell.type == "Circle" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.globalults[_] then return end
 		if i.p and EMenu.Advanced.LDR:Value() and i.spell.type == "Rectangle" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.globalults[_] then return end
 		if i.p and EMenu.Advanced.LDR:Value() and i.spell.type == "Cone" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.globalults[_] then return end
-		for kk,k in pairs(GetEnemyHeroes()) do
-			if i.o then
-				i.p = {}
-				i.p.startPos = Vector(i.o.startPos)
-				i.p.endPos = Vector(i.o.endPos)
-			end
-			if i.p then
-				self.endposs = Vector(i.p.startPos)+Vector(Vector(i.p.endPos)-i.p.startPos):normalized()*(i.spell.range+i.spell.radius)
-				self.Spells[_].radius = EMenu.Spells[_]["radius".._]:Value()
-				self.opos = self:sObjpos()
-				self.cpos = self:sCircPos()
-				self:Drawings()
-				self:Drawings2()
-			end
+		if i.o then
+			i.p = {}
+			i.p.startPos = Vector(i.o.startPos)
+			i.p.endPos = Vector(i.o.endPos)
+		end
+		if EMenu.D:Value() then
+			self.Spells[_].radius = i.spell.radius
+		else
+			self.Spells[_].radius = EMenu.Spells[_]["radius".._]:Value()
+		end
+		if i.p then
+			self.endposs = Vector(i.p.startPos)+Vector(Vector(i.p.endPos)-i.p.startPos):normalized()*(i.spell.range+i.spell.radius)
+			self.opos = self:sObjpos(i)
+			self.cpos = self:sCircPos(i)
+			self:Drawings()
+			self:Drawings2()
 		end
 	end
 	self:HeroCollsion()
 	self:MinionCollision()
 	self:WallCollision()
+	if EMenu.Draws.DevOpt:Value() then
+		DrawText(myHero.pos,20,20,20,GoS.Green)
+	end
 end
 
 function SLEvade:MinionCollision()
 	for _,i in pairs(self.obj) do
-		if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EMC:Value() and EMenu.Spells[_]["mColl".._]:Value() then
+		if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EMC:Value() and (i.debug or EMenu.Spells[_]["mColl".._]:Value()) then
 			for m,p in pairs(minionManager.objects) do
 				local vI = nil 
 				local helperVec = nil
@@ -5076,7 +5115,7 @@ end
 
 function SLEvade:HeroCollsion()
 	for _,i in pairs(self.obj) do
-		if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EHC:Value() and EMenu.Spells[_]["hColl".._]:Value() then
+		if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EHC:Value() and (i.debug or EMenu.Spells[_]["hColl".._]:Value()) then
 			for m,p in pairs(heroes) do
 				local vI = nil 
 				local helperVec = nil
@@ -5111,7 +5150,7 @@ end
 
 function SLEvade:WallCollision()
 	for _,i in pairs(self.obj) do
-		if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EWC:Value() and EMenu.Spells[_]["wColl".._]:Value() then
+		if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EWC:Value() and (i.debug or EMenu.Spells[_]["wColl".._]:Value()) then
 			if self.YasuoWall then
 				for m,p in pairs(self.YasuoWall) do
 					local vI = nil 
@@ -5146,21 +5185,17 @@ function SLEvade:WallCollision()
 	end
 end
 
-function SLEvade:sObjpos()
-	for _,i in pairs(self.obj) do
-		if i.spell.speed ~= math.huge and i.p then
-			return i.p.startPos+Vector(Vector(self.endposs)-i.p.startPos):normalized()*(i.spell.speed*(os.clock()-i.spell.delay-i.startTime) + i.spell.radius+myHero.boundingRadius+EMenu.Advanced.ew:Value())
-		else
-			return Vector(i.p.startPos)
-		end
+function SLEvade:sObjpos(i)
+	if i.spell.speed ~= math.huge and i.p then
+		return i.p.startPos+Vector(Vector(self.endposs)-i.p.startPos):normalized()*(i.spell.speed*(os.clock()-i.spell.delay-i.startTime) + i.spell.radius+myHero.boundingRadius+EMenu.Advanced.ew:Value())
+	else
+		return Vector(i.p.startPos)
 	end
 end
 
-function SLEvade:sCircPos()
-	for _,i in pairs(self.obj) do
-		if i.p then
-			return (i.spell.radius*(os.clock()-(i.spell.killTime + GetDistance(i.caster,i.p.endPos)/i.spell.speed + i.spell.delay)-i.startTime) + i.spell.radius)
-		end
+function SLEvade:sCircPos(i)
+	if i.p then
+		return (i.spell.radius*(os.clock()-(i.spell.killTime + GetDistance(i.caster,i.p.endPos)/i.spell.speed + i.spell.delay)-i.startTime) + i.spell.radius)
 	end
 end
 
@@ -5266,8 +5301,8 @@ function SLEvade:UDodge()
 			else
 				self.DodgeOnlyDangerous = false
 		end
-		if i.safe and i.spell.type == "Line" and i.o then
-			if GetDistance(i.o)/i.spell.speed < GetDistance(i.safe)/myHero.ms then 
+		if i.safe and i.spell.type == "Line" then
+			if GetDistance(self.opos)/i.spell.speed < GetDistance(i.safe)/myHero.ms then 
 					i.uDodge = true 
 				else
 					i.uDodge = false
@@ -5300,9 +5335,8 @@ function SLEvade:Pathfinding()
 				i.p.startPos = Vector(i.p.startPos)
 				i.p.endPos = Vector(self.endposs)
 			if GetDistance(i.p.startPos) < i.spell.range + myHero.boundingRadius and GetDistance(self.endposs) < i.spell.range + myHero.boundingRadius then
-				local v3 = Vector(myHero.pos)
-				local v4 = Vector(i.p.startPos-i.p.endPos):perpendicular()
-				local jp = Vector(VectorIntersection(i.p.startPos,i.p.endPos,v3,v4).x,myHero.pos.y,VectorIntersection(i.p.startPos,i.p.endPos,v3,v4).y)
+				local v3 = Vector(myHero)
+				local jp = VectorPointProjectionOnLineSegment(Vector(self.opos)-Vector(300,0,0),i.p.endPos,v3)
 				i.jp = jp
 				if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe and i.mpos and not i.coll then
 					--if GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular(),jp) >= GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular2(),jp) then
@@ -5364,9 +5398,8 @@ function SLEvade:Pathfinding()
 			local startp = Vector(i.p.endPos) - (Vector(i.p.endPos) - Vector(i.p.startPos)):normalized():perpendicular() * (i.spell.radius2 or 400)
 			local endp = Vector(i.p.endPos) + (Vector(i.p.endPos) - Vector(i.p.startPos)):normalized():perpendicular() * (i.spell.radius2 or 400)
 			if GetDistance(startp) < i.spell.range + myHero.boundingRadius and GetDistance(endp) < i.spell.range + myHero.boundingRadius then
-				local v3 = Vector(myHero.pos)
-				local v4 = Vector(startp-endp):normalized():perpendicular()
-				local jp = Vector(VectorIntersection(startp,endp,v3,v4).x,myHero.pos.y,VectorIntersection(startp,endp,v3,v4).y)
+				local v3 = Vector(myHero)
+				local jp = VectorPointProjectionOnLineSegment(startp,endp,v3)
 				i.jp = jp
 				if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe and i.mpos then
 					self.asd = true
@@ -5395,12 +5428,11 @@ function SLEvade:Pathfinding()
 				DisableAll(false)
 			end
 		elseif i.spell.type == "Cone" then
-			i.p.startPos = Vector(i.p.startPos)
+				i.p.startPos = Vector(i.p.startPos)
 				i.p.endPos = Vector(self.endposs)
 			if GetDistance(i.p.startPos) < i.spell.range + myHero.boundingRadius and GetDistance(self.endposs) < i.spell.range + myHero.boundingRadius then
-				local v3 = Vector(myHero.pos)
-				local v4 = Vector(i.p.startPos-i.p.endPos):perpendicular()
-				local jp = Vector(VectorIntersection(i.p.startPos,i.p.endPos,v3,v4).x,myHero.pos.y,VectorIntersection(i.p.startPos,i.p.endPos,v3,v4).y)
+				local v3 = Vector(myHero)
+				local jp = VectorPointProjectionOnLineSegment(i.p.startPos,i.p.endPos,v3)
 				i.jp = jp
 				if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe and i.mpos then
 					self.asd = true
@@ -5435,7 +5467,7 @@ end
 
 function SLEvade:Drawings()
 	for _,i in pairs(self.obj) do
-		if EMenu.Spells[_]["Draw".._]:Value() then
+		if i.debug or EMenu.Spells[_]["Draw".._]:Value() then
 			if i.spell.type == "Line" and not EMenu.Keys.DDraws:Value() then
 				local sPos = Vector(self.opos)
 				local ePos = Vector(self.endposs)
@@ -5475,7 +5507,7 @@ function SLEvade:Drawings2()
 				DrawCircle(i.jp,50,1,20,GoS.Red) 
 			end 
 		end
-		if EMenu.Draws.DEPos:Value() and not EMenu.Keys.DDraws:Value() and i.safe and ((not self.DodgeOnlyDangerous and EMenu.d:Value() <= EMenu.Spells[_]["d".._]:Value()) or (self.DodgeOnlyDangerous and EMenu.Spells[_]["IsD".._]:Value())) and EMenu.Spells[_]["Dodge".._]:Value() and EMenu.Spells[_]["Draw".._]:Value() then			
+		if i.safe and i.debug or (EMenu.Draws.DEPos:Value() and not EMenu.Keys.DDraws:Value() and i.safe and ((not self.DodgeOnlyDangerous and EMenu.d:Value() <= EMenu.Spells[_]["d".._]:Value()) or (self.DodgeOnlyDangerous and EMenu.Spells[_]["IsD".._]:Value())) and EMenu.Spells[_]["Dodge".._]:Value() and EMenu.Spells[_]["Draw".._]:Value()) then			
 				dArrow(myHero.pos,i.safe,3,ARGB(255,0,255,0))
 		end
 		if EMenu.Draws.DevOpt:Value() then
@@ -5492,7 +5524,7 @@ function SLEvade:Dodge()
 		end
 				--DashP = Dash - Position, DashS = Dash - Self, DashT = Dash - Targeted, SpellShieldS = SpellShield - Self, SpellShieldT = SpellShield - Targeted, WindWallP = WindWall - Position, 
 		if EMenu.Keys.DD:Value() then return end
-			if i.safe and ((not self.DodgeOnlyDangerous and EMenu.d:Value() <= EMenu.Spells[_]["d".._]:Value()) or (self.DodgeOnlyDangerous and EMenu.Spells[_]["IsD".._]:Value())) and EMenu.Spells[_]["Dodge".._]:Value() and GetPercentHP(myHero) <= EMenu.Spells[_]["hp".._]:Value() then
+			if (i.safe and ((not self.DodgeOnlyDangerous and (i.debug or EMenu.d:Value() <= EMenu.Spells[_]["d".._]:Value())) or (self.DodgeOnlyDangerous and (i.debug or EMenu.Spells[_]["IsD".._]:Value()))) and (i.debug or EMenu.Spells[_]["Dodge".._]:Value()) and (i.debug or GetPercentHP(myHero) <= EMenu.Spells[_]["hp".._]:Value())) then
 				if self.asd == true then 
 					DisableHoldPosition(true)
 					DisableAll(true) 
@@ -5500,11 +5532,11 @@ function SLEvade:Dodge()
 					DisableHoldPosition(false)
 					DisableAll(false) 
 				end
-				MoveToXYZ(i.safe)
-				if EMenu.Spells[_]["Dashes".._]:Value() then
+				-- MoveToXYZ(i.safe)
+				if (i.debug or EMenu.Spells[_]["Dashes".._]:Value()) then
 					for op = 0,3 do
-						if self.EvadeSpells[GetObjectName(myHero)] and self.EvadeSpells[GetObjectName(myHero)][op] and EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].name]["Dodge"..self.EvadeSpells[GetObjectName(myHero)][op].name]:Value() and self.EvadeSpells[GetObjectName(myHero)][op].evadeType and self.EvadeSpells[GetObjectName(myHero)][op].spellKey and EMenu.Spells[_]["d".._]:Value() >= EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].name]["d"..self.EvadeSpells[GetObjectName(myHero)][op].name]:Value() then 
-							if i.uDodge == true and self.usp == false and self.ut == false then
+						if self.EvadeSpells[GetObjectName(myHero)] and self.EvadeSpells[GetObjectName(myHero)][op] and EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].name]["Dodge"..self.EvadeSpells[GetObjectName(myHero)][op].name]:Value() and self.EvadeSpells[GetObjectName(myHero)][op].evadeType and self.EvadeSpells[GetObjectName(myHero)][op].spellKey and (i.debug or EMenu.Spells[_]["d".._]:Value() >= EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].name]["d"..self.EvadeSpells[GetObjectName(myHero)][op].name]:Value()) then 
+							if i.uDodge == false and self.usp == false and self.ut == false then
 								if self.EvadeSpells[GetObjectName(myHero)][op].evadeType == "DashP" and CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].spellKey) == READY then
 										self.ues = true
 										CastSkillShot(self.EvadeSpells[GetObjectName(myHero)][op].spellKey, i.safe)
@@ -5515,7 +5547,7 @@ function SLEvade:Dodge()
 								-- end
 								if self.EvadeSpells[GetObjectName(myHero)][op].evadeType == "WindWallP" and CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].spellKey) == READY then
 										self.ues = true
-										CastSkillShot(self.EvadeSpells[GetObjectName(myHero)][op].spellKey,myHero.pos + (i.p.startPos - myHero.pos)*50)
+										CastSkillShot(self.EvadeSpells[GetObjectName(myHero)][op].spellKey, myHero.pos + (i.p.startPos - myHero.pos)*50)
 									else
 										self.ues = false
 								end		
@@ -5544,14 +5576,14 @@ function SLEvade:Dodge()
 							end
 						end
 					end
-				if self.Flash and Ready(self.Flash) and i.uDodge == true and EMenu.EvadeSpells.Flash.DodgeFlash:Value() and EMenu.Spells[_]["d".._]:Value() >= EMenu.EvadeSpells.Flash.dFlash:Value() and self.ues == false and self.ut == false then
+				if self.Flash and Ready(self.Flash) and i.uDodge == true and EMenu.EvadeSpells.Flash.DodgeFlash:Value() and (i.debug or EMenu.Spells[_]["d".._]:Value() >= EMenu.EvadeSpells.Flash.dFlash:Value()) and self.ues == false and self.ut == false then
 					self.usp = true
 					CastSkillShot(self.Flash, i.safe)
 				else
 					self.usp = false
 				end		
 				for item,c in pairs(self.SI) do
-					if c.State and Ready(GetItemSlot(myHero,item)) and EMenu.invulnerable[c.Name]["Dodge"..c.Name]:Value() and i.uDodge == false and GetPercentHP(myHero) <= EMenu.invulnerable[c.Name]["hp"..c.Name]:Value() and EMenu.Spells[_]["d".._]:Value() >= EMenu.invulnerable[c.Name]["d"..c.Name]:Value() and self.ues == false and self.usp == false then
+					if c.State and Ready(GetItemSlot(myHero,item)) and EMenu.invulnerable[c.Name]["Dodge"..c.Name]:Value() and i.uDodge == false and GetPercentHP(myHero) <= EMenu.invulnerable[c.Name]["hp"..c.Name]:Value() and (i.debug or EMenu.Spells[_]["d".._]:Value() >= EMenu.invulnerable[c.Name]["d"..c.Name]:Value()) and self.ues == false and self.usp == false then
 						self.ut = true
 						DelayAction(function()
 							CastSpell(GetItemSlot(myHero,item))
@@ -5561,7 +5593,7 @@ function SLEvade:Dodge()
 					end
 				end
 				for item,c in pairs(self.D) do
-					if c.State and Ready(GetItemSlot(myHero,item)) and EMenu.EvadeSpells[c.Name]["Dodge"..c.Name]:Value() and i.uDodge == true and GetPercentHP(myHero) <= EMenu.EvadeSpells[c.Name]["hp"..c.Name]:Value() and EMenu.Spells[_]["d".._]:Value() >= EMenu.EvadeSpells[c.Name]["d"..c.Name]:Value() and self.ues == false and self.usp == false then
+					if c.State and Ready(GetItemSlot(myHero,item)) and EMenu.EvadeSpells[c.Name]["Dodge"..c.Name]:Value() and i.uDodge == true and GetPercentHP(myHero) <= EMenu.EvadeSpells[c.Name]["hp"..c.Name]:Value() and (i.debug or EMenu.Spells[_]["d".._]:Value() >= EMenu.EvadeSpells[c.Name]["d"..c.Name]:Value()) and self.ues == false and self.usp == false then
 						self.ut = true
 						CastSkillShot(GetItemSlot(myHero,item), i.safe)
 					else
@@ -5576,18 +5608,26 @@ function SLEvade:Dodge()
 	end
 end
 
-function SLEvade:IssOrd(order)
-	-- for _,i in pairs(self.obj) do
-		-- if order.flag == 2 and i.jp and i.spell.type == "Line" then
-			-- if (GetDistance(self:Position(),i.jp) < ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())) and not i.safe and not i.mpos and (GetDistance(i.jp) > ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())) then
-				-- BlockOrder()
-			-- end
-		-- elseif order.flag == 2 and i.p and i.spell.type == "Circle" then
-			-- if (GetDistance(self:Position(),i.p.endPos) < ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())) and not i.safe and not i.mpos and (GetDistance(i.p.endPos) > ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())) then
-				-- BlockOrder()
-			-- end
-		-- end
-	-- end
+function SLEvade:BlockMov()
+	for _,i in pairs(self.obj) do
+		if i.jp and i.spell.type == "Line" then
+			if (GetDistance(self:Position(),i.jp) < ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())) and not i.safe then
+				HoldPosition()
+			end
+		elseif i.p and i.spell.type == "Circle" then
+			if (GetDistance(self:Position(),i.p.endPos) < ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())) and not i.safe then
+				HoldPosition()
+			end
+		elseif i.jp and i.spell.type == "Rectangle" then
+			if (GetDistance(self:Position(),i.jp) < ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())) and not i.safe then
+				HoldPosition()
+			end
+		elseif i.jp and i.spell.type == "Cone" then
+			if (GetDistance(self:Position(),i.jp) < ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())) and not i.safe then
+				HoldPosition()
+			end
+		end
+	end
 end
 
 function SLEvade:CreateObject(obj)
