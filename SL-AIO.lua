@@ -5302,7 +5302,7 @@ function SLEvade:UDodge()
 				self.DodgeOnlyDangerous = false
 		end
 		if i.safe and i.spell.type == "Line" then
-			if GetDistance(self.opos)/i.spell.speed < GetDistance(i.safe)/myHero.ms then 
+			if GetDistance(self.opos)/i.spell.speed + i.spell.delay < (GetDistance(i.safe)*.7)/myHero.ms then 
 					i.uDodge = true 
 				else
 					i.uDodge = false
@@ -5336,7 +5336,7 @@ function SLEvade:Pathfinding()
 				i.p.endPos = Vector(self.endposs)
 			if GetDistance(i.p.startPos) < i.spell.range + myHero.boundingRadius and GetDistance(self.endposs) < i.spell.range + myHero.boundingRadius then
 				local v3 = Vector(myHero)
-				local jp = VectorPointProjectionOnLineSegment(Vector(self.opos)-Vector(300,0,0),i.p.endPos,v3)
+				local jp = VectorPointProjectionOnLineSegment(Vector(self.opos)-Vector(275,0,0),i.p.endPos,v3)
 				i.jp = jp
 				if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe and i.mpos and not i.coll then
 					--if GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular(),jp) >= GetDistance(GetOrigin(myHero) + Vector(i.p.startPos-i.p.endPos):perpendicular2(),jp) then
@@ -5347,13 +5347,13 @@ function SLEvade:Pathfinding()
 							if not MapPosition:inWall(self.patha2) then
 									i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
 								else 
-									i.safe = jp + Vector(i.p.startPos - i.p.endPos):perpendicular2():normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
+									i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
 							end
 						else
 							if not MapPosition:inWall(self.patha) then
 									i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
 								else 
-									i.safe = jp + Vector(i.p.startPos - i.p.endPos):perpendicular2():normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
+									i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
 							end
 						end
 					--end
@@ -5442,13 +5442,13 @@ function SLEvade:Pathfinding()
 						if not MapPosition:inWall(self.pathd2) then
 								i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
 							else 
-								i.safe = jp + Vector(i.p.startPos - i.p.endPos):perpendicular2():normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
+								i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
 						end
 					else
 						if not MapPosition:inWall(self.pathd) then
 								i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
 							else 
-								i.safe = jp + Vector(i.p.startPos - i.p.endPos):perpendicular2():normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
+								i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1+EMenu.Advanced.ew:Value())
 						end
 					end
 				end
@@ -5536,7 +5536,7 @@ function SLEvade:Dodge()
 				if (i.debug or EMenu.Spells[_]["Dashes".._]:Value()) then
 					for op = 0,3 do
 						if self.EvadeSpells[GetObjectName(myHero)] and self.EvadeSpells[GetObjectName(myHero)][op] and EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].name]["Dodge"..self.EvadeSpells[GetObjectName(myHero)][op].name]:Value() and self.EvadeSpells[GetObjectName(myHero)][op].evadeType and self.EvadeSpells[GetObjectName(myHero)][op].spellKey and (i.debug or EMenu.Spells[_]["d".._]:Value() >= EMenu.EvadeSpells[self.EvadeSpells[GetObjectName(myHero)][op].name]["d"..self.EvadeSpells[GetObjectName(myHero)][op].name]:Value()) then 
-							if i.uDodge == false and self.usp == false and self.ut == false then
+							if i.uDodge == true and self.usp == false and self.ut == false then
 								if self.EvadeSpells[GetObjectName(myHero)][op].evadeType == "DashP" and CanUseSpell(myHero, self.EvadeSpells[GetObjectName(myHero)][op].spellKey) == READY then
 										self.ues = true
 										CastSkillShot(self.EvadeSpells[GetObjectName(myHero)][op].spellKey, i.safe)
