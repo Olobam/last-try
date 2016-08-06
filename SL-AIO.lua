@@ -2954,19 +2954,17 @@ function Orianna:D()
 			DrawCircle(self.Ball.pos,100,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
 		end
 	end
-	for l = 0,3 do 
-		if BM.Dr.Q:Value() then
-			DrawCircle(myHero.pos,self.Spell[0].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
-		end
-		if BM.Dr.W:Value() then
-			DrawCircle(self.Ball.pos,self.Spell[1].radius,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
-		end
-		if BM.Dr.E:Value() then
-			DrawCircle(myHero.pos,self.Spell[2].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
-		end
-		if BM.Dr.R:Value() then
-			DrawCircle(self.Ball.pos,self.Spell[3].radius,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
-		end
+	if BM.Dr.Q:Value() and SReady[0] then
+		DrawCircle(myHero.pos,self.Spell[0].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+	end
+	if BM.Dr.W:Value() and SReady[1] then
+		DrawCircle(self.Ball.pos,self.Spell[1].radius,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+	end
+	if BM.Dr.E:Value() and SReady[2] then
+		DrawCircle(myHero.pos,self.Spell[2].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+	end
+	if BM.Dr.R:Value() and SReady[3] then
+		DrawCircle(self.Ball.pos,self.Spell[3].radius,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
 	end
 end
 
