@@ -74,6 +74,39 @@ local function DisableHoldPosition(boolean)
 	end
 end
 
+local function AllyMinionsAround(pos, range)
+	local c = 0
+	if pos == nil then return 0 end
+	for k,v in pairs(minionManager.objects) do 
+		if v and v.alive and GetDistanceSqr(pos,v) < range*range and v.team == myHero.team then
+			c = c + 1
+		end
+	end
+	return c
+end
+
+local function EnemyMinionsAround(pos, range)
+	local c = 0
+	if pos == nil then return 0 end
+	for k,v in pairs(minionManager.objects) do 
+		if v and v.alive and GetDistanceSqr(pos,v) < range*range and v.team == MINION_ENEMY then
+			c = c + 1
+		end
+	end
+	return c
+end
+
+local function JungleMinionsAround(pos, range)
+	local c = 0
+	if pos == nil then return 0 end
+	for k,v in pairs(minionManager.objects) do 
+		if v and v.alive and GetDistanceSqr(pos,v) < range*range and v.team == MINION_JUNGLE then
+			c = c + 1
+		end
+	end
+	return c
+end
+
 OnObjectLoad(function(obj)
 	if obj and obj.type == Obj_AI_Turret and obj.team == MINION_ENEMY then
 		turrets[obj.networkID] = obj
@@ -152,6 +185,7 @@ local SLSChamps = {
 	["Nocturne"] = true,
 	["Sivir"] = true,
 	["Vladimir"] = true,
+	["Orianna"] = true,
 }
 
 if not FileExist(COMMON_PATH.. "Analytics.lua") then
@@ -211,7 +245,9 @@ Callback.Add("Load", function()
 	Init()
 	if SLSChamps[ChampName] and SLS.Loader.LC:Value() then
 		_G[ChampName]() 
-		Drawings()
+		if myHero.charName ~= "Orianna" then
+			Drawings()
+		end
 	end
 	if SLSChamps[ChampName] then
 		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."] [SL-AIO] v.: "..SLAIO.." - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> Loaded! </b></font>")
@@ -2790,6 +2826,245 @@ function Vladimir:RemoveBuff(unit,buff)
 	end
 end
 
+class 'Orianna'
+
+function Orianna:__init()
+
+	Orianna.Spell = {
+	[0] = { range = 815, delay = 0, radius = 80, speed = 1200 },
+	[1] = { radius = 255 },
+	[2] = { range = 1095, radius = 80 },
+	[3] = { radius = 410 },
+	}
+	
+	Dmg = {
+	[0] = function(unit) return CalcDamage(myHero, unit, 0, 30+30*myHero.level + 0.5 * myHero.ap) end,
+	[1] = function(unit) return CalcDamage(myHero, unit, 0, 25+45*myHero.level + 0.7 * myHero.ap) end,
+	[2] = function(unit) return CalcDamage(myHero, unit, 0, 30+30*myHero.level + 0.3 * myHero.ap) end,
+	[3] = function(unit) return CalcDamage(myHero, unit, 0, 75+75*myHero.level + 0.7 * myHero.ap) end,
+	}
+	
+	self.o = {}
+	self.Ball = myHero
+	
+	BM:Menu("C", "Combo")
+	BM.C:Boolean("Q", "Use Q", true)
+	BM.C:Boolean("W", "Use W", true)
+	BM.C:Slider("Wm", "Use W if hit x unit(s)", 2, 1, 5, 1)
+	BM.C:Boolean("E", "Use E", true)
+	BM.C:Boolean("R", "Use R", true)
+	BM.C:Slider("Rm", "Use R if hit x unit(s)", 2, 1, 5, 1)
+	
+	BM:Menu("H", "Harass")
+	BM.H:Boolean("Q", "Use Q", true)
+	BM.H:Boolean("W", "Use W", true)
+	BM.H:Slider("Wm", "Use W if hit x unit(s)", 1, 1, 5, 1)
+	
+	BM:Menu("LC", "LaneClear")
+	BM.LC:Boolean("Q", "Use Q", true)
+	BM.LC:Boolean("W", "Use W", true)
+	BM.LC:Slider("Wm", "Use W if hit x unit(s)", 3, 1, 15, 1)
+	
+	BM:Menu("JC", "JungleClear")
+	BM.JC:Boolean("Q", "Use Q", true)
+	BM.JC:Boolean("W", "Use W", true)
+	BM.JC:Slider("Wm", "Use W if hit x unit(s)", 1, 1, 4, 1)
+	BM.JC:Boolean("E", "Use E", true)
+	
+	BM:Menu("KS", "Killsteal")
+	BM.KS:Boolean("Q", "Use Q", true)
+	BM.KS:Boolean("W", "Use W", true)
+	BM.KS:Boolean("E", "Use E", true)
+	BM.KS:Boolean("R", "Use R", false)
+	
+	BM:Menu("p", "Prediction")
+	BM.p:Slider("hQ", "HitChance Q", 40, 0, 100, 1)
+	
+	BM:Menu("Dr", "Drawings")
+	BM.Dr:Boolean("UD", "Use Drawings", false)
+	BM.Dr:ColorPick("Cc", "Circle color", {255,102,102,102})
+	BM.Dr:DropDown("DQ", "Draw Quality", 3, {"High", "Medium", "Low"})
+	BM.Dr:Slider("CW", "Circle width", 1, 1, 5, 1)
+	BM.Dr:Boolean("B", "Draw Ball", true)
+	BM.Dr:Boolean("Q", "Draw Q", true)
+	BM.Dr:Boolean("W", "Draw W", true)
+	BM.Dr:Boolean("E", "Draw E", true)
+	BM.Dr:Boolean("R", "Draw R", true)
+	
+	
+	Callback.Add("CreateObj", function(obj) self:CO(obj) end)
+	Callback.Add("DeleteObj", function(obj) self:DO(obj) end)
+	Callback.Add("Draw", function() self:D() end)
+	Callback.Add("Tick", function() self:T() end)
+	Callback.Add("UpdateBuff", function(unit,buffProc) self:UB(unit,buffProc) end)
+	
+end
+
+function Orianna:CO(obj)
+	if GetObjectBaseName(obj) == "missile" then
+		if not self.o[obj.networkID] then self.o[obj.networkID] = {} end
+		self.o[obj.networkID].o = obj
+	end
+	if GetObjectBaseName(obj) == "Orianna_Base_Q_yomu_ring_green.troy" then
+		self.Ball = obj
+	end
+end
+
+function Orianna:DO(obj)
+	if GetObjectBaseName(obj) == "missile" then
+		self.o[obj.networkID] = nil
+	end
+end
+
+function Orianna:UB(unit,buffProc)
+	if unit.isMe and buffProc.Name == "orianaghostself" then
+		self.Ball = myHero
+	end
+end 
+
+function Orianna:T()
+	if myHero.dead then return end
+	
+	for _,i in pairs(self.o) do
+		if i.o.spellOwner.isMe and i.o.spellName == "OrianaIzuna" then
+			self.Ball = i.o
+		end
+	end
+	
+	GetReady()
+	
+	local target = GetCurrentTarget()
+	
+    if Mode == "Combo" then
+		self:Combo(target)
+	elseif Mode == "LaneClear" then
+		self:LaneClear()
+		self:JungleClear()
+	elseif Mode == "Harass" then
+		self:Harass(target)
+	else
+		return
+	end
+	
+end
+
+function Orianna:D()
+	if BM.Dr.B:Value() then
+		for _,i in pairs(self.o) do
+			DrawCircle(self.Ball.pos,100,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+		end
+	end
+	for l = 0,3 do 
+		if BM.Dr.Q:Value() then
+			DrawCircle(myHero.pos,self.Spell[0].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+		end
+		if BM.Dr.W:Value() then
+			DrawCircle(self.Ball.pos,self.Spell[1].radius,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+		end
+		if BM.Dr.E:Value() then
+			DrawCircle(myHero.pos,self.Spell[2].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+		end
+		if BM.Dr.R:Value() then
+			DrawCircle(self.Ball.pos,self.Spell[3].radius,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+		end
+	end
+end
+
+function Orianna:Combo(target)
+	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() then
+		local Pred = GetPrediction(target, self.Spell[0])
+		if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,myHero.pos) < self.Spell[0].range then
+			CastSkillShot(0,Pred.castPos)
+		end
+	end
+	if SReady[1] and BM.C.W:Value() and EnemiesAround(self.Ball.pos, self.Spell[1].radius) >= BM.C.Wm:Value() then
+		CastSpell(1)
+	end
+	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() then
+		local VP = VectorPointProjectionOnLineSegment(Vector(myHero), Vector(target), Vector(self.Ball))
+		if GetDistance(VP, target) < self.Spell[2].radius then
+			CastSpell(2)
+		end
+	end
+	if SReady[3] and BM.C.R:Value() and EnemiesAround(self.Ball.pos, self.Spell[3].radius) >= BM.C.Rm:Value() then
+		CastSpell(3)
+	end
+end
+
+function Orianna:Harass(target)
+	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.H.Q:Value() then
+		local Pred = GetPrediction(target, self.Spell[0])
+		if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,myHero.pos) < self.Spell[0].range then
+			CastSkillShot(0,Pred.castPos)
+		end
+	end
+	if SReady[1] and BM.H.W:Value() and EnemiesAround(self.Ball.pos, self.Spell[1].radius) >= BM.H.Wm:Value() then
+		CastSpell(1)
+	end
+end
+
+function Orianna:LaneClear()
+	for _,minion in pairs(minionManager.objects) do
+		if minion.team == MINION_ENEMY then
+			if SReady[0] and ValidTarget(minion, self.Spell[0].range) and BM.LC.Q:Value() then
+				local Pred = GetPrediction(minion, self.Spell[0])
+				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,myHero.pos) < self.Spell[0].range then
+					CastSkillShot(0,Pred.castPos)
+				end
+			end
+			if SReady[1] and BM.LC.W:Value() and EnemyMinionsAround(self.Ball.pos, self.Spell[1].radius) >= BM.LC.Wm:Value() then
+				CastSpell(1)
+			end		
+		end
+	end
+end
+
+function Orianna:JungleClear()
+	for _,minion in pairs(minionManager.objects) do
+		if minion.team == MINION_JUNGLE then
+			if SReady[0] and ValidTarget(minion, self.Spell[0].range) and BM.JC.Q:Value() then
+				local Pred = GetPrediction(minion, self.Spell[0])
+				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,myHero.pos) < self.Spell[0].range then
+					CastSkillShot(0,Pred.castPos)
+				end
+			end
+			if SReady[1] and BM.JC.W:Value() and JungleMinionsAround(self.Ball.pos, self.Spell[1].radius) >= BM.JC.Wm:Value() then
+				CastSpell(1)
+			end	
+			if SReady[2] and ValidTarget(minion, self.Spell[2].range) and BM.JC.E:Value() then
+				local VP = VectorPointProjectionOnLineSegment(Vector(myHero), Vector(minion), Vector(self.Ball))
+				if GetDistance(VP, minion) < self.Spell[2].radius then
+					CastSpell(2)
+				end
+			end			
+		end
+	end
+end
+
+function Orianna:KS()
+	for _,target in pairs(GetEnemyHeroes()) do
+	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() and GetAPHP(target) < Dmg[0](target) then
+		local Pred = GetPrediction(target, self.Spell[0])
+		if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,myHero.pos) < self.Spell[0].range then
+			CastSkillShot(0,Pred.castPos)
+		end
+	end
+	if SReady[1] and BM.C.W:Value() and EnemiesAround(self.Ball.pos, self.Spell[1].radius) >= BM.C.Wm:Value() and GetAPHP(target) < Dmg[1](target) then
+		CastSpell(1)
+	end
+	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() and GetAPHP(target) < Dmg[2](target) then
+		local VP = VectorPointProjectionOnLineSegment(Vector(myHero), Vector(target), Vector(self.Ball))
+		if GetDistance(VP, target) < self.Spell[2].radius then
+			CastSpell(2)
+		end
+	end
+	if SReady[3] and BM.C.R:Value() and EnemiesAround(self.Ball.pos, self.Spell[3].radius) >= BM.C.Rm:Value() and GetAPHP(target) < Dmg[3](target) then
+		CastSpell(3)
+	end
+	end
+end
+
+
 ---------------------------------------------------------------------------------------------
 -------------------------------------UTILITY-------------------------------------------------
 ---------------------------------------------------------------------------------------------
@@ -2906,7 +3181,7 @@ function Drawings:__init()
 	SLS[ChampName].Dr:Boolean("UD", "Use Drawings", false)
 	SLS[ChampName].Dr:ColorPick("CP", "Circle color", {255,102,102,102})
 	SLS[ChampName].Dr:DropDown("DQM", "Draw Quality", 3, {"High", "Medium", "Low"})
-	SLS[ChampName].Dr:Slider("DWi", "Circle witdth", 1, 1, 5, 1)
+	SLS[ChampName].Dr:Slider("DWi", "Circle width", 1, 1, 5, 1)
 	for i=0,3 do
 		if _G[ChampName].Spell and _G[ChampName].Spell[i] and _G[ChampName].Spell[i].range and _G[ChampName].Spell[i].range > 200 then
 			SLS[ChampName].Dr:Boolean("D"..self.SNames[i], "Draw "..self.SNames[i], true)
@@ -3951,17 +4226,6 @@ function Activator:RBuff(unit,buffProc)
 			end
 		end
 	end
-end
-
-local function AllyMinionsAround(pos, range)
-	local c = 0
-	if pos == nil then return 0 end
-	for k,v in pairs(minionManager.objects) do 
-		if v and v.alive and GetDistanceSqr(pos,v) < range*range and v.team == myHero.team then
-			c = c + 1
-		end
-	end
-	return c
 end
 
 class 'SLWalker'
@@ -5010,9 +5274,9 @@ function SLEvade:Skillshot()
         s.spell.killTime = 0.25
         s.spell.mcollision = false	
         s.spell.dangerous = false
-        s.spell.radius = 130
-        s.spell.speed = 250
-        s.spell.range = 2500
+        s.spell.radius = 80
+        s.spell.speed = 1500
+        s.spell.range = 1300
         s.spell.delay = 0.25
         s.p.endPos = Vector(2104,95,3196)
         s.spell.type = "Line"
