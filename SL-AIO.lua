@@ -5071,7 +5071,7 @@ function SLEvade:Drawp()
 			i.state = true
 		else
 			if not i.state then
-				i.spell.radius = EMenu.Spells[_]["radius".._]:Value() + math.random(0,EMenu.DS.ew:Value())
+				self.Spells[_].radius = EMenu.Spells[_]["radius".._]:Value() + math.random(0,EMenu.DS.ew:Value())
 			end
 			i.state = true
 		end
@@ -5662,8 +5662,10 @@ function SLEvade:Detection(unit,spellProc)
 				self.obj[spellProc.name].mpos = nil
 				self.obj[spellProc.name].uDodge = nil
 				self.obj[spellProc.name].startTime = os.clock()
-				if l.killTime then
+				if l.killTime and l.type == "Circle" then
 					DelayAction(function() self.obj[spellProc.name] = nil end, l.killTime + GetDistance(unit,spellProc.endPos)/l.speed + l.delay)
+				else
+					DelayAction(function() self.obj[spellProc.name] = nil end, l.range/l.speed + l.delay/2)
 				end
 				if l.killName and l.killName == spellProc.name then
 					self.obj[spellProc.name] = nil
