@@ -5002,7 +5002,7 @@ function SLEvade:Skillshot()
         s.spell.killTime = 0.25
         s.spell.mcollision = false	
         s.spell.dangerous = false
-        s.spell.radius = 130
+        s.spell.radius = 80
         s.spell.speed = 250
         s.spell.range = 1300
         s.spell.delay = 0.25
@@ -5014,7 +5014,7 @@ function SLEvade:Skillshot()
 		s.debug = true
         s.startTime = os.clock()
         self.obj[s.spell.name] = s
-		DelayAction(function() self.obj[s.spell.name] = nil end,5.2)
+		DelayAction(function() self.obj[s.spell.name] = nil end,s.spell.range/s.spell.speed - s.spell.delay)
 end
 
 function SLEvade:Tickp()
@@ -5042,8 +5042,8 @@ function SLEvade:Tickp()
 			self:Mpos()
 		end
 	end
-	self:BlockMov()
 	self:ItemMenu()
+	self:BlockMov()
 end
 
 function SLEvade:Drawp()
@@ -5063,7 +5063,7 @@ function SLEvade:Drawp()
 			self.Spells[_].radius = EMenu.Spells[_]["radius".._]:Value()
 		end
 		if i.p then
-			self.endposs = Vector(i.p.startPos)+Vector(Vector(i.p.endPos)-i.p.startPos):normalized()*(i.spell.range+i.spell.radius)
+			self.endposs = i.p.startPos + i.spell.range * (i.p.endPos - i.p.startPos):normalized()
 			self.opos = self:sObjpos(i)
 			self.cpos = self:sCircPos(i)
 			self:Drawings()
