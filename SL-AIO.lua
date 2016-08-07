@@ -2949,22 +2949,24 @@ function Orianna:T()
 end
 
 function Orianna:D()
-	if BM.Dr.B:Value() then
-		for _,i in pairs(self.o) do
-			DrawCircle(self.Ball.pos,100,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+	if BM.Dr.UD:Value() then
+		if BM.Dr.B:Value() then
+			for _,i in pairs(self.o) do
+				DrawCircle(self.Ball.pos,100,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+			end
 		end
-	end
-	if BM.Dr.Q:Value() and SReady[0] then
-		DrawCircle(myHero.pos,self.Spell[0].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
-	end
-	if BM.Dr.W:Value() and SReady[1] then
-		DrawCircle(self.Ball.pos,self.Spell[1].radius,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
-	end
-	if BM.Dr.E:Value() and SReady[2] then
-		DrawCircle(myHero.pos,self.Spell[2].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
-	end
-	if BM.Dr.R:Value() and SReady[3] then
-		DrawCircle(self.Ball.pos,self.Spell[3].radius,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+		if BM.Dr.Q:Value() and SReady[0] then
+			DrawCircle(myHero.pos,self.Spell[0].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+		end
+		if BM.Dr.W:Value() and SReady[1] then
+			DrawCircle(self.Ball.pos,self.Spell[1].radius,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+		end
+		if BM.Dr.E:Value() and SReady[2] then
+			DrawCircle(myHero.pos,self.Spell[2].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+		end
+		if BM.Dr.R:Value() and SReady[3] then
+			DrawCircle(self.Ball.pos,self.Spell[3].radius,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+		end
 	end
 end
 
@@ -5340,7 +5342,7 @@ function SLEvade:Drawp()
 		if i.p then
 			self.endposs = Vector(i.p.startPos) + i.spell.range * (Vector(i.p.endPos) - Vector(i.p.startPos)):normalized()
 			self.opos = self:sObjpos(_,i)
-			self.cpos = self:sCircPos(_,i)
+			-- self.cpos = self:sCircPos(_,i)
 			self:Drawings(_,i)
 			self:Drawings2(_,i)
 		end
@@ -5739,7 +5741,7 @@ function SLEvade:Drawings(_,i)
 			elseif i.spell.type == "Circle" and not EMenu.Keys.DDraws:Value() then
 				if EMenu.Draws.DSPath:Value() then
 					DrawCircle(i.p.endPos,i.spell.radius,EMenu.Draws.SD.t:Value()+0.5,20,EMenu.Draws.SD.c:Value())	
-					DrawCircle(i.p.endPos,self.cpos,EMenu.Draws.SD.t:Value()+0.5,20,GoS.Yellow)
+					-- DrawCircle(i.p.endPos,self.cpos,EMenu.Draws.SD.t:Value()+0.5,20,GoS.Yellow)
 				end	
 			elseif i.spell.type == "Rectangle" and not EMenu.Keys.DDraws:Value() then
 				DrawRectangle(i.p.startPos,i.p.endPos,i.spell.radius+myHero.boundingRadius,i.spell.radius2,EMenu.Draws.SD.t:Value()+0.5,EMenu.Draws.SD.c:Value())
