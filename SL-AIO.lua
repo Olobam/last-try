@@ -4812,7 +4812,7 @@ class 'SLEvade'
 
 function SLEvade:__init()
 
-	self.supportedtypes = {["Line"]={supported=true},["Circle"]={supported=true},["Cone"]={supported=true},["Rectangle"]={supported=true},["Arc"]={supported=false},["Ring"]={supported=false},["Threeway"]={supported=false},["Sevenway"]={supported=false}}
+	self.supportedtypes = {["Line"]={supported=true},["Circle"]={supported=true},["Cone"]={supported=true},["Rectangle"]={supported=true},["Arc"]={supported=false},["Ring"]={supported=false},["Threeway"]={supported=false},["follow"]={supported=true},["Return"]={supported=true}}
 	self.globalults = {["EzrealTrueshotBarrage"]={s=true},["EnchantedCrystalArrow"]={s=true},["DravenRCast"]={s=true},["JinxR"]={s=true}}
 	self.obj = {}
 	self.str = {[-1]="P",[0]="Q",[1]="W",[2]="E",[3]="R"}
@@ -4884,6 +4884,7 @@ function SLEvade:__init()
 	DelayAction(function()
 		for _,i in pairs(self.Spells) do
 			for l,k in pairs(GetEnemyHeroes()) do
+			-- k = myHero
 				if not self.Spells[_] then return end
 				if i.charName == k.charName and self.supportedtypes[i.type].supported then
 					if i.displayname == "" then i.displayname = _ end
@@ -4900,14 +4901,11 @@ function SLEvade:__init()
 						EMenu.Spells[_]:Slider("d".._,"Danger",(i.danger or 1), 1, 5, 1)
 						EMenu.Spells[_]:Info("Empty123".._, "")
 						EMenu.Spells[_]:Boolean("IsD".._,"Dangerous", i.dangerous or false)
+						EMenu.Spells[_]:Boolean("ffe".._,"Fast Evade", i.ffe or false)
 						if i.mcollision then
-							EMenu.Spells[_]:Boolean("hColl".._, "Hero Collision", true)
-							EMenu.Spells[_]:Boolean("mColl".._, "Minion Collision", true)
-							EMenu.Spells[_]:Boolean("wColl".._, "Wall Collision", true)
+							EMenu.Spells[_]:Boolean("Coll".._, "Collision", true)
 						else
-							EMenu.Spells[_]:Info("nohColl".._, "No Hero Collision available")
-							EMenu.Spells[_]:Info("nomColl".._, "No Minion Collision available")
-							EMenu.Spells[_]:Info("nowColl".._, "No Wall Collision available")
+							EMenu.Spells[_]:Info("nohColl".._, "No Collision available")
 						end	
 				end
 			end
@@ -4949,7 +4947,7 @@ self.Spells = {
 	["FlashFrost"]={charName="Anivia",slot=0,type="Line",delay=0.25,range=1200,radius=110,speed=850,addHitbox=true,danger=3,dangerous=true,proj="FlashFrostSpell",killTime=0,displayname="Flash Frost",mcollision=false},
 	["Incinerate"]={charName="Annie",slot=1,type="Cone",delay=0.25,range=825,radius=80,speed=math.huge,angle=50,addHitbox=false,danger=2,dangerous=false,proj="nil",killTime=0,displayname="",mcollision=false},
 	["InfernalGuardian"]={charName="Annie",slot=3,type="Circle",delay=0.25,range=600,radius=251,speed=math.huge,addHitbox=true,danger=5,dangerous=true,proj="nil",killTime=0.3,displayname="",mcollision=false},
-	["Volley"]={charName="Ashe",slot=1,type="Line",delay=0.25,range=1200,radius=60,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="VolleyAttack",killTime=0,displayname="",mcollision=false},
+	-- ["Volley"]={charName="Ashe",slot=1,type="Line",delay=0.25,range=1200,radius=60,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="VolleyAttack",killTime=0,displayname="",mcollision=false},
 	["EnchantedCrystalArrow"]={charName="Ashe",slot=3,type="Line",delay=0.2,range=20000,radius=130,speed=1600,addHitbox=true,danger=5,dangerous=true,proj="EnchantedCrystalArrow",killTime=0,displayname="Enchanted Arrow",mcollision=false},
 	["AurelionSolQ"]={charName="AurelionSol",slot=0,type="Line",delay=0.25,range=1500,radius=180,speed=850,addHitbox=true,danger=2,dangerous=false,proj="AurelionSolQMissile",killTime=0,displayname="AurelionSolQ",mcollision=false},
 	["AurelionSolR"]={charName="AurelionSol",slot=3,type="Line",delay=0.3,range=1420,radius=120,speed=4500,addHitbox=true,danger=3,dangerous=true,proj="AurelionSolRBeamMissile",killTime=0,displayname="AurelionSolR",mcollision=false},
@@ -4961,7 +4959,7 @@ self.Spells = {
 	["BrandW"]={charName="Brand",slot=1,type="Circle",delay=0.85,range=900,radius=240,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=0.275,displayname="Pillar of Flame"}, -- doesnt work
 	["BraumQ"]={charName="Braum",slot=0,type="Line",delay=0.25,range=1000,radius=60,speed=1700,addHitbox=true,danger=3,dangerous=true,proj="BraumQMissile",killTime=0,displayname="Winter's Bite",mcollision=true},
 	["BraumRWrapper"]={charName="Braum",slot=3,type="Line",delay=0.5,range=1250,radius=115,speed=1400,addHitbox=true,danger=4,dangerous=true,proj="braumrmissile",killTime=0,displayname="Glacial Fissure",mcollision=false},
-	["CaitlynPiltoverPeacemaker"]={charName="Caitlyn",slot=0,type="Line",delay=0.625,range=1300,radius=90,speed=1800,addHitbox=true,danger=2,dangerous=false,proj="CaitlynPiltoverPeacemaker",killTime=0,displayname="Piltover Peacemaker",mcollision=false},
+	["CaitlynPiltoverPeacemaker"]={charName="Caitlyn",slot=0,type="Line",delay=0.6,range=1300,radius=90,speed=1800,addHitbox=true,danger=2,dangerous=false,proj="CaitlynPiltoverPeacemaker",killTime=0,displayname="Piltover Peacemaker",mcollision=false},
 	["CaitlynEntrapment"]={charName="Caitlyn",slot=2,type="Line",delay=0.4,range=1000,radius=70,speed=1600,addHitbox=true,danger=1,dangerous=false,proj="CaitlynEntrapmentMissile",killTime=0,displayname="90 Caliber Net",mcollision=true},
 	["CassiopeiaQ"]={charName="Cassiopeia",slot=0,type="Circle",delay=0.75,range=850,radius=150,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="CassiopeiaNoxiousBlast",killTime=0.2,displayname="Noxious Blast",mcollision=false},
 	["CassiopeiaR"]={charName="Cassiopeia",slot=3,type="Cone",delay=0.6,range=825,radius=80,speed=math.huge,angle=80,addHitbox=false,danger=5,dangerous=true,proj="CassiopeiaPetrifyingGaze",killTime=0,displayname="Petrifying Gaze",mcollision=false},
@@ -5032,7 +5030,7 @@ self.Spells = {
 	["LeblancSlideM"]={charName="Leblanc",slot=3,type="Circle",delay=0,range=600,radius=220,speed=1450,addHitbox=true,danger=2,dangerous=false,proj="LeblancSlideM",killTime=0.2,displayname="Slide R",mcollision=false},
 	["LeblancSoulShackle"]={charName="Leblanc",slot=2,type="Line",delay=0,range=950,radius=70,speed=1750,addHitbox=true,danger=3,dangerous=true,proj="LeblancSoulShackle",killTime=0,displayname="Ethereal Chains R",mcollision=true},
 	["LeblancSoulShackleM"]={charName="Leblanc",slot=3,type="Line",delay=0,range=950,radius=70,speed=1750,addHitbox=true,danger=3,dangerous=true,proj="LeblancSoulShackleM",killTime=0,displayname="Ethereal Chains",mcollision=true},
-	["BlindMonkQOne"]={charName="LeeSin",slot=0,type="Line",delay=0.1,range=1000,radius=65,speed=1800,addHitbox=true,danger=3,dangerous=true,proj="BlindMonkQOne",killTime=0,displayname="Sonic Wave",mcollision=true},
+	["BlindMonkQOne"]={charName="LeeSin",slot=0,type="Line",delay=0.25,range=1000,radius=80,speed=1800,addHitbox=true,danger=3,dangerous=true,proj="BlindMonkQOne",killTime=0,displayname="Sonic Wave",mcollision=true},
 	["LeonaZenithBlade"]={charName="Leona",slot=2,type="Line",delay=0.25,range=875,radius=70,speed=1750,addHitbox=true,danger=3,dangerous=true,proj="LeonaZenithBladeMissile",killTime=0,displayname="Zenith Blade",mcollision=false},
 	["LeonaSolarFlare"]={charName="Leona",slot=3,type="Circle",delay=1,range=1200,radius=300,speed=math.huge,addHitbox=true,danger=5,dangerous=true,proj="LeonaSolarFlare",killTime=0.5,displayname="Solar Flare",mcollision=false},
 	["LissandraQ"]={charName="Lissandra",slot=0,type="Line",delay=0.25,range=700,radius=75,speed=2200,addHitbox=true,danger=2,dangerous=false,proj="LissandraQMissile",killTime=0,displayname="Ice Shard",mcollision=false},
@@ -5055,13 +5053,12 @@ self.Spells = {
 	["NocturneDuskbringer"]={charName="Nocturne",slot=0,type="Line",delay=0.25,range=1125,radius=60,speed=1400,addHitbox=true,danger=2,dangerous=false,proj="NocturneDuskbringer",killTime=0,displayname="Duskbringer",mcollision=false},
 	["JavelinToss"]={charName="Nidalee",slot=0,type="Line",delay=0.25,range=1500,radius=40,speed=1300,addHitbox=true,danger=3,dangerous=true,proj="JavelinToss",killTime=0,displayname="JavelinToss",mcollision=true},
 	["OlafAxeThrowCast"]={charName="Olaf",slot=0,type="Line",delay=0.25,range=1000,radius=105,speed=1600,addHitbox=true,danger=2,dangerous=false,proj="olafaxethrow",killTime=0,displayname="Axe Throw",mcollision=false},
-	["OriannasQ"]={charName="Orianna",slot=0,type="Line",delay=0,range=1500,radius=80,speed=1200,addHitbox=true,danger=2,dangerous=false,proj="orianaizuna",killTime=0,displayname="",mcollision=false},
-	["OriannaQend"]={charName="Orianna",slot=0,type="Circle",delay=0,range=1500,radius=90,speed=1200,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=0.1,displayname="",mcollision=false},
+	["OriannaIzunaCommand"]={charName="Orianna",slot=0,type="Line",delay=0,range=1500,radius=80,speed=1200,addHitbox=true,danger=2,dangerous=false,proj="orianaizuna",killTime=0,displayname="",mcollision=false},
 	["OrianaDissonanceCommand-"]={charName="Orianna",slot=1,type="Circle",delay=0.25,range=0,radius=255,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="OrianaDissonanceCommand-",killTime=0.3,displayname="",mcollision=false},
 	["OriannasE"]={charName="Orianna",slot=2,type="Line",delay=0,range=1500,radius=85,speed=1850,addHitbox=true,danger=2,dangerous=false,proj="orianaredact",killTime=0,displayname="",mcollision=false},
 	["OrianaDetonateCommand-"]={charName="Orianna",slot=3,type="Circle",delay=0.7,range=0,radius=410,speed=math.huge,addHitbox=true,danger=5,dangerous=true,proj="OrianaDetonateCommand-",killTime=0.5,displayname="",mcollision=false},
 	["QuinnQ"]={charName="Quinn",slot=0,type="Line",delay=0,range=1050,radius=60,speed=1550,addHitbox=true,danger=2,dangerous=false,proj="QuinnQ",killTime=0,displayname="",mcollision=true},
-	["PoppyQ"]={charName="Poppy",slot=0,type="Line",delay=0.5,range=430,radius=100,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="PoppyQ",killTime=0,displayname="",mcollision=false},
+	["PoppyQ"]={charName="Poppy",slot=0,type="Line",delay=0.5,range=430,radius=120,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="PoppyQ",killTime=1,displayname="",mcollision=false},
 	["PoppyRSpell"]={charName="Poppy",slot=3,type="Line",delay=0.3,range=1200,radius=100,speed=1600,addHitbox=true,danger=3,dangerous=true,proj="PoppyRMissile",killTime=0,displayname="PoppyR",mcollision=false},
 	["RengarE"]={charName="Rengar",slot=2,type="Line",delay=0.25,range=1000,radius=70,speed=1500,addHitbox=true,danger=3,dangerous=true,proj="RengarEFinal",killTime=0,displayname="",mcollision=true},
 	["reksaiqburrowed"]={charName="RekSai",slot=0,type="Line",delay=0.5,range=1050,radius=60,speed=1550,addHitbox=true,danger=3,dangerous=false,proj="RekSaiQBurrowedMis",killTime=0,displayname="RekSaiQ",mcollision=true},
@@ -5083,7 +5080,7 @@ self.Spells = {
 	["ShyvanaFireball"]={charName="Shyvana",slot=2,type="Line",delay=0.25,range=925,radius=60,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="ShyvanaFireballMissile",killTime=0,displayname="Fireball",mcollision=false},
 	["ShyvanaTransformCast"]={charName="Shyvana",slot=3,type="Line",delay=0.25,range=750,radius=150,speed=1500,addHitbox=true,danger=3,dangerous=true,proj="ShyvanaTransformCast",killTime=0,displayname="Transform Cast",mcollision=false},
 	["shyvanafireballdragon2"]={charName="Shyvana",slot=3,type="Line",delay=0.25,range=925,radius=70,speed=2000,addHitbox=true,danger=3,dangerous=false,proj="ShyvanaFireballDragonFxMissile",killTime=0,displayname="Fireball Dragon",mcollision=false},
-	["SivirQReturn"]={charName="Sivir",slot=0,type="Line",delay=0,range=1075,radius=100,speed=1350,addHitbox=true,danger=2,dangerous=false,proj="SivirQMissileReturn",killTime=0,displayname="SivirQ2",mcollision=false},
+	["SivirQMissileReturn"]={charName="Sivir",slot=0,type="Return",delay=0,range=1075,radius=100,speed=1350,addHitbox=true,danger=2,dangerous=false,proj="SivirQMissileReturn",killTime=0,displayname="SivirQ2",mcollision=false},
 	["SivirQ"]={charName="Sivir",slot=0,type="Line",delay=0.25,range=1075,radius=90,speed=1350,addHitbox=true,danger=2,dangerous=false,proj="SivirQMissile",killTime=0,displayname="SivirQ",mcollision=false},
 	["SkarnerFracture"]={charName="Skarner",slot=2,type="Line",delay=0.35,range=350,radius=70,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="SkarnerFractureMissile",killTime=0,displayname="Fracture",mcollision=false},
 	["SonaR"]={charName="Sona",slot=3,type="Line",delay=0.25,range=900,radius=140,speed=2400,addHitbox=true,danger=5,dangerous=true,proj="SonaR",killTime=0,displayname="Crescendo",mcollision=false},
@@ -5121,9 +5118,9 @@ self.Spells = {
 	["XerathArcaneBarrage2"]={charName="Xerath",slot=1,type="Circle",delay=0.7,range=1000,radius=200,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="XerathArcaneBarrage2",killTime=0.3,displayname="ArcaneBarrage",mcollision=false},
 	["XerathMageSpear"]={charName="Xerath",slot=2,type="Line",delay=0.2,range=1050,radius=60,speed=1400,addHitbox=true,danger=2,dangerous=true,proj="XerathMageSpearMissile",killTime=0,displayname="MageSpear",mcollision=true},
 	["xerathrmissilewrapper"]={charName="Xerath",slot=3,type="Circle",delay=0.7,range=5600,radius=130,speed=math.huge,addHitbox=true,danger=3,dangerous=true,proj="xerathrmissilewrapper",killTime=0.4,displayname="XerathLocusPulse",mcollision=false},
-	["yasuoqw"]={charName="Yasuo",slot=0,type="Line",delay=0.4,range=550,radius=20,speed=math.huge,addHitbox=true,danger=2,dangerous=true,proj="yasuoq",killTime=0,displayname="Steel Tempest 1",mcollision=false},
-	["yasuoq2"]={charName="Yasuo",slot=0,type="Line",delay=0.4,range=550,radius=20,speed=math.huge,addHitbox=true,danger=2,dangerous=true,proj="yasuoq2",killTime=0,displayname="Steel Tempest 2",mcollision=false},
-	["yasuoq3"]={charName="Yasuo",slot=0,type="Line",delay=0.5,range=1200,radius=90,speed=1500,addHitbox=true,danger=3,dangerous=true,proj="yasuoq3w",killTime=0,displayname="Steel Tempest 3",mcollision=false},
+	-- ["YasuoQW"]={charName="Yasuo",slot=0,type="Line",delay=0.4,range=550,radius=20,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="yasuoq",killTime=0,displayname="Steel Tempest 1",mcollision=false}, --undodgeable
+	-- ["YasuoQ2W"]={charName="Yasuo",slot=0,type="Line",delay=0.4,range=550,radius=20,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="yasuoq2",killTime=0,displayname="Steel Tempest 2",mcollision=false},--undodgeable
+	["YasuoQ3W"]={charName="Yasuo",slot=0,type="Line",delay=0.4,range=1200,radius=90,speed=1300,addHitbox=true,danger=3,dangerous=true,proj="yasuoq3w",killTime=0,displayname="Steel Tempest ",mcollision=false},
 	["ZacQ"]={charName="Zac",slot=0,type="Line",delay=0.5,range=550,radius=120,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="ZacQ",killTime=0,displayname="",mcollision=false},
 	["ZedQ"]={charName="Zed",slot=0,type="Line",delay=0.25,range=925,radius=50,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="ZedQMissile",killTime=0,displayname="",mcollision=false},
 	["ZiggsQ"]={charName="Ziggs",slot=0,type="Line",delay=0.5,range=1100,radius=100,speed=1750,addHitbox=true,danger=2,dangerous=false,proj="ZiggsQSpell",killTime=0.2,displayname="",mcollision=true},
@@ -5290,7 +5287,7 @@ function SLEvade:Skillshot()
 end
 
 function SLEvade:Tickp()
-	heroes[myHero.networkID] = myHero
+	heroes[myHero.networkID] = nil
 	for _,i in pairs(self.obj) do
 		if i.o and EMenu.Advanced.LDR:Value() and i.spell.type == "Line" and GetDistance(myHero,i.o) >= 3000 and not self.globalults[_] then return end
 		if i.p and EMenu.Advanced.LDR:Value() and i.spell.type == "Circle" and GetDistance(myHero,i.p.endPos) >= 3000 and not self.globalults[_] then return end
@@ -5356,7 +5353,7 @@ function SLEvade:Drawp()
 end
 
 function SLEvade:MinionCollision(_,i)
-		if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EMC:Value() and (i.debug or EMenu.Spells[_]["mColl".._]:Value()) then
+		if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EMC:Value() and (i.debug or EMenu.Spells[_]["Coll".._]:Value()) then
 			for m,p in pairs(minionManager.objects) do
 				local vI = nil 
 				local helperVec = nil
@@ -5389,7 +5386,7 @@ function SLEvade:MinionCollision(_,i)
 end
 
 function SLEvade:HeroCollsion(_,i)
-		if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EHC:Value() and (i.debug or EMenu.Spells[_]["hColl".._]:Value()) then
+		if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EHC:Value() and (i.debug or EMenu.Spells[_]["Coll".._]:Value()) then
 			for m,p in pairs(heroes) do
 				local vI = nil 
 				local helperVec = nil
@@ -5422,7 +5419,7 @@ function SLEvade:HeroCollsion(_,i)
 end
 
 function SLEvade:WallCollision(_,i)
-		if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EWC:Value() and (i.debug or EMenu.Spells[_]["wColl".._]:Value()) then
+		if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EWC:Value() and (i.debug or EMenu.Spells[_]["Coll".._]:Value()) then
 			if self.YasuoWall then
 				for m,p in pairs(self.YasuoWall) do
 					local vI = nil 
@@ -5458,7 +5455,7 @@ end
 
 function SLEvade:sObjpos(_,i)
 	if i.spell.speed ~= math.huge and i.p then
-		return i.p.startPos+Vector(Vector(self.endposs)-i.p.startPos):normalized()*(i.spell.speed*(os.clock()-i.spell.delay-i.startTime) + i.spell.radius+myHero.boundingRadius)
+		return i.p.startPos+Vector(Vector(self.endposs)-i.p.startPos):normalized()*(i.spell.speed*(os.clock()-i.startTime) + i.spell.radius+myHero.boundingRadius)
 	else
 		return Vector(i.p.startPos)
 	end
@@ -5556,6 +5553,16 @@ function SLEvade:Mpos(_,i)
 			self.mposs4 = nil
 			i.mpos = nil
 		end
+	elseif i.spell.type == "Return" then
+		if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe then
+			if not i.mpos and not self.mposs2 then
+				i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+				self.mposs2 = GetMousePos()
+			end	
+		else
+			self.mposs2 = nil
+			i.mpos = nil
+		end
 	end
 end
 
@@ -5589,141 +5596,304 @@ function SLEvade:UDodge(_,i)
 		else
 			i.uDodge = false
 		end
+	elseif i.safe and i.spell.type == "Return" and i.o then
+		if GetDistance(i.o.pos)/i.spell.speed  < (GetDistance(i.safe)*.7)/myHero.ms then 
+				i.uDodge = true 
+			else
+				i.uDodge = false
+		end
 	end
 end
 
 function SLEvade:Pathfinding(_,i)
-	DelayAction(function()
-		if i.spell.type == "Line" and i.p then
-				i.p.startPos = Vector(i.p.startPos)
-				i.p.endPos = Vector(self.endposs)
-			if GetDistance(i.p.startPos) < i.spell.range + myHero.boundingRadius and GetDistance(self.endposs) < i.spell.range + myHero.boundingRadius then
-				local v3 = Vector(myHero)
-				local jp = VectorPointProjectionOnLineSegment(Vector(self.opos)-Vector(275,0,0),i.p.endPos,v3)
-				i.jp = jp
-				if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe and i.mpos and not i.coll then
-					self.asd = true
-					self.patha = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
-					self.patha2 = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1)
-					if self.mposs2 and GetDistance(self.mposs2,self.patha) > GetDistance(self.mposs2,self.patha2) then
-						if not MapPosition:inWall(self.patha2) then
-								i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1)
-							else 
-								i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
-						end
-					else
+	if EMenu.Spells[_]["ffe".._]:Value() then
+		DelayAction(function()
+			if i.spell.type == "Line" and i.p then
+					i.p.startPos = Vector(i.p.startPos)
+					i.p.endPos = Vector(self.endposs)
+				if GetDistance(i.p.startPos) < i.spell.range + myHero.boundingRadius and GetDistance(self.endposs) < i.spell.range + myHero.boundingRadius then
+					local v3 = Vector(myHero)
+					local jp = VectorPointProjectionOnLineSegment(Vector(self.opos)-Vector(275,0,0),i.p.endPos,v3)
+					i.jp = jp
+					if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe then
+						self.asd = true
+						self.patha = Vector(myHero)+Vector(Vector(myHero)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
 						if not MapPosition:inWall(self.patha) then
-								i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
-						else 
-							i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+								i.safe = Vector(myHero)+Vector(Vector(myHero)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+							else 
+								i.safe = Vector(myHero)+Vector(Vector(myHero)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1)
 						end
+						i.isEvading = true
+					else
+						self.asd = false
+						self.patha = nil
+						self.patha2 = nil
+						i.isEvading = false
+						DisableHoldPosition(false)
+						DisableAll(false)
 					end
-					i.isEvading = true
-				else
-					self.asd = false
-					self.patha = nil
-					self.patha2 = nil
-					i.isEvading = false
-					DisableHoldPosition(false)
-					DisableAll(false)
 				end
-			end
-		elseif i.spell.type == "Circle" then
-			if GetDistance(myHero,i.p.endPos) < i.spell.radius + myHero.boundingRadius and not i.safe and i.mpos then
-				self.asd = true
-				self.pathb = Vector(i.p.endPos) + (GetOrigin(myHero) - Vector(i.p.endPos)):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1)
-				self.pathb2 = Vector(i.p.endPos) + (Vector(i.mpos) - Vector(i.p.endPos)):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1)
-				if self.mposs and GetDistance(self.mposs,self.pathb) > GetDistance(self.mposs,self.pathb2) then
-					if not MapPosition:inWall(self.pathb2) then
-							i.safe = Vector(i.p.endPos) + (Vector(i.mpos) - Vector(i.p.endPos)):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1)
-						else
-							i.safe = i.p.endPos + Vector(self.pathb2-i.p.endPos):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1)
-					end
-				else
+			elseif i.spell.type == "Circle" then
+				if GetDistance(myHero,i.p.endPos) < i.spell.radius + myHero.boundingRadius and not i.safe then
+					self.asd = true
+					self.pathb = Vector(i.p.endPos) + (GetOrigin(myHero) - Vector(i.p.endPos)):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1)
 					if not MapPosition:inWall(self.pathb) then
 							i.safe = Vector(i.p.endPos) + (GetOrigin(myHero) - Vector(i.p.endPos)):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1)
 						else
 							i.safe = i.p.endPos + Vector(self.pathb-i.p.endPos):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1)
 					end
-				end
-				i.isEvading = true
-			else
-				self.asd = false
-				self.pathb = nil
-				self.pathb2 = nil
-				i.isEvading = false
-				DisableHoldPosition(false)
-				DisableAll(false)
-			end
-		elseif i.spell.type == "Rectangle" then
-			local startp = Vector(i.p.endPos) - (Vector(i.p.endPos) - Vector(i.p.startPos)):normalized():perpendicular() * (i.spell.radius2 or 400)
-			local endp = Vector(i.p.endPos) + (Vector(i.p.endPos) - Vector(i.p.startPos)):normalized():perpendicular() * (i.spell.radius2 or 400)
-			if GetDistance(startp) < i.spell.range + myHero.boundingRadius and GetDistance(endp) < i.spell.range + myHero.boundingRadius then
-				local v3 = Vector(myHero)
-				local jp = VectorPointProjectionOnLineSegment(startp,endp,v3)
-				i.jp = jp
-				if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe and i.mpos then
-					self.asd = true
-					self.pathc = Vector(i.mpos)+Vector(startp-endp):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
-					self.pathc2 = Vector(i.mpos)+Vector(startp-endp):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1)
-					if self.mposs3 and GetDistance(self.mposs3,self.pathc) > GetDistance(self.mposs3,self.pathc2) then
-						if not MapPosition:inWall(self.pathc2) then
-								i.safe = Vector(i.mpos)+Vector(startp-endp):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1)
-							else
-								i.safe = i.p.endPos + Vector(self.pathc-i.p.endPos):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1)
-						end
-					else
-						if not MapPosition:inWall(self.pathc) then
-								i.safe = Vector(i.mpos)+Vector(startp-endp):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
-							else
-								i.safe = i.p.endPos + Vector(self.pathc-i.p.endPos):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1)
-						end					
-					end
 					i.isEvading = true
+				else
+					self.asd = false
+					self.pathb = nil
+					self.pathb2 = nil
+					i.isEvading = false
+					DisableHoldPosition(false)
+					DisableAll(false)
 				end
-			else
-				self.asd = false
-				self.pathc = nil
-				i.isEvading = false
-				DisableHoldPosition(false)
-				DisableAll(false)
-			end
-		elseif i.spell.type == "Cone" then
-				i.p.startPos = Vector(i.p.startPos)
-				i.p.endPos = Vector(self.endposs)
-			if GetDistance(i.p.startPos) < i.spell.range + myHero.boundingRadius and GetDistance(self.endposs) < i.spell.range + myHero.boundingRadius then
-				local v3 = Vector(myHero)
-				local jp = VectorPointProjectionOnLineSegment(i.p.startPos,i.p.endPos,v3)
-				i.jp = jp
-				if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe and i.mpos and not i.coll then
-					self.asd = true
-					self.patha = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
-					self.patha2 = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1)
-					if self.mposs2 and GetDistance(self.mposs2,self.patha) > GetDistance(self.mposs2,self.patha2) then
-						if not MapPosition:inWall(self.patha2) then
-								i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+			elseif i.spell.type == "Rectangle" then
+				local startp = Vector(i.p.endPos) - (Vector(i.p.endPos) - Vector(i.p.startPos)):normalized():perpendicular() * (i.spell.radius2 or 400)
+				local endp = Vector(i.p.endPos) + (Vector(i.p.endPos) - Vector(i.p.startPos)):normalized():perpendicular() * (i.spell.radius2 or 400)
+				if GetDistance(startp) < i.spell.range + myHero.boundingRadius and GetDistance(endp) < i.spell.range + myHero.boundingRadius then
+					local v3 = Vector(myHero)
+					local jp = VectorPointProjectionOnLineSegment(startp,endp,v3)
+					i.jp = jp
+					if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe and i.mpos then
+						self.asd = true
+						self.pathc = Vector(i.mpos)+Vector(startp-endp):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+						if not MapPosition:inWall(self.pathc) then
+								i.safe = Vector(myHero)+Vector(startp-endp):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+							else
+								i.safe =  Vector(myHero)+Vector(startp-endp):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+						end
+						i.isEvading = true
+					end
+				else
+					self.asd = false
+					self.pathc = nil
+					i.isEvading = false
+					DisableHoldPosition(false)
+					DisableAll(false)
+				end
+			elseif i.spell.type == "Cone" then
+					i.p.startPos = Vector(i.p.startPos)
+					i.p.endPos = Vector(self.endposs)
+				if GetDistance(i.p.startPos) < i.spell.range + myHero.boundingRadius and GetDistance(self.endposs) < i.spell.range + myHero.boundingRadius then
+					local v3 = Vector(myHero)
+					local jp = VectorPointProjectionOnLineSegment(i.p.startPos,i.p.endPos,v3)
+					i.jp = jp
+					if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe then
+						self.asd = true
+						self.patha = Vector(myHero)+Vector(Vector(myHero)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+						if not MapPosition:inWall(self.patha) then
+								i.safe = Vector(myHero)+Vector(Vector(myHero)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
 							else 
-								i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+								i.safe = Vector(myHero)+Vector(Vector(myHero)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+						end
+						i.isEvading = true
+					else
+						self.asd = false
+						self.patha = nil
+						self.patha2 = nil
+						i.isEvading = false
+						DisableHoldPosition(false)
+						DisableAll(false)
+					end
+				end
+			elseif i.spell.type == "Return" and i.o then
+					i.p.startPos = Vector(i.p.startPos)
+					i.p.endPos = Vector(i.caster.pos)
+				if GetDistance(i.p.startPos) < i.spell.range + myHero.boundingRadius and GetDistance(self.endposs) < i.spell.range + myHero.boundingRadius then
+					local v3 = Vector(myHero)
+					local jp = VectorPointProjectionOnLineSegment(Vector(i.o.pos),i.p.endPos,v3)
+					i.jp = jp
+					if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe then
+						self.asd = true
+						self.patha = Vector(myHero)+Vector(Vector(myHero)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+						if not MapPosition:inWall(self.patha) then
+								i.safe = Vector(myHero)+Vector(Vector(myHero)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+							else 
+								i.safe = Vector(myHero)+Vector(Vector(myHero)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+						end
+						i.isEvading = true
+					else
+						self.asd = false
+						self.patha = nil
+						self.patha2 = nil
+						i.isEvading = false
+						DisableHoldPosition(false)
+						DisableAll(false)
+					end
+				end
+			end
+		end,(math.random(0,EMenu.DS.rd:Value()))*.01)
+	else
+		DelayAction(function()
+			if i.spell.type == "Line" and i.p then
+					i.p.startPos = Vector(i.p.startPos)
+					i.p.endPos = Vector(self.endposs)
+				if GetDistance(i.p.startPos) < i.spell.range + myHero.boundingRadius and GetDistance(self.endposs) < i.spell.range + myHero.boundingRadius then
+					local v3 = Vector(myHero)
+					local jp = VectorPointProjectionOnLineSegment(Vector(self.opos)-Vector(275,0,0),i.p.endPos,v3)
+					i.jp = jp
+					if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe and i.mpos and not i.coll then
+						self.asd = true
+						self.patha = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+						self.patha2 = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+						if self.mposs2 and GetDistance(self.mposs2,self.patha) > GetDistance(self.mposs2,self.patha2) then
+							if not MapPosition:inWall(self.patha2) then
+									i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+								else 
+									i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+							end
+						else
+							if not MapPosition:inWall(self.patha) then
+									i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+							else 
+								i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+							end
+						end
+						i.isEvading = true
+					else
+						self.asd = false
+						self.patha = nil
+						self.patha2 = nil
+						i.isEvading = false
+						DisableHoldPosition(false)
+						DisableAll(false)
+					end
+				end
+			elseif i.spell.type == "Circle" then
+				if GetDistance(myHero,i.p.endPos) < i.spell.radius + myHero.boundingRadius and not i.safe and i.mpos then
+					self.asd = true
+					self.pathb = Vector(i.p.endPos) + (GetOrigin(myHero) - Vector(i.p.endPos)):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+					self.pathb2 = Vector(i.p.endPos) + (Vector(i.mpos) - Vector(i.p.endPos)):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+					if self.mposs and GetDistance(self.mposs,self.pathb) > GetDistance(self.mposs,self.pathb2) then
+						if not MapPosition:inWall(self.pathb2) then
+								i.safe = Vector(i.p.endPos) + (Vector(i.mpos) - Vector(i.p.endPos)):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+							else
+								i.safe = i.p.endPos + Vector(self.pathb2-i.p.endPos):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1)
 						end
 					else
-						if not MapPosition:inWall(self.patha) then
-								i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
-						else 
-							i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+						if not MapPosition:inWall(self.pathb) then
+								i.safe = Vector(i.p.endPos) + (GetOrigin(myHero) - Vector(i.p.endPos)):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+							else
+								i.safe = i.p.endPos + Vector(self.pathb-i.p.endPos):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1)
 						end
 					end
 					i.isEvading = true
 				else
 					self.asd = false
-					self.patha = nil
-					self.patha2 = nil
+					self.pathb = nil
+					self.pathb2 = nil
 					i.isEvading = false
 					DisableHoldPosition(false)
 					DisableAll(false)
 				end
+			elseif i.spell.type == "Rectangle" then
+				local startp = Vector(i.p.endPos) - (Vector(i.p.endPos) - Vector(i.p.startPos)):normalized():perpendicular() * (i.spell.radius2 or 400)
+				local endp = Vector(i.p.endPos) + (Vector(i.p.endPos) - Vector(i.p.startPos)):normalized():perpendicular() * (i.spell.radius2 or 400)
+				if GetDistance(startp) < i.spell.range + myHero.boundingRadius and GetDistance(endp) < i.spell.range + myHero.boundingRadius then
+					local v3 = Vector(myHero)
+					local jp = VectorPointProjectionOnLineSegment(startp,endp,v3)
+					i.jp = jp
+					if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe and i.mpos then
+						self.asd = true
+						self.pathc = Vector(i.mpos)+Vector(startp-endp):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+						self.pathc2 = Vector(i.mpos)+Vector(startp-endp):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+						if self.mposs3 and GetDistance(self.mposs3,self.pathc) > GetDistance(self.mposs3,self.pathc2) then
+							if not MapPosition:inWall(self.pathc2) then
+									i.safe = Vector(i.mpos)+Vector(startp-endp):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+								else
+									i.safe = i.p.endPos + Vector(self.pathc-i.p.endPos):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+							end
+						else
+							if not MapPosition:inWall(self.pathc) then
+									i.safe = Vector(i.mpos)+Vector(startp-endp):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+								else
+									i.safe = i.p.endPos + Vector(self.pathc-i.p.endPos):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+							end					
+						end
+						i.isEvading = true
+					end
+				else
+					self.asd = false
+					self.pathc = nil
+					i.isEvading = false
+					DisableHoldPosition(false)
+					DisableAll(false)
+				end
+			elseif i.spell.type == "Cone" then
+					i.p.startPos = Vector(i.p.startPos)
+					i.p.endPos = Vector(self.endposs)
+				if GetDistance(i.p.startPos) < i.spell.range + myHero.boundingRadius and GetDistance(self.endposs) < i.spell.range + myHero.boundingRadius then
+					local v3 = Vector(myHero)
+					local jp = VectorPointProjectionOnLineSegment(i.p.startPos,i.p.endPos,v3)
+					i.jp = jp
+					if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe and i.mpos and not i.coll then
+						self.asd = true
+						self.patha = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+						self.patha2 = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+						if self.mposs2 and GetDistance(self.mposs2,self.patha) > GetDistance(self.mposs2,self.patha2) then
+							if not MapPosition:inWall(self.patha2) then
+									i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+								else 
+									i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+							end
+						else
+							if not MapPosition:inWall(self.patha) then
+									i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+							else 
+								i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+							end
+						end
+						i.isEvading = true
+					else
+						self.asd = false
+						self.patha = nil
+						self.patha2 = nil
+						i.isEvading = false
+						DisableHoldPosition(false)
+						DisableAll(false)
+					end
+				end
+			elseif i.spell.type == "Return" and i.o then
+					i.p.startPos = Vector(i.p.startPos)
+					i.p.endPos = Vector(i.caster.pos)
+				if GetDistance(i.p.startPos) < i.spell.range + myHero.boundingRadius and GetDistance(self.endposs) < i.spell.range + myHero.boundingRadius then
+					local v3 = Vector(myHero)
+					local jp = VectorPointProjectionOnLineSegment(Vector(i.o.pos),i.p.endPos,v3)
+					i.jp = jp
+					if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe and i.mpos and not i.coll then
+						self.asd = true
+						self.patha = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+						self.patha2 = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+						if self.mposs2 and GetDistance(self.mposs2,self.patha) > GetDistance(self.mposs2,self.patha2) then
+							if not MapPosition:inWall(self.patha2) then
+									i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+								else 
+									i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+							end
+						else
+							if not MapPosition:inWall(self.patha) then
+									i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+							else 
+								i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+							end
+						end
+						i.isEvading = true
+					else
+						self.asd = false
+						self.patha = nil
+						self.patha2 = nil
+						i.isEvading = false
+						DisableHoldPosition(false)
+						DisableAll(false)
+					end
+				end
 			end
-		end
-	end,(math.random(0,EMenu.DS.rd:Value()))*.01)
+		end,(math.random(0,EMenu.DS.rd:Value()))*.01)
+	end
 end
 
 function SLEvade:Drawings(_,i)
@@ -5747,6 +5917,15 @@ function SLEvade:Drawings(_,i)
 				DrawRectangle(i.p.startPos,i.p.endPos,i.spell.radius+myHero.boundingRadius,i.spell.radius2,EMenu.Draws.SD.t:Value()+0.5,EMenu.Draws.SD.c:Value())
 			elseif i.spell.type == "Cone" and not EMenu.Keys.DDraws:Value() then
 				DrawCone(i.p.startPos,Vector(self.endposs),i.spell.angle or 40,EMenu.Draws.SD.t:Value()+0.5,EMenu.Draws.SD.c:Value())
+			elseif i.spell.type == "Return" and not EMenu.Keys.DDraws:Value() and i.o then
+				local sPos = Vector(i.o.pos)
+				local ePos = Vector(i.caster.pos)
+				if EMenu.Draws.DSPath:Value() then
+					dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius, EMenu.Draws.SD.t:Value(), EMenu.Draws.SD.c:Value())
+					if EMenu.Draws.DSEW:Value() then
+						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, EMenu.Draws.SD.t:Value()+0.5, EMenu.Draws.SD.c:Value())
+					end
+				end	
 			end
 		end
 		if i.jp and (GetDistance(myHero,i.jp) > i.spell.radius + myHero.boundingRadius) and i.safe and i.spell.type == "Line" then
@@ -5867,21 +6046,25 @@ end
 
 function SLEvade:BlockMov(order)
 	for _,i in pairs(self.obj) do
-		if order.flag ~= 3 then
+		if order.flag ~= 3 and order.position then
 			if i.jp and i.spell.type == "Line" then
-				if (GetDistance(self:Position(),i.jp) < ((i.spell.radius + myHero.boundingRadius)*1.1)) and not i.safe then
+				if (GetDistance(order.position,i.jp) < ((i.spell.radius + myHero.boundingRadius)*1.1)) and not i.safe then
 					BlockOrder()
 				end
 			elseif i.p and i.spell.type == "Circle" then
-				if (GetDistance(self:Position(),i.p.endPos) < ((i.spell.radius + myHero.boundingRadius)*1.1)) and not i.safe then
+				if (GetDistance(order.position,i.p.endPos) < ((i.spell.radius + myHero.boundingRadius)*1.1)) and not i.safe then
 					BlockOrder()
 				end
 			elseif i.jp and i.spell.type == "Rectangle" then
-				if (GetDistance(self:Position(),i.jp) < ((i.spell.radius + myHero.boundingRadius)*1.1)) and not i.safe then
+				if (GetDistance(order.position,i.jp) < ((i.spell.radius + myHero.boundingRadius)*1.1)) and not i.safe then
 					BlockOrder()
 				end
 			elseif i.jp and i.spell.type == "Cone" then
-				if (GetDistance(self:Position(),i.jp) < ((i.spell.radius + myHero.boundingRadius)*1.1)) and not i.safe then
+				if (GetDistance(order.position,i.jp) < ((i.spell.radius + myHero.boundingRadius)*1.1)) and not i.safe then
+					BlockOrder()
+				end
+			elseif i.jp and i.spell.type == "Return" then
+				if (GetDistance(order.position,i.jp) < ((i.spell.radius + myHero.boundingRadius)*1.1)) and not i.safe then
 					BlockOrder()
 				end
 			end
@@ -5890,12 +6073,13 @@ function SLEvade:BlockMov(order)
 end
 
 function SLEvade:CreateObject(obj)
+	-- if obj and obj.isSpell and obj.spellOwner.isMe and obj.spellOwner.team == MINION_ALLY then
 	if obj and obj.isSpell and obj.spellOwner.isHero and obj.spellOwner.team == MINION_ENEMY then
 		if EMenu.Draws.DevOpt:Value() then
 			print(obj.spellName)
 		end
 		for _,l in pairs(self.Spells) do
-			if self.Spells[obj.spellName] and EMenu.Spells[obj.spellName] and EMenu.d:Value() <= EMenu.Spells[obj.spellName]["d"..obj.spellName]:Value() and (l.proj == obj.spellName or _ == obj.spellName or obj.spellName:lower():find(_:lower()) or obj.spellName:lower():find(l.proj:lower())) then
+			if not self.obj[obj.spellName] and self.Spells[obj.spellName] and EMenu.Spells[obj.spellName] and EMenu.d:Value() <= EMenu.Spells[obj.spellName]["d"..obj.spellName]:Value() and (l.proj == obj.spellName or _ == obj.spellName or obj.spellName:lower():find(_:lower()) or obj.spellName:lower():find(l.proj:lower())) then
 				if not self.obj[obj.spellName] then self.obj[obj.spellName] = {} end
 				self.obj[obj.spellName].o = obj
 				self.obj[obj.spellName].caster = obj.spellOwner
@@ -5913,6 +6097,7 @@ function SLEvade:CreateObject(obj)
 end
 
 function SLEvade:Detection(unit,spellProc)
+	-- if unit and unit.isMe and unit.team == MINION_ALLY then
 	if unit and unit.isHero and unit.team == MINION_ENEMY then
 		if EMenu.Draws.DevOpt:Value() then
 			print(spellProc.name)
@@ -5925,9 +6110,11 @@ function SLEvade:Detection(unit,spellProc)
 				self.obj[spellProc.name].caster = unit
 				self.obj[spellProc.name].mpos = nil
 				self.obj[spellProc.name].uDodge = nil
-				self.obj[spellProc.name].startTime = os.clock()
+				self.obj[spellProc.name].startTime = os.clock()+l.delay
 				if l.killTime and l.type == "Circle" then
 					DelayAction(function() self.obj[spellProc.name] = nil end, l.killTime + GetDistance(unit,spellProc.endPos)/l.speed + l.delay)
+				elseif l.killTime > 0 and l.type ~= "Circle" then
+					DelayAction(function() self.obj[spellProc.name] = nil end, l.killTime + 1.3*GetDistance(myHero.pos,spellProc.startPos)/l.speed+l.delay)
 				else
 					DelayAction(function() self.obj[spellProc.name] = nil end, l.range/l.speed + l.delay/2)
 				end
