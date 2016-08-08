@@ -5480,7 +5480,7 @@ function SLEvade:HeroCollsion(_,i)
 			if p and p.team ~= MINION_ENEMY and p.alive and GetDistance(p.pos,start) < i.spell.range then
 				helperVec = Vector(endpos - start):perpendicular()
 				vI = Vector(VectorIntersection(endpos,start,p.pos,helperVec).x,myHero.pos.y,VectorIntersection(endpos,start,p.pos,helperVec).y)
-				if GetDistance(vI,p.obj.pos) < i.spell.radius then
+				if GetDistance(vI,p.pos) < i.spell.radius then
 					if GetDistance(vI,start) < cDist then
 						cDist = GetDistance(start,vI)
 					end
@@ -5514,7 +5514,7 @@ function SLEvade:WallCollision(_,i)
 				if p.obj.spellOwner.team == myHero.team and p.obj and GetDistance(p.obj.pos,start) < i.spell.range then
 					helperVec = Vector(endpos - start):perpendicular()
 					vI = Vector(VectorIntersection(endpos,start,p.obj.pos,helperVec).x,myHero.pos.y,VectorIntersection(endpos,start,p.obj.pos,helperVec).y)
-					if GetDistance(vI,p.pos) < i.spell.radius then
+					if GetDistance(vI,p.obj.pos) < i.spell.radius then
 						if GetDistance(vI,start) < cDist then
 							cDist = GetDistance(start,vI)
 						end
