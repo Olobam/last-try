@@ -5350,7 +5350,7 @@ function SLEvade:Skillshot()
 		s.spell.danger = 2
 		s.spell.displayname = "DarkBinding"
         s.spell.killTime = 0.25
-        s.spell.mcollision = true	
+        s.spell.mcollision = false	
         s.spell.dangerous = false
         s.spell.radius = 80
         s.spell.speed = 1200
@@ -5668,7 +5668,7 @@ function SLEvade:UDodge(_,i)
 			self.DodgeOnlyDangerous = false
 	end
 	if i.safe and i.spell.type == "Line" then
-		if GetDistance(self.opos)/i.spell.speed + i.spell.delay < (GetDistance(i.safe)*.7)/myHero.ms then 
+		if GetDistance(self.opos)/i.spell.speed + i.spell.delay < GetDistance(i.safe)/myHero.ms then 
 				i.uDodge = true 
 			else
 				i.uDodge = false
@@ -5692,13 +5692,13 @@ function SLEvade:UDodge(_,i)
 			i.uDodge = false
 		end
 	elseif i.safe and i.spell.type == "Return" and i.o then
-		if GetDistance(i.o.pos)/i.spell.speed  < (GetDistance(i.safe)*.7)/myHero.ms then 
+		if GetDistance(i.o.pos)/i.spell.speed  < GetDistance(i.safe)/myHero.ms then 
 				i.uDodge = true 
 			else
 				i.uDodge = false
 		end
 	elseif i.safe and i.spell.type == "follow" then
-		if GetDistance(i.caster.pos)/i.spell.speed  < (GetDistance(i.safe)*.7)/myHero.ms then 
+		if GetDistance(i.caster.pos)/i.spell.speed + i.spell.delay < GetDistance(i.safe)/myHero.ms then 
 				i.uDodge = true 
 			else
 				i.uDodge = false
@@ -6038,7 +6038,7 @@ function SLEvade:Pathfinding(_,i)
 							end
 						else
 							if not MapPosition:inWall(self.patha) then
-									i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+								i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular() * ((i.spell.radius + myHero.boundingRadius)*1.1)
 							else 
 								i.safe = Vector(i.mpos)+Vector(Vector(i.mpos)-i.p.endPos):normalized():perpendicular2() * ((i.spell.radius + myHero.boundingRadius)*1.1)
 							end
