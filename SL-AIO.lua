@@ -5129,6 +5129,7 @@ self.Spells = {
 	["NamiQ"]={charName="Nami",slot=0,type="Circle",delay=0.95,range=1625,radius=200,speed=math.huge,addHitbox=true,danger=3,dangerous=true,proj="NamiQMissile",killTime=0.35,displayname="",mcollision=false},
 	["NamiR"]={charName="Nami",slot=3,type="Line",delay=1,range=2750,radius=260,speed=850,addHitbox=true,danger=2,dangerous=false,proj="NamiRMissile",killTime=0,displayname="",mcollision=false},
 	["NautilusAnchorDrag"]={charName="Nautilus",slot=0,type="Line",delay=0.25,range=1080,radius=90,speed=2000,addHitbox=true,danger=3,dangerous=true,proj="NautilusAnchorDragMissile",killTime=0,displayname="Anchor Drag",mcollision=true},
+	["AbsoluteZero"]={charName="Nunu",slot=3,type="Circle",delay=0.25,range=0,radius=750,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=4,displayname="",mcollision=false},
 	["NocturneDuskbringer"]={charName="Nocturne",slot=0,type="Line",delay=0.25,range=1125,radius=60,speed=1400,addHitbox=true,danger=2,dangerous=false,proj="NocturneDuskbringer",killTime=0,displayname="Duskbringer",mcollision=false},
 	["JavelinToss"]={charName="Nidalee",slot=0,type="Line",delay=0.25,range=1500,radius=40,speed=1300,addHitbox=true,danger=3,dangerous=true,proj="JavelinToss",killTime=0,displayname="JavelinToss",mcollision=true},
 	["OlafAxeThrowCast"]={charName="Olaf",slot=0,type="Line",delay=0.25,range=1000,radius=105,speed=1600,addHitbox=true,danger=2,dangerous=false,proj="olafaxethrow",killTime=0,displayname="Axe Throw",mcollision=false},
@@ -5174,7 +5175,7 @@ self.Spells = {
 	["ThreshQ"]={charName="Thresh",slot=0,type="Line",delay=0.5,range=1050,radius=70,speed=1900,addHitbox=true,danger=3,dangerous=true,proj="ThreshQMissile",killTime=0,displayname="",mcollision=true},
 	["ThreshEFlay"]={charName="Thresh",slot=2,type="Line",delay=0.125,range=500,radius=110,speed=2000,addHitbox=true,danger=3,dangerous=true,proj="ThreshEMissile1",killTime=0,displayname="Flay",mcollision=false},
 	["RocketJump"]={charName="Tristana",slot=1,type="Circle",delay=0.5,range=900,radius=270,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="RocketJump",killTime=0.3,displayname="",mcollision=false},
-	["slashCast"]={charName="Tryndamere",slot=2,type="Line",delay=0,range=660,radius=93,speed=1300,addHitbox=true,danger=2,dangerous=false,proj="slashCast",killTime=0,displayname="",mcollision=false},
+	["TryndamereE"]={charName="Tryndamere",slot=2,type="Line",delay=0,range=700,radius=93,speed=1000,addHitbox=true,danger=2,dangerous=false,proj="Slash",killTime=0.5,displayname="",mcollision=false},
 	["WildCards"]={charName="TwistedFate",slot=0,type="Line",delay=0.25,range=1450,radius=40,speed=1000,angle=28,addHitbox=true,danger=2,dangerous=false,proj="SealFateMissile",killTime=0,displayname="",mcollision=false},
 	["TwitchVenomCask"]={charName="Twitch",slot=1,type="Circle",delay=0.25,range=900,radius=275,speed=1400,addHitbox=true,danger=2,dangerous=false,proj="TwitchVenomCaskMissile",killTime=0.3,displayname="Venom Cask",mcollision=false},
 	["TwitchSprayAndPrayAttack"]={charName="Twitch",slot=3,type="Line",delay=0.1,range=1200,radius=100,speed=1800,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=0.5,displayname="Venom Cask",mcollision=false},
@@ -5747,6 +5748,11 @@ function SLEvade:Pathfinding(_,i)
 					end
 				end
 			elseif i.spell.type == "Circle" then
+				if _ == "AbsoluteZero" then
+					i.p.endPos = Vector(i.caster.pos)
+				else
+					i.p.endPos = Vector(i.p.endPos)
+				end
 				if GetDistance(myHero,i.p.endPos) < i.spell.radius + myHero.boundingRadius and not i.safe then
 					self.asd = true
 					self.pathb = Vector(i.p.endPos) + (GetOrigin(myHero) - Vector(i.p.endPos)):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1)
@@ -5926,6 +5932,11 @@ function SLEvade:Pathfinding(_,i)
 					end
 				end
 			elseif i.spell.type == "Circle" then
+				if _ == "AbsoluteZero" then
+					i.p.endPos = Vector(i.caster.pos)
+				else
+					i.p.endPos = Vector(i.p.endPos)
+				end
 				if GetDistance(myHero,i.p.endPos) < i.spell.radius + myHero.boundingRadius and not i.safe and i.mpos then
 					self.asd = true
 					self.pathb = Vector(i.p.endPos) + (GetOrigin(myHero) - Vector(i.p.endPos)):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1)
@@ -6106,6 +6117,11 @@ function SLEvade:Drawings(_,i)
 					end
 				end			
 			elseif i.spell.type == "Circle" and not EMenu.Keys.DDraws:Value() then
+				if _ == "AbsoluteZero" then
+					i.p.endPos = Vector(i.caster.pos)
+				else
+					i.p.endPos = Vector(i.p.endPos)
+				end
 				if EMenu.Draws.DSPath:Value() then
 					DrawCircle(i.p.endPos,i.spell.radius,EMenu.Draws.SD.t:Value()+0.5,20,EMenu.Draws.SD.c:Value())	
 					-- DrawCircle(i.p.endPos,self.cpos,EMenu.Draws.SD.t:Value()+0.5,20,GoS.Yellow)
