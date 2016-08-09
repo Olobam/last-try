@@ -383,7 +383,7 @@ function Recommend:__init()
 	[2] = {Name = "Recall Tracker",	Link = "https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/RecallTracker.lua",	       		Author = "Noddy",	File = "RecallTracker"},
 	[3] = {Name = "GoSEvade",       Link = "https://raw.githubusercontent.com/KeVuong/GoS/master/Evade.lua",                   		Author = "MeoBeo",	File = "Evade"},
 	[4] = {Name = "ChallengerEvade",Link = "https://raw.githubusercontent.com/D3ftsu/GoS/master/ChallengerEvade.lua",      			Author = "Deftsu",	File = "ChallengerEvade"},
-	-- [5] = {Name = "NEET´s Tracker", Link = "https://raw.githubusercontent.com/VTNEETS/NEET-Scripts/master/NEET%27s%20Tracker.lua",	Author = "Ryzuki",	File = "NEET´s Tracker"},
+	[5] = {Name = "NEET´s Tracker", Link = "https://raw.githubusercontent.com/VTNEETS/NEET-Scripts/master/NEET%27s%20Tracker.lua",	Author = "Ryzuki",	File = "NEET´s Tracker"},
 	}
 
 	SLS:Menu("Re","|SL| Recommended Scripts")
@@ -4935,8 +4935,7 @@ function SLEvade:__init()
 	EMenu:SubMenu("Draws", "Drawing Settings")
 	EMenu:SubMenu("DS", "Dodge Settings")
 	EMenu.DS:Slider("ew", "Extra Spell Width", 10, 0, 100, 2)
-	EMenu.DS:Slider("rd", "Reaction delay", 10, 0, 100, 2)
-	EMenu.DS:Info("ads", "Those Values are randomized")
+	EMenu.DS:Info("T", "Those Values are randomized")
 	EMenu:SubMenu("Advanced", "Advanced Settings")
 	EMenu.Advanced:Boolean("LDR", "Limit detection range", true)
 	EMenu.Advanced:Boolean("EMC", "Enable Minion Collision", true)
@@ -4977,6 +4976,7 @@ function SLEvade:__init()
 						EMenu.Spells[_]:Info("Empty123".._, "")
 						EMenu.Spells[_]:Boolean("IsD".._,"Dangerous", i.dangerous or false)
 						EMenu.Spells[_]:Boolean("ffe".._,"Fast Evade", i.ffe or false)
+						EMenu.Spells[_]:Boolean("H".._, "Humanizer", not i.dangerous)
 						if i.mcollision then
 							EMenu.Spells[_]:Boolean("Coll".._, "Collision", true)
 						else
@@ -5554,6 +5554,17 @@ function SLEvade:sCircPos(_,i)
 	end
 end
 
+function SLEvade:Humanizer(_,i)
+	if not i.status then
+		if EMenu.Spells[_]["H".._]:Value() and i.caster and i.caster.visible then
+			return i.caster.distance/i.spell.speed - i.spell.delay
+		else
+			return 0 
+		end
+		i.status = true
+	end
+end
+
 function SLEvade:Position()
 return Vector(myHero) + Vector(Vector(self.mV) - myHero.pos):normalized() * myHero.ms/2
 end
@@ -5897,7 +5908,7 @@ function SLEvade:Pathfinding(_,i)
 					end
 				end	
 			end
-		end,(math.random(0,EMenu.DS.rd:Value()))*.01)
+		end,self:Humanizer(_,i))
 	else
 		DelayAction(function()
 			if i.spell.type == "Line" and i.p then
@@ -6103,7 +6114,7 @@ function SLEvade:Pathfinding(_,i)
 					end
 				end	
 			end
-		end,(math.random(0,EMenu.DS.rd:Value()))*.01)
+		end,self:Humanizer(_,i))
 	end
 end
 
