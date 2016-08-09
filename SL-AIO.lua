@@ -5557,7 +5557,7 @@ end
 function SLEvade:Humanizer(_,i)
 	if not i.status then
 		if (i.debug or EMenu.Spells[_]["H".._]:Value()) and i.caster and i.caster.visible then
-			return i.caster.distance/i.spell.speed - i.spell.delay
+			return i.caster.distance/i.spell.speed - i.spell.delay*1.5
 		else
 			return 0 
 		end
