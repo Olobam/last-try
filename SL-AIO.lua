@@ -5159,6 +5159,7 @@ self.Spells = {
 	["GravesSmokeGrenade"]={charName="Graves",slot=1,type="Circle",delay=0.25,range=925,radius=275,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="GravesSmokeGrenadeBoom",killTime=4.5,displayname="SmokeScreen",mcollision=false},
 	["GravesChargeShot"]={charName="Graves",slot=3,type="Line",delay=0.2,range=1000,radius=100,speed=2100,addHitbox=true,danger=5,dangerous=true,proj="GravesChargeShotShot",killTime=0,displayname="CollateralDmg",mcollision=false},
 	["GravesChargeShotFxMissile2"]={charName="Graves",slot=3,type="Cone",delay=0,range=1000,radius=100,speed=2100,angle=60,addHitbox=true,danger=5,dangerous=true,proj="nil",killTime=0,displayname="CollateralDmg end",mcollision=false},
+	["HecarimUlt"]={charName="Hecarim",slot=3,type="Line",delay=0.2,range=1100,radius=300,speed=1200,addHitbox=true,danger=5,dangerous=true,proj="HecarimUltMissile",killTime=0.55,displayname="HecarimR",mcollision=false},
 	["HeimerdingerTurretEnergyBlast"]={charName="Heimerdinger",slot=0,type="Line",delay=0.4,range=1000,radius=70,speed=1000,addHitbox=true,danger=2,dangerous=false,proj="HeimerdingerTurretEnergyBlast",killTime=0,displayname="Turret",mcollision=false},
 	["HeimerdingerW"]={charName="Heimerdinger",slot=1,type="Cone",delay=0.25,range=800,radius=70,speed=1800,angle=10,addHitbox=true,danger=2,dangerous=false,proj="HeimerdingerWAttack2",killTime=0,displayname="HeimerUltW",mcollision=true},
 	["HeimerdingerE"]={charName="Heimerdinger",slot=2,type="Circle",delay=0.25,range=925,radius=100,speed=1200,addHitbox=true,danger=2,dangerous=false,proj="heimerdingerespell",killTime=0.3,displayname="HeimerdingerE",mcollision=false},
@@ -5430,7 +5431,7 @@ function SLEvade:Skillshot()
 		local s = {}
 		s.spell = {}
 		s.p = {}
-		s.p.startPos = Vector(2874,95,2842)
+		s.p.startPos = GetMousePos()--Vector(2874,95,2842)
 		s.spell.name = "DarkBindingMissile"..offer
 		s.spell.charName = myHero.charName
 		s.spell.proj = nil
@@ -5441,9 +5442,9 @@ function SLEvade:Skillshot()
         s.spell.dangerous = false
         s.spell.radius = 120
         s.spell.speed = 1000
-        s.spell.range = 1300
         s.spell.delay = 0.25
-        s.p.endPos = Vector(2104,95,3196)
+        s.p.endPos = myHero.pos--Vector(2104,95,3196)
+		s.spell.range = GetDistance(s.p.startPos,s.p.endPos)
         s.spell.type = "Line"
         s.uDodge = false 
         s.caster = myHero
@@ -5451,7 +5452,7 @@ function SLEvade:Skillshot()
 		s.debug = true
         s.startTime = os.clock()
         self.obj[s.spell.name] = s
-		DelayAction(function() self.obj[s.spell.name] = nil end,1.1)
+		DelayAction(function() self.obj[s.spell.name] = nil end,s.spell.range/s.spell.speed - s.spell.delay)
 end
 
 function SLEvade:Tickp()
