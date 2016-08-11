@@ -4986,14 +4986,17 @@ function SLWalker:GetPredictedHealth(unit, time)
 	local delay = 0.10
 
     while i <= #self.ActiveAttacks do
-		if self.ActiveAttacks[i].Attacker and not self.ActiveAttacks[i].Attacker.dead and self.ActiveAttacks[i].Target and self.ActiveAttacks[i].Target.networkID == unit.networkID then
-			local hittime = self.ActiveAttacks[i].starttime + (GetDistance(self.ActiveAttacks[i].Target,self.ActiveAttacks[i].Attacker)/self.ActiveAttacks[i].projectilespeed) - (self.ActiveAttacks[i].windUpTime+delay+OMenu.FS.FD:Value())
-			if self:GetTime() < hittime and hittime < self:GetTime() + time then
+		if self.ActiveAttacks[i].Attacker.alive and self.ActiveAttacks[i].Target.networkID == unit.networkID then
+			local hittime = self.ActiveAttacks[i].starttime + (GetDistance(self.ActiveAttacks[i].Target,self.ActiveAttacks[i].Attacker)/self.ActiveAttacks[i].projectilespeed) 
+			if self:GetTime() < hittime - (delay-OMenu.FS.FD:Value()*.1) and hittime < self:GetTime() + time then
 				IncDamage = IncDamage + unit.totalDamage
 				count = count + 1
 				if unit.totalDamage > MaxDamage then
 					MaxDamage = unit.totalDamage
 				end
+			end
+			if self:Dmg(myHero,unit,{name="Basic"}) > unit.health - IncDamage then
+				break
 			end
 		end
 		i = i + 1		
