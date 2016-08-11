@@ -5456,7 +5456,7 @@ function SLEvade:Skillshot()
 end
 
 function SLEvade:Tickp()
-	heroes[myHero.networkID] = myHero
+	heroes[myHero.networkID] = nil
 	for _,i in pairs(self.obj) do
 		if i.o and EMenu.Advanced.LDR:Value() and i.spell.type == "Line" and GetDistance(myHero,i.o) >= 3000 and not self.globalults[_] then return end
 		if i.o and EMenu.Advanced.LDR:Value() and i.spell.type == "Return" and GetDistance(myHero,i.o) >= 3000 and not self.globalults[_] then return end
