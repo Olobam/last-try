@@ -5431,20 +5431,20 @@ function SLEvade:Skillshot()
 		local s = {}
 		s.spell = {}
 		s.p = {}
-		s.p.startPos = GetMousePos()--Vector(2874,95,2842)
+		s.p.startPos = Vector(2874,95,2842)
 		s.spell.name = "DarkBindingMissile"..offer
 		s.spell.charName = myHero.charName
 		s.spell.proj = nil
 		s.spell.danger = 2
 		s.spell.displayname = "DarkBinding"
         s.spell.killTime = 0.25
-        s.spell.mcollision = false	
+        s.spell.mcollision = true
         s.spell.dangerous = false
         s.spell.radius = 120
-        s.spell.speed = 1000
-        s.spell.delay = 0.25
-        s.p.endPos = myHero.pos--Vector(2104,95,3196)
-		s.spell.range = GetDistance(s.p.startPos,s.p.endPos)
+        s.spell.speed = 250
+        s.spell.delay = 0.3
+        s.p.endPos = Vector(2104,95,3196)
+		s.spell.range = 1200																			
         s.spell.type = "Line"
         s.uDodge = false 
         s.caster = myHero
@@ -5456,7 +5456,7 @@ function SLEvade:Skillshot()
 end
 
 function SLEvade:Tickp()
-	heroes[myHero.networkID] = nil
+	heroes[myHero.networkID] = myHero
 	for _,i in pairs(self.obj) do
 		if i.o and EMenu.Advanced.LDR:Value() and i.spell.type == "Line" and GetDistance(myHero,i.o) >= 3000 and not self.globalults[_] then return end
 		if i.o and EMenu.Advanced.LDR:Value() and i.spell.type == "Return" and GetDistance(myHero,i.o) >= 3000 and not self.globalults[_] then return end
@@ -5516,7 +5516,7 @@ function SLEvade:Drawp()
 		end
 	self:HeroCollsion(_,i)
 	self:MinionCollision(_,i)
-	-- self:WallCollision(_,i)
+	self:WallCollision(_,i)
 	end
 	if EMenu.Draws.DevOpt:Value() then
 		DrawText(myHero.pos,20,20,20,GoS.Green)
@@ -5524,104 +5524,113 @@ function SLEvade:Drawp()
 end
 
 function SLEvade:MinionCollision(_,i)
-	if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EMC:Value() and (i.debug or EMenu.Spells[_]["Coll".._]:Value()) then
-		for m,p in pairs(minionManager.objects) do
-			local vI = nil 
-			local helperVec = nil
-			local cDist = math.huge 			
-			local cCreep = {}
-			endpos = Vector(i.p.endPos)
-			start = Vector(i.p.startPos)
-			if p and p.alive and p.team ~= MINION_ENEMY and GetDistance(p.pos,start) < i.spell.range then
-				helperVec = Vector(endpos - start):perpendicular()
-				vI = Vector(VectorIntersection(endpos,start,p.pos,helperVec).x,myHero.pos.y,VectorIntersection(endpos,start,p.pos,helperVec).y)
-				if GetDistance(vI,p.pos) < i.spell.radius then
-					if GetDistance(vI,start) < cDist then
+    if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EMC:Value() and (i.debug or EMenu.Spells[_]["Coll".._]:Value()) and not i.hcoll and not i.wcoll and i.jp then
+        local vI = nil 
+		local vP = nil
+        local helperVec = nil
+        local cDist = math.huge             
+        i.p.endPos2 = i.p.endPos2 or i.p.endPos
+        if i.debug then i.spell.range2 = 1200 else i.spell.range2 = self.Spells[_].range end
+        endpos = Vector(i.p.endPos)
+        start = Vector(i.p.startPos)
+        helperVec = Vector(endpos - start):perpendicular()
+        for m,p in pairs(minionManager.objects) do
+           if p and p.alive and p.team ~= MINION_ENEMY and GetDistance(p.pos,start) < i.spell.range2 then
+				vP = VectorPointProjectionOnLineSegment(Vector(self.opos),vI or i.p.endPos2,Vector(p))
+				if GetDistance(p.pos,vP) < i.spell.radius+p.boundingRadius then
+					vI = Vector(VectorIntersection(endpos,start,p.pos,helperVec).x,p.pos.y,VectorIntersection(endpos,start,p.pos,helperVec).y)
+					if GetDistance(vI,p.pos) < i.spell.radius+p.boundingRadius and GetDistance(vI,start) < cDist then
 						cDist = GetDistance(start,vI)
+						i.p.endPos = vI
 					end
 				end
-			end								
-			if cDist < i.spell.range then
-				i.p.endPos = vI  
-				i.spell.range = GetDistance(start,vI)
-			else
-				i.p.endPos = i.p.endPos
-				i.spell.range = GetDistance(start,vI)
 			end
-			if GetDistance(p.pos,vI) > i.spell.radius then
-				i.p.endPos = i.p.endPos
-				i.spell.range = GetDistance(start,endpos)
+			if cDist < i.spell.range2 and GetDistance(vI,p.pos) < i.spell.radius+p.boundingRadius then
+				i.mcoll = true
+				i.spell.range = GetDistance(i.p.startPos,vI or i.p.endPos2)
+				i.p.endPos = vI or i.p.endPos2 
+			end
+			if not vI or GetDistance(vI,p.pos) > i.spell.radius+p.boundingRadius then
+				i.mcoll = false
+				i.spell.range = i.spell.range2
+				i.p.endPos = i.p.endPos2
 			end
 		end
-	end
+    end
 end
 
 function SLEvade:HeroCollsion(_,i)
-	if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EHC:Value() and (i.debug or EMenu.Spells[_]["Coll".._]:Value()) then
-		for m,p in pairs(heroes) do
-			local vI = nil 
-			local helperVec = nil
-			local cDist = math.huge 			
-			local cHero = {}
-			endpos = Vector(i.p.endPos)
-			start = Vector(i.p.startPos)
-			if p and p.team ~= MINION_ENEMY and p.alive and GetDistance(p.pos,start) < i.spell.range then
-				helperVec = Vector(endpos - start):perpendicular()
-				vI = Vector(VectorIntersection(endpos,start,p.pos,helperVec).x,myHero.pos.y,VectorIntersection(endpos,start,p.pos,helperVec).y)
-				if GetDistance(vI,p.pos) < i.spell.radius then
-					if GetDistance(vI,start) < cDist then
+    if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EHC:Value() and (i.debug or EMenu.Spells[_]["Coll".._]:Value()) and not i.mcoll and not i.wcoll and i.jp then
+        local vI = nil 
+		local vP = nil
+        local helperVec = nil
+        local cDist = math.huge             
+        i.p.endPos2 = i.p.endPos2 or i.p.endPos
+        if i.debug then i.spell.range2 = 1200 else i.spell.range2 = self.Spells[_].range end
+        endpos = Vector(i.p.endPos)
+        start = Vector(i.p.startPos)
+        helperVec = Vector(endpos - start):perpendicular()
+        for m,p in pairs(heroes) do
+            if p and p.team ~= MINION_ENEMY and p.alive and GetDistance(p.pos,start) < i.spell.range2 then
+				vP = VectorPointProjectionOnLineSegment(Vector(self.opos),vI or i.p.endPos2,Vector(p))
+				if GetDistance(p.pos,vP) < i.spell.radius+p.boundingRadius then
+					vI = Vector(VectorIntersection(endpos,start,p.pos,helperVec).x,p.pos.y,VectorIntersection(endpos,start,p.pos,helperVec).y)
+					if GetDistance(vI,p.pos) < i.spell.radius+p.boundingRadius and GetDistance(vI,start) < cDist then
 						cDist = GetDistance(start,vI)
+						i.p.endPos = vI
 					end
 				end
-			end	
-			if cDist < i.spell.range then
-				i.p.endPos = vI  
-				i.spell.range = GetDistance(start,vI)
-			else
-				i.p.endPos = i.p.endPos
-				i.spell.range = GetDistance(start,vI)
+            end    
+			if cDist < i.spell.range2 and GetDistance(vI,p.pos) < i.spell.radius+p.boundingRadius then
+				i.hcoll = true
+				i.spell.range = GetDistance(i.p.startPos,vI or i.p.endPos2)
+				i.p.endPos = vI or i.p.endPos2 
 			end
-			if GetDistance(p.pos,vI) > i.spell.radius then
-				i.p.endPos = i.p.endPos
-				i.spell.range = GetDistance(start,endpos)
+			if not vI or GetDistance(vI,p.pos) > i.spell.radius+p.boundingRadius then
+				i.hcoll = false
+				i.spell.range = i.spell.range2
+				i.p.endPos = i.p.endPos2
 			end
 		end
-	end
+    end
 end
 
 function SLEvade:WallCollision(_,i)
-	if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EWC:Value() and (i.debug or EMenu.Spells[_]["Coll".._]:Value()) then
+    if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EWC:Value() and (i.debug or EMenu.Spells[_]["Coll".._]:Value()) and not i.mcoll and not i.hcoll and i.jp then
+        local vI = nil 
+		local vP = nil
+        local helperVec = nil
+        local cDist = math.huge             
+        i.p.endPos2 = i.p.endPos2 or i.p.endPos
+        if i.debug then i.spell.range2 = 1200 else i.spell.range2 = self.Spells[_].range end
+        endpos = Vector(i.p.endPos)
+        start = Vector(i.p.startPos)
+        helperVec = Vector(endpos - start):perpendicular()
 		if self.YasuoWall then
 			for m,p in pairs(self.YasuoWall) do
-				local vI = nil 
-				local helperVec = nil
-				local cDist = math.huge 			
-				local cWall = {}
-				endpos = Vector(i.p.endPos)
-				start = Vector(i.p.startPos)
-				if p.obj.spellOwner.team == myHero.team and p.obj and GetDistance(p.obj.pos,start) < i.spell.range then
-					helperVec = Vector(endpos - start):perpendicular()
-					vI = Vector(VectorIntersection(endpos,start,p.obj.pos,helperVec).x,myHero.pos.y,VectorIntersection(endpos,start,p.obj.pos,helperVec).y)
-					if GetDistance(vI,p.obj.pos) < i.spell.radius then
-						if GetDistance(vI,start) < cDist then
+				if p.obj and p.obj.team ~= MINION_ENEMY and p.obj.valid and GetDistance(p.obj.pos,start) < i.spell.range2 then
+					vP = VectorPointProjectionOnLineSegment(Vector(self.opos),vI or i.p.endPos2,Vector(p.obj))
+					if GetDistance(p.obj.pos,vP) < i.spell.radius+p.obj.boundingRadius then
+						vI = Vector(VectorIntersection(endpos,start,p.obj.pos,helperVec).x,p.obj.pos.y,VectorIntersection(endpos,start,p.obj.pos,helperVec).y)
+						if GetDistance(vI,p.obj.pos) < i.spell.radius+p.obj.boundingRadius and GetDistance(vI,start) < cDist then
 							cDist = GetDistance(start,vI)
+							i.p.endPos = vI
 						end
 					end
-				end								
-				if cDist < i.spell.range then
-					i.p.endPos = vI  
-					i.spell.range = GetDistance(start,vI)
-				else
-					i.p.endPos = i.p.endPos
-					i.spell.range = GetDistance(start,vI)
+				end    
+				if cDist < i.spell.range2 and GetDistance(vI,p.obj.pos) < i.spell.radius+p.obj.boundingRadius then
+					i.spell.range = GetDistance(i.p.startPos,vI or i.p.endPos2)
+					i.p.endPos = vI or i.p.endPos2 
+					i.wcoll = true
 				end
-				if GetDistance(p.pos,vI) > i.spell.radius then
-					i.p.endPos = i.p.endPos
-					i.spell.range = GetDistance(start,endpos)
+				if not vI or GetDistance(vI,p.obj.pos) > i.spell.radius+p.obj.boundingRadius then
+					i.wcoll = false
+					i.spell.range = i.spell.range2
+					i.p.endPos = i.p.endPos2
 				end
 			end
 		end
-	end
+    end
 end
 
 function SLEvade:sObjpos(_,i)
