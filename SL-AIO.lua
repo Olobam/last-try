@@ -5865,7 +5865,7 @@ function SLEvade:UDodge(_,i)
 end
 
 function SLEvade:Pathfinding(_,i)
-	if 1 < 0--[[i.debug or EMenu.Spells[_]["ffe".._]:Value()]] then
+	if i.debug or EMenu.Spells[_]["ffe".._]:Value() then
 		DelayAction(function()
 			if i.spell.type == "Line" and i.p then
 					i.p.startPos = Vector(i.p.startPos)
