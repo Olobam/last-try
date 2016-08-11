@@ -187,22 +187,9 @@ local function dArrow(s, e, w, c, v)--startpos,endpos,width,color
 	end
 end
 
-function DrawRing(x, y, z, radius, radius2, width, quality, color)
-    radius = radius
-    quality = quality and 2 * math.pi / quality or 2 * math.pi / (radius / 5)
-    local points = {}
-    for theta = 0, 2 * math.pi + quality, quality do
-        local c = WorldToScreen(1,Vector(x + radius * math.cos(theta), y, z - radius * math.sin(theta)))
-        points[#points + 1] = Vector(c.x, c.y)
-    end
-    DrawLines2(points, width , color)
-    radius = radius2
-	local points2 = {}
-    for theta = 0, 2 * math.pi + quality, quality do
-        local c = WorldToScreen(1,Vector(x + radius * math.cos(theta), y, z - radius * math.sin(theta)))
-        points2[#points2 + 1] = Vector(c.x, c.y)
-    end
-	DrawLines2(points2, width, color)
+function DrawRing(x, y, z, r, r2, w, q, c)
+	DrawCircle(x,y,z,r or 425,w or 1,q or 50,c or GoS.White)
+	DrawCircle(x,y,z,r2 or 275,w or 1,q or 50,c or GoS.White)
 end
 
 require 'OpenPredict'
@@ -5556,7 +5543,7 @@ function SLEvade:Drawp()
 			i.state = true
 		end
 		if i.p then
-			self.endposs = Vector(i.p.startPos) + i.spell.range * (Vector(i.p.endPos) - Vector(i.p.startPos)):normalized()
+			self.endposs =  Vector(i.p.startPos) + i.spell.range * (Vector(i.p.endPos) - Vector(i.p.startPos)):normalized()
 			self.opos = self:sObjpos(_,i)
 			-- self.cpos = self:sCircPos(_,i)
 			self:Drawings(_,i)
@@ -5699,7 +5686,7 @@ function SLEvade:sCircPos(_,i)
 end
 
 function SLEvade:Status()
-	if not EMenu.Keys.DD:Value() and not self.DodgeOnlyDangerous then
+	if not EMenu.Keys.DD:Value() and not (EMenu.Keys.DoD:Value() or EMenu.Keys.DoD2:Value()) then
 		DrawText("Evade : ON", 400, GetHPBarPos(myHero).x, GetHPBarPos(myHero).y+150, ARGB(255,255,255,255))
 	end
 	if EMenu.Keys.DD:Value() then
@@ -6265,52 +6252,56 @@ function SLEvade:Pathfinding(_,i)
 end
 
 function SLEvade:Drawings(_,i)
-	for _,i in pairs(self.obj) do
-		if i.debug or EMenu.Spells[_]["Draw".._]:Value() then
-			if i.spell.type == "Line" and not EMenu.Keys.DDraws:Value() then
-				local sPos = Vector(self.opos)
-				local ePos = Vector(self.endposs)
-				if EMenu.Draws.DSPath:Value() then
-					dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius, EMenu.Draws.SD.t:Value(), EMenu.Draws.SD.c:Value(), i.debug or EMenu.Spells[_]["Dodge".._]:Value())
-					if EMenu.Draws.DSEW:Value() then
-						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, EMenu.Draws.SD.t:Value()+0.5, EMenu.Draws.SD.c:Value(), i.debug or EMenu.Spells[_]["Dodge".._]:Value())
-					end
-				end			
-			elseif i.spell.type == "Circle" and not EMenu.Keys.DDraws:Value() then
-				if _ == "AbsoluteZero" then
-					i.p.endPos = Vector(i.caster.pos)
-				else
-					i.p.endPos = Vector(i.p.endPos)
+	if i.debug or EMenu.Spells[_]["Draw".._]:Value() then
+		if i.spell.type == "Line" and not EMenu.Keys.DDraws:Value() then
+			local sPos = Vector(self.opos)
+			local ePos = Vector(self.endposs)
+			if EMenu.Draws.DSPath:Value() then
+				dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius, EMenu.Draws.SD.t:Value(), EMenu.Draws.SD.c:Value(), i.debug or EMenu.Spells[_]["Dodge".._]:Value())
+				if EMenu.Draws.DSEW:Value() then
+					dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, EMenu.Draws.SD.t:Value()+0.5, EMenu.Draws.SD.c:Value(), i.debug or EMenu.Spells[_]["Dodge".._]:Value())
 				end
-				if EMenu.Draws.DSPath:Value() then
-					DrawCircle(i.p.endPos,i.spell.radius,EMenu.Draws.SD.t:Value()+0.5,20,EMenu.Draws.SD.c:Value())	
-					-- DrawCircle(i.p.endPos,self.cpos,EMenu.Draws.SD.t:Value()+0.5,20,GoS.Yellow)
-				end	
-			elseif i.spell.type == "Rectangle" and not EMenu.Keys.DDraws:Value() then
-				DrawRectangle(i.p.startPos,i.p.endPos,i.spell.radius+myHero.boundingRadius,i.spell.radius2,EMenu.Draws.SD.t:Value()+0.5,EMenu.Draws.SD.c:Value())
-			elseif i.spell.type == "Cone" and not EMenu.Keys.DDraws:Value() then
-				DrawCone(i.p.startPos,Vector(self.endposs),i.spell.angle or 40,EMenu.Draws.SD.t:Value()+0.5,EMenu.Draws.SD.c:Value())
-			elseif i.spell.type == "Return" and not EMenu.Keys.DDraws:Value() and i.o then
-				local sPos = Vector(i.o.pos)
-				local ePos = Vector(i.caster.pos)
-				if EMenu.Draws.DSPath:Value() then
-					dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius, EMenu.Draws.SD.t:Value(), EMenu.Draws.SD.c:Value(), i.debug or EMenu.Spells[_]["Dodge".._]:Value())
-					if EMenu.Draws.DSEW:Value() then
-						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, EMenu.Draws.SD.t:Value()+0.5, EMenu.Draws.SD.c:Value(), i.debug or EMenu.Spells[_]["Dodge".._]:Value())
-					end
-				end
-			elseif i.spell.type == "follow" and not EMenu.Keys.DDraws:Value() then
-				local sPos = Vector(i.caster.pos)
-				local ePos = Vector(i.caster.pos) + i.TarE
-				if EMenu.Draws.DSPath:Value() then
-					dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius, EMenu.Draws.SD.t:Value(), EMenu.Draws.SD.c:Value(), i.debug or EMenu.Spells[_]["Dodge".._]:Value())
-					if EMenu.Draws.DSEW:Value() then
-						dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, EMenu.Draws.SD.t:Value()+0.5, EMenu.Draws.SD.c:Value(), i.debug or EMenu.Spells[_]["Dodge".._]:Value())
-					end
-				end
-			elseif i.spell.type == "Ring" and not EMenu.Keys.DDraws:Value() then
-				DrawRing(i.p.endPos.x,i.p.endPos.y,i.p.endPos.z,i.spell.radius,i.spell.radius/1.5,EMenu.Draws.SD.t:Value()+0.5,20,EMenu.Draws.SD.c:Value())
+			end		
+		end
+		if i.spell.type == "Circle" and not EMenu.Keys.DDraws:Value() then
+			if _ == "AbsoluteZero" then
+				i.p.endPos = Vector(i.caster.pos)
+			else
+				i.p.endPos = Vector(i.p.endPos)
 			end
+			if EMenu.Draws.DSPath:Value() then
+				DrawCircle(i.p.endPos,i.spell.radius,EMenu.Draws.SD.t:Value()+0.5,20,EMenu.Draws.SD.c:Value())	
+				-- DrawCircle(i.p.endPos,self.cpos,EMenu.Draws.SD.t:Value()+0.5,20,GoS.Yellow)
+			end
+		end
+		if i.spell.type == "Rectangle" and not EMenu.Keys.DDraws:Value() then
+			DrawRectangle(i.p.startPos,i.p.endPos,i.spell.radius+myHero.boundingRadius,i.spell.radius2,EMenu.Draws.SD.t:Value()+0.5,EMenu.Draws.SD.c:Value())
+		end
+		if i.spell.type == "Cone" and not EMenu.Keys.DDraws:Value() then
+			DrawCone(i.p.startPos,Vector(self.endposs),i.spell.angle or 40,EMenu.Draws.SD.t:Value()+0.5,EMenu.Draws.SD.c:Value())
+		end
+		if i.spell.type == "Return" and not EMenu.Keys.DDraws:Value() and i.o then
+			local sPos = Vector(i.o.pos)
+			local ePos = Vector(i.caster.pos)
+			if EMenu.Draws.DSPath:Value() then
+				dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius, EMenu.Draws.SD.t:Value(), EMenu.Draws.SD.c:Value(), i.debug or EMenu.Spells[_]["Dodge".._]:Value())
+				if EMenu.Draws.DSEW:Value() then
+					dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, EMenu.Draws.SD.t:Value()+0.5, EMenu.Draws.SD.c:Value(), i.debug or EMenu.Spells[_]["Dodge".._]:Value())
+				end
+			end
+		end
+		if i.spell.type == "follow" and not EMenu.Keys.DDraws:Value() then
+			local sPos = Vector(i.caster.pos)
+			local ePos = Vector(i.caster.pos) + i.TarE
+			if EMenu.Draws.DSPath:Value() then
+				dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius, EMenu.Draws.SD.t:Value(), EMenu.Draws.SD.c:Value(), i.debug or EMenu.Spells[_]["Dodge".._]:Value())
+				if EMenu.Draws.DSEW:Value() then
+					dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, EMenu.Draws.SD.t:Value()+0.5, EMenu.Draws.SD.c:Value(), i.debug or EMenu.Spells[_]["Dodge".._]:Value())
+				end
+			end
+		end
+		if i.spell.type == "Ring" and not EMenu.Keys.DDraws:Value() then
+			DrawRing(i.p.endPos.x,i.p.endPos.y,i.p.endPos.z,i.spell.radius,i.spell.radius/1.5,EMenu.Draws.SD.t:Value()+0.5,20,EMenu.Draws.SD.c:Value())
 		end
 		if i.jp and (GetDistance(myHero,i.jp) > i.spell.radius + myHero.boundingRadius) and i.safe and i.spell.type == "Line" then
 			i.safe = nil
