@@ -1,5 +1,5 @@
 local SLEAutoUpdate = true
-local Stage, SLEvadeVer = "BETA", "0.16"
+local Stage, SLEvadeVer = "BETA", "0.17"
 local SLEPatchnew = nil
 if GetGameVersion():sub(3,4) >= "10" then
 		SLEPatchnew = GetGameVersion():sub(1,4)
@@ -137,11 +137,6 @@ local function dArrow(s, e, w, c, v)--startpos,endpos,width,color
 		DrawLine3D(s2.x,s2.y,s2.z,e.x,e.y,e.z,w,ARGB(255,255,0,0))
 		DrawLine3D(s3.x,s3.y,s3.z,e.x,e.y,e.z,w,ARGB(255,255,0,0))		
 	end
-end
-
-function DrawRing(x, y, z, r, r2, w, q, c)
-	DrawCircle(x,y,z,r or 425,w or 1,q or 50,c or GoS.White)
-	DrawCircle(x,y,z,r2 or 275,w or 1,q or 50,c or GoS.White)
 end
 
 Callback.Add("Load", function()	
@@ -465,7 +460,7 @@ self.Spells = {
 	["VeigarDarkMatter"]={charName="Veigar",slot=1,type="Circle",delay=1.35,range=900,radius=225,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=0.5,displayname="DarkMatter",mcollision=false},
 	["VeigarEventHorizon"]={charName="Veigar",slot=2,type="Ring",delay=0.5,range=700,radius=400,speed=math.huge,addHitbox=false,danger=3,dangerous=true,proj="nil",killTime=3.5,displayname="EventHorizon",mcollision=false},
 	["VelkozQ"]={charName="Velkoz",slot=0,type="Line",delay=0.25,range=1100,radius=50,speed=1300,addHitbox=true,danger=2,dangerous=false,proj="VelkozQMissile",killTime=0,displayname="",mcollision=true},
-	["VelkozQSplit"]={charName="Velkoz",slot=0,type="Line",delay=0.25,range=1100,radius=55,speed=2100,addHitbox=true,danger=2,dangerous=false,proj="VelkozQMissileSplit",killTime=0,displayname="",mcollision=true},
+	["VelkozQMissileSplit"]={charName="Velkoz",slot=0,type="Line",delay=0.25,range=1100,radius=55,speed=2100,addHitbox=true,danger=2,dangerous=false,proj="VelkozQMissileSplit",killTime=0,displayname="",mcollision=true},
 	["VelkozW"]={charName="Velkoz",slot=1,type="Line",delay=0.25,range=1050,radius=88,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="VelkozWMissile",killTime=0,displayname="",mcollision=false},
 	["VelkozE"]={charName="Velkoz",slot=2,type="Circle",delay=0.5,range=800,radius=225,speed=1500,addHitbox=false,danger=2,dangerous=false,proj="VelkozEMissile",killTime=0.5,displayname="",mcollision=false},
 	["Vi-q"]={charName="Vi",slot=0,type="Line",delay=0.25,range=715,radius=90,speed=1500,addHitbox=true,danger=3,dangerous=true,proj="ViQMissile",killTime=0,displayname="Vi-Q",mcollision=false},
@@ -1457,7 +1452,8 @@ function SLEvade:Drawings(_,i)
 			end
 		end
 		if i.spell.type == "Ring" and not EMenu.Keys.DDraws:Value() then
-			DrawRing(i.p.endPos.x,i.p.endPos.y,i.p.endPos.z,i.spell.radius,i.spell.radius/1.5,EMenu.Draws.SD.t:Value()+0.5,20,EMenu.Draws.SD.c:Value())
+			DrawCircle(i.p.endPos.x,i.p.endPos.y,i.p.endPos.z,i.spell.radius,i.spell.radius/1.5,EMenu.Draws.SD.t:Value()+0.5,20,EMenu.Draws.SD.c:Value())
+			DrawCircle(i.p.endPos.x,i.p.endPos.y,i.p.endPos.z,i.spell.radius,i.spell.radius/1.5,EMenu.Draws.SD.t:Value()+0.5,20,EMenu.Draws.SD.c:Value())
 		end
 		if i.jp and (GetDistance(myHero,i.jp) > i.spell.radius + myHero.boundingRadius) and i.safe and i.spell.type == "Line" then
 			i.safe = nil
