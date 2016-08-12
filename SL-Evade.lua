@@ -1,5 +1,5 @@
 local SLEAutoUpdate = true
-local Stage, SLEvadeVer = "BETA", "0.15"
+local Stage, SLEvadeVer = "BETA", "0.16"
 local SLEPatchnew = nil
 if GetGameVersion():sub(3,4) >= "10" then
 		SLEPatchnew = GetGameVersion():sub(1,4)
@@ -101,6 +101,7 @@ local function DisableAll(b)
 		end
 		BlockF7OrbWalk(true)
 		BlockF7Dodge(true)
+		BlockInput(true)
 	else
 		if _G.IOW then
 			IOW.movementEnabled = true
@@ -120,54 +121,7 @@ local function DisableAll(b)
 		end
 		BlockF7OrbWalk(false)
 		BlockF7Dodge(false)
-	end
-end
-
-local function DisableAll(b)
-	if b then
-		if _G.IOW then
-			IOW.movementEnabled = false
-			IOW.attacksEnabled = false
-		elseif _G.PW then
-			PW.movementEnabled = false
-			PW.attacksEnabled = false
-		elseif _G.GoSWalkLoaded then
-			_G.GoSWalk:EnableMovement(false)
-			_G.GoSWalk:EnableAttack(false)
-		elseif _G.DAC_Loaded then
-			DAC:MovementEnabled(false)
-			DAC:AttacksEnabled(false)
-		elseif _G.AutoCarry_Loaded then
-			DACR.movementEnabled = false
-			DACR.attacksEnabled = false
-		elseif _G.SLW then
-			SLW.movementEnabled = false
-			SLW.attacksEnabled = false
-		end
-		BlockF7OrbWalk(true)
-		BlockF7Dodge(true)
-	else
-		if _G.IOW then
-			IOW.movementEnabled = true
-			IOW.attacksEnabled = true
-		elseif _G.PW then
-			PW.movementEnabled = true
-			PW.attacksEnabled = true
-		elseif _G.GoSWalkLoaded then
-			_G.GoSWalk:EnableMovement(true)
-			_G.GoSWalk:EnableAttack(true)
-		elseif _G.DAC_Loaded then
-			DAC:MovementEnabled(true)
-			DAC:AttacksEnabled(true)
-		elseif _G.AutoCarry_Loaded then
-			DACR.movementEnabled = true
-			DACR.attacksEnabled = true
-		elseif _G.SLW then
-			SLW.movementEnabled = true
-			SLW.attacksEnabled = true
-		end
-		BlockF7OrbWalk(false)
-		BlockF7Dodge(false)
+		BlockInput(false)
 	end
 end
 
