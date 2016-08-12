@@ -148,6 +148,7 @@ local function DisableAll(b)
 		end
 		BlockF7OrbWalk(true)
 		BlockF7Dodge(true)
+		BlockInput(true)
 	else
 		if _G.IOW then
 			IOW.movementEnabled = true
@@ -170,6 +171,7 @@ local function DisableAll(b)
 		end
 		BlockF7OrbWalk(false)
 		BlockF7Dodge(false)
+		BlockInput(false)
 	end
 end
 
