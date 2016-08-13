@@ -1527,215 +1527,203 @@ end
 class 'Velkoz'
 
 function Velkoz:__init()
-	BM:SubMenu("c", "Combo")
-	BM.c:Boolean("Q","Use Q",true)
-	BM.c:Boolean("FQ","Force Q Split",true)
-	BM.c:Boolean("W","Use W",true)
-	BM.c:Boolean("E","Use E",true)
-	BM.c:Boolean("R","Use R",true)
 
-	BM:SubMenu("p", "Prediction")
-	BM.p:Slider("hQ", "HitChance Q", 20, 0, 100, 1)
-	BM.p:Slider("hE", "HitChance E", 20, 0, 100, 1)
-	BM.p:Slider("hR", "HitChance R", 20, 0, 100, 1)
+	BM:SubMenu("C", "Combo")
+	BM.C:Boolean("Q", "Use Q",true)
+	BM.C:DropDown("Z","Split Mode", 1, {"Percise","Performance"}, function() print("Reload to change QMode") end)
+	BM.C:Boolean("W", "Use W",true)
+	BM.C:Boolean("E", "Use E",true)
+	BM.C:Boolean("R", "Use R",true)
+	BM.C:Boolean("M", "Mouse follow",true)
 
-	BM:SubMenu("a", "Advanced")
-	BM.a:Slider("eQ", "Extra Q", 20 , 10, 50, 2)
-	BM.a:Slider("v", "QChecks", 4, 1, 8, 1)
-	BM.a:Boolean("D","Developer Debug", false)
+	BM:SubMenu("P", "Prediction")
+	BM.P:Slider("W", "HitChance Q", 20, 0, 100, 1)
+	BM.P:Slider("E", "HitChance E", 20, 0, 100, 1)
 
-	self.ccTrack = {}
-  	DelayAction(function ()
-  		for _,i in pairs(GetEnemyHeroes()) do 
- 			self.ccTrack[GetObjectName(i)] = false
-  		end
- 	end, .001)
+	BM:SubMenu("A", "Advanced")
+	BM.A:Slider("S", "SplitMod", .075, .05, .1, .005)
+	BM.A:Slider("C", "QChecks", 20, 5, 50, 1)
+	BM.A:Boolean("D","Developer Draws", false)
+
+	self.cTable = {}
+	self.Researched = {}
+	self.Deconstructed = {}
+	self.QBall = nil
+	self.ult = not GotBuff(myHero,"VelkozR") == 0
+	self.CreepManagerTick = GetTickCount()
 	
-	self.DegreeTable={22.5,-22.5,45,-45, 15, -15, 30, -30}
-	self.rCast = false
-	self.QStart = nil
-	self.rTime = 0
-	
-	Dmg = {
+	self.Dmg = {
+	[-1] = function (unit) return 25 + myHero.level*8 + GetBonusAP(myHero) * .5 end,
 	[0] = function (unit) return CalcDamage(myHero, unit, 40 * GetCastLevel(myHero,0) + 40 + GetBonusAP(myHero), 0)*.6 end, 
 	[1] = function (unit) return CalcDamage(myHero, unit, 20 * GetCastLevel(myHero,1) + 10 + GetBonusDmg(myHero), 1)*.15 end, 
 	[2] = function (unit) return CalcDamage(myHero, unit, 30 * GetCastLevel(myHero,2) - 10 + GetBonusDmg(myHero), 2)*.3 end, 
-	[3] = function (unit) return Velkoz:RDmg(unit) end,
+	[3] = function (unit) return self:RDmg(unit) end,
 	}
 	
 	self.Spell = {
-	[0] = { delay = 0.1, speed = 1300, width = 100, range = 750},
-	[-1] ={ delay = 0.1, speed = 1300, width = 100, range = 1000},
-	[1] = { delay = 0.1, speed = 1700, width = 100, range = 1050},
-	[2] = { delay = 0.1, speed = 1700, range = 850, radius = 200 },
+	[0] = { range = 1000, delay =.25, width = 75, speed = 1150},
+	[-1]= { range = 1300, delay =.25, width = 75, speed = 813},
+	[1] = { delay = .1, speed = 1700, width = 100, range = 1050},
+	[2] = { delay = .6, speed = math.huge, range = 850, radius = 200 },
 	}
 	
 	Callback.Add("Tick", function() self:Tick() end)
-	Callback.Add("ProcessSpellComplete", function(unit,spellProc) self:ProcessSpellComplete(unit,spellProc) end)
+	Callback.Add(BM.C.Z:Value() == 1 and "Draw" or "Tick", function() self:Split() end)
 	Callback.Add("CreateObj", function(object) self:CreateObj(object) end)
+	Callback.Add("DeleteObj", function(object) self:DeleteObj(object) end)
 	Callback.Add("UpdateBuff", function(unit,buffProc) self:UpdateBuff(unit,buffProc) end)
 	Callback.Add("RemoveBuff", function(unit,buffProc) self:RemoveBuff(unit,buffProc) end)
-	Callback.Add("Draw", function() self:Split() end)
 	
-	AntiChannel()
+	--[[AntiChannel()
 	AntiGapCloser()
 	DelayAction( function ()
 	if BM["AC"] then BM.AC:Info("ad", "Use Spell(s) : ") BM.AC:Boolean("E","Use E", true) end
 	if BM["AGC"] then BM.AGC:Info("ad", "Use Spell(s) : ") BM.AGC:Boolean("E","Use E", true) end
 	end,.001)
-
+	--]]
 end
 
+--[[
 function Velkoz:AntiChannel(unit,range)
 	if BM.AC.E:Value() and range < Velkoz.Spell[2].range and SReady[2] then
-		CastSkillShot(_E,unit.pos)
+		CastSkillShot(2,unit.pos)
 	end
 end
 
 function Velkoz:AntiGapCloser(unit,range)
 	if BM.AGC.E:Value() and range < Velkoz.Spell[2].range and SReady[2] then
-		CastSkillShot(_E,unit.pos)
+		CastSkillShot(2,unit.pos)
 	end
-end
-
+end--]]
 
 function Velkoz:Tick()
-	if myHero.dead or self.rCast then return end
-	
 	GetReady()
-	
-	GetReady()
-	--self:Split()
-		
-	local target = GetCurrentTarget()
-	
+	if self.CreepManagerTick + 500 < GetTickCount() then
+		for _,i in pairs(minionManager.objects) do
+			self.cTable[i.networkID] = (i.distance < 2000 and i.valid and i.team ~= MINION_ALLY and i.alive) and i or nil
+		end
+	end
+	local unit = GetCurrentTarget()
 	if Mode == "Combo" then
-		self:Combo(target)
+		self:Combo(unit)
 	elseif Mode == "LaneClear" then
 	--	self:LaneClear()
 	--	self:JungleClear()
 	elseif Mode == "LastHit" then
 	--	self:LastHit()
 	elseif Mode == "Harass" then
-	--	self:Harass(target)
+	--	self:Harass(unit)
 	else
 		return
 	end
 end
 
-
 function Velkoz:Combo(unit)
-	for _,i in pairs(GetEnemyHeroes()) do
-		if SReady[0] and BM.c.Q:Value() and GetCastName(myHero,0)=="VelkozQ" and ValidTarget(i,1400) then
-			local direct=GetPrediction(i,self.Spell[0])
-			if direct and direct.hitChance>=BM.p.hQ:Value()/100 and not direct:mCollision(1) then
-				self.QStart=GetOrigin(myHero)
-				CastSkillShot(0,direct.castPos)
-			end
-			local BVec = Vector(GetOrigin(i)) - Vector(GetOrigin(myHero))
-			local dist = math.sqrt(GetDistance(GetOrigin(myHero),GetOrigin(i))^2/2)
-			for l=1,BM.a.v:Value() do
-				local sideVec=Velkoz:getVec(BVec,self.DegreeTable[l]):normalized()*dist
-				local circlespot = sideVec+GetOrigin(myHero)
-				local QPred = GetPrediction(i, self.Spell[0], circlespot)
-				local QPred2 = GetPrediction(myHero, self.Spell[0], circlespot)
-				if not QPred:mCollision(1) and not QPred2:mCollision(1) then
-					CastSkillShot(0,circlespot)
-					self.QStart=GetOrigin(myHero)
+	if Mode == "Combo" and not self.ult then
+		if SReady[1] and ValidTarget(unit,1050) and BM.C.W:Value() then
+			local WPred = GetPrediction(unit, self.Spell[1])
+			CastSkillShot(1,WPred.castPos)
+		end
+			
+		if SReady[2] and ValidTarget(unit,850) and BM.C.E:Value() then
+			local EPred = GetCircularAOEPrediction(unit, self.Spell[2])
+			CastSkillShot(2,EPred.castPos)
+		end
+		if SReady[3] and ValidTarget(unit,1500) and unit.distance > 350 and unit.health + unit.shieldAD + unit.shieldAP < self:RDmg(unit) and BM.C.R:Value() then
+			--SetCursorPos(unit.pos2D.x,unit.pos2D.y)
+			CastSkillShot(3,unit.pos)
+		end
+	elseif Mode == "Combo" and self.ult and unit.valid and WorldToScreen(1,unit.pos).flag and BM.C.M:Value() then
+		SetCursorPos(unit.pos2D.x,unit.pos2D.y)
+	end
+end
+
+function Velkoz:Split()
+	local i = GetCurrentTarget()
+	if self.QBall then
+		local iPredN2 = GetPrediction(i,self.Spell[0],self.QBall.pos).castPos
+		self.QBall:Draw(100)
+		if GetCastName(myHero,0) ~= "VelkozQ" and GetDistance(self.QBall,iPredN2) < 1500 and GetDistance(self.QBall,iPredN2) > 50 and math.abs(Vector(self.QBall.pos-GetObjectSpellStartPos(self.QBall)):normalized()*Vector(self.QBall.pos-iPredN2):normalized()) < .1 then
+			CastSpell(0)
+		end
+	elseif not self.ult then
+		local iPred = GetPrediction(i,self.Spell[-1]).castPos
+		local iPred2D = WorldToScreen(0,iPred)
+		local lowest = 9999999
+		local lowestV = nil
+		if not i.valid or myHero.dead then return end
+		local BVec = Vector(iPred) - Vector(myHero.pos)
+		for l = -math.pi*.5, math.pi*.5, math.pi*.05 do
+			local sideVec = Vector(BVec):rotated(0,l,0)
+			local sideVec2 = Vector(sideVec):perpendicular()
+			if not VectorIntersection(myHero.pos , myHero.pos+sideVec , iPred, iPred+sideVec2) then return end
+			local JVector = Vector(VectorIntersection(myHero.pos , myHero.pos+sideVec , iPred, iPred+sideVec2 ).x , myHero.pos.y , VectorIntersection( myHero.pos, myHero.pos + sideVec, iPred, iPred + sideVec2).y)
+			local JVector2D = WorldToScreen(0,JVector)
+			if GetDistance(JVector) < 1050 and GetDistance(iPred,JVector) < 1050 and CountObjectsOnLineSegment(myHero, Vector(JVector), 125, self.cTable) == 0 and CountObjectsOnLineSegment(i, Vector(JVector), 100, self.cTable) == 0 then
+				if BM.A.D:Value() then
+					DrawCircle(JVector,50,1,3,GoS.White)
+					DrawLine(myHero.pos2D.x,myHero.pos2D.y,JVector2D.x,JVector2D.y,1,GoS.White)
+					DrawLine(iPred2D.x,iPred2D.y,JVector2D.x,JVector2D.y,1,GoS.White)
+				end
+				if JVector and GetDistance(iPred,JVector) < lowest then
+					lowestV = JVector
+					lowest = GetDistance(iPred,JVector)
 				end
 			end
-		end	
-	end
-	
-	if BM.c.W:Value() and SReady[1] and ValidTarget(unit,1050) then
-		local WPred = GetPrediction(unit, self.Spell[1])
-		CastSkillShot(_W,WPred.castPos)
-	end
-		
-	if BM.c.E:Value() and SReady[2]  and ValidTarget(unit,850) then
-		local EPred = GetCircularAOEPrediction(unit, self.Spell[2])
-		CastSkillShot(_E,EPred.castPos)
-	end
-	
-	if BM.c.R:Value() and ValidTarget(unit,1550*.8) and SReady[3] and EnemiesAround(GetOrigin(myHero),400) == 0 and GetDistance(GetOrigin(myHero),GetOrigin(unit)) then
-		if GetADHP(unit) < Velkoz:RDmg(unit) then
-			CastSkillShot(3, GetOrigin(unit))
+		end
+		if Mode == "Combo" and lowestV and GetCastName(myHero,0) == "VelkozQ" then
+			if GetDistance(lowestV) > 150 then
+				CastSkillShot(0,lowestV)
+			else
+				CastSkillShot(0,i.pos)
+			end
 		end
 	end
 end
 
 function Velkoz:RDmg(unit)
-	local RTick = 27.5 + 22.5 * GetCastLevel(myHero,3) + GetBonusAP(myHero) * .1
-	local Passive = 25 + 8 * GetLevel(myHero) + myHero.ap * .4
-	local ticks = (1550 - GetDistance(GetOrigin(unit),GetOrigin(myHero))) / (GetMoveSpeed(unit)*.8)
-	if self.ccTrack and self.ccTrack[GetObjectName(unit)] and self.rTime > GetGameTimer() then ticks = ticks + (self.rTime - GetGameTimer())*4 end
-	ticks = math.max(ticks,10)
-	return CalcDamage(myHero, unit, 0, RTick * ticks * 4) + Passive * 0.6
+	local hP = math.min(math.max(1550 - unit.distance,0)/(unit.ms*.8),2.5)/2.5
+	local pT = (self.Deconstructed[unit.networkID] or 0) + math.floor(hP/0.28)
+	local damage = hP * (275 + 175*GetCastLevel(myHero,3) + GetBonusAP(myHero) * 1.25)	
+	return self.Researched[unit.networkID] and damage + (pT > 2 and self.Dmg[-1](unit) or 0) or CalcDamage(myHero,unit,0,damage) + (pT > 2 and self.Dmg[-1](unit) or 0)
+end	
+
+function Velkoz:CreateObj(obj)
+	if obj.isSpell and obj.spellOwner.isMe and obj.spellName == "VelkozQMissile" then
+		self.QBall = obj
+		DelayAction(function() self.QBall = nil end ,2)
+	end
 end
 
-function Velkoz:Split()
-	if SReady[0] and GetCastName(myHero,0)~="VelkozQ" and self.QBall and self.QStart then
-		for _,i in pairs(GetEnemyHeroes()) do
-			local split=GetPrediction(i, self.Spell[-1], GetOrigin(self.QBall))
-			local BVector = Vector((GetOrigin(self.QBall))-Vector(self.QStart))
-			local HVector = Vector((GetOrigin(self.QBall))-Vector(split.castPos))
-			if BM.a.D:Value() then 
-				DrawLine(WorldToScreen(0, self.QStart).x, WorldToScreen(0, self.QStart).y, WorldToScreen(0, self.QBall).x, WorldToScreen(0, self.QBall).y, 3, GoS.White)
-				DrawLine(WorldToScreen(0, self.QBall).x, WorldToScreen(0, self.QBall).y, WorldToScreen(0, split.castPos).x, WorldToScreen(0, split.castPos).y, 3, GoS.White)
-				DrawText(Velkoz:ScalarProduct(BVector,HVector)^2,30,500,20,GoS.White)
-			end
-			if ValidTarget(i,1600) and Velkoz:ScalarProduct(BVector,HVector)^2 < BM.a.eQ:Value()*.001 then
-				CastSpell(0)
-			end
+function Velkoz:DeleteObj(obj)
+	if obj.isSpell and obj.spellOwner.isMe and obj.spellName == "VelkozQMissile" then
+		self.QBall = nil
+	end
+end
+
+function Velkoz:UpdateBuff(u,buffProc)
+	if u.isMe and buffProc.Name == "VelkozR" then 
+		self.ult = true
+		Stop(true)
+	elseif u.team ~= myHero.team and u.isHero then
+		if buffProc.Name == "velkozresearchedstack" then
+			self.Researched[u.networkID] = true
+		elseif buffProc.Name == "velkozresearchstack"  then
+			self.Deconstructed[u.networkID] = buffProc.Count
 		end
 	end
 end
 
-function Velkoz:ProcessSpellComplete(unit,spellProc)
-	if unit == myHero and spellProc.name:lower() == "velkozq" then
-		self.QStart= Vector(spellProc.startPos)+Vector(Vector(spellProc.endPos)-spellProc.startPos):normalized()*5
-	end
-end
-
-function Velkoz:CreateObj(object)
-	if GetObjectBaseName(object)=="Velkoz_Base_Q_mis.troy" and GetDistance(myHero)<10 then
-		self.QBall=object
-		DelayAction(function() self.QBall=nil end,2)
-	end
-end
-
-function Velkoz:getVec(base, degr)
-	local x,y,z=base:unpack()
-	x=x*math.cos(Velkoz:degrad(degr))-z*math.sin(Velkoz:degrad(degr))
-	z=z*math.cos(Velkoz:degrad(degr))+x*math.sin(Velkoz:degrad(degr))
-	return Vector(x,y,z)
-end
-
-function Velkoz:ScalarProduct(v1,v2)
-	return (v1.x*v2.x+v1.y*v2.y+v1.z*v2.z)/(v1:len()*v2:len())
-end
-
-function Velkoz:degrad(degr)
-	degr=(degr/180)*math.pi
-	return degr
-end
-
-function Velkoz:UpdateBuff(unit,buffProc)
-	if unit ~= myHero and (buffProc.Type == 29 or buffProc.Type == 11 or buffProc.Type == 24 or buffProc.Type == 30) then 
-		self.ccTrack[GetObjectName(unit)] = true
-		self.rTime = buffProc.ExpireTime
-	elseif unit == myHero and buffProc.Name:lower() == "velkozr" then
-		Stop(true)
-		self.rCast = true
-	end
-end
-
-function Velkoz:RemoveBuff(unit,buffProc)
-	if unit ~= myHero and (buffProc.Type == 29 or buffProc.Type == 11 or buffProc.Type == 24 or buffProc.Type == 30) then 
-		self.ccTrack[GetObjectName(unit)] = false
-	elseif unit == myHero and buffProc.Name:lower() == "velkozr" then
+function Velkoz:RemoveBuff(u,buffProc)
+	if u.isMe and buffProc.Name == "VelkozR" then 
+		self.ult = false
 		Stop(false)
-		self.rCast = false
+	elseif u.team ~= myHero.team and u.isHero then
+		if buffProc.Name == "velkozresearchedstack" then
+			self.Researched[u.networkID] = false
+		elseif buffProc.Name == "velkozresearchstack" then
+			self.Deconstructed[u.networkID] = nil
+		end
 	end
 end
 
