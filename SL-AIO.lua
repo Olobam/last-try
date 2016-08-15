@@ -4375,7 +4375,7 @@ function SLWalker:__init()
 		return ADDmg, APDmg + (GotBuff(source, "dianaarcready") > 0 and math.max(5*GetLevel(source)+15,10*GetLevel(source)-10,15*GetLevel(source)-60,20*GetLevel(source)-125,25*GetLevel(source)-200)+.8*GetBonusAP(source) or 0), TRUEDmg
     end,
     ["Draven"] = function(source, target, ADDmg, APDmg, TRUEDmg)
-		return ADDmg + (GotBuff(source, "dravenspinning") > 0 and 45+10*GetCastLevel(myHero,_Q) / 100*(ADDmg) or 0), APDmg, TRUEDmg
+		return ADDmg + (GotBuff(source, "DravenSpinning") > 0 and 45+10*GetCastLevel(myHero,_Q) / 100*(ADDmg) or 0), APDmg, TRUEDmg
     end,
     ["Ekko"] = function(source, target, ADDmg, APDmg, TRUEDmg)
 		return ADDmg, APDmg + (GotBuff(source, "ekkoeattackbuff") > 0 and 30*GetCastLevel(source, _E)+20+.2*GetBonusAP(source) or 0), TRUEDmg
@@ -4893,7 +4893,7 @@ function SLWalker:Orb()
 		elseif self:CanMove() and GetDistance(myHero, GetMousePos()) > myHero.boundingRadius then
 				MoveToXYZ(self.forcePos or GetMousePos())
 		end
-		if GetDistance(myHero, GetMousePos()) < myHero.boundingRadius then
+		if GetDistance(myHero, GetMousePos()) < 80 then
 			self.movementEnabled = false
 		else
 			self.movementEnabled = true
@@ -5442,8 +5442,8 @@ function SLEvade:Skillshot()
         s.spell.mcollision = true
         s.spell.dangerous = false
         s.spell.radius = 120
-        s.spell.speed = 250
-        s.spell.delay = 0.4
+        s.spell.speed = 1300
+        s.spell.delay = 0.25
         s.p.endPos = Vector(2104,95,3196)
 		s.spell.range = 1200																			
         s.spell.type = "Line"
@@ -5658,7 +5658,7 @@ function SLEvade:Status()
 	if EMenu.Keys.DD:Value() then
 		DrawText("Evade : OFF", 400, GetHPBarPos(myHero).x, GetHPBarPos(myHero).y+150, ARGB(255,255,255,255))
 	end
-	if EMenu.Keys.DoD:Value() or EMenu.Keys.DoD2:Value() and not EMenu.Keys.DD:Value() then 
+	if (EMenu.Keys.DoD:Value() or EMenu.Keys.DoD2:Value()) and not EMenu.Keys.DD:Value() then 
 		DrawText("Evade : ON", 400, GetHPBarPos(myHero).x, GetHPBarPos(myHero).y+150, GoS.Yellow)
 	end
 end
@@ -5666,7 +5666,7 @@ end
 function SLEvade:Humanizer(_,i)
 	if not i.status then
 		if (i.debug or EMenu.Spells[_]["H".._]:Value()) and i.caster and i.caster.visible then
-			return i.caster.distance/i.spell.speed - i.spell.delay*1.5
+			return (i.spell.delay + GetDistance(myHero,i.p.startPos) / i.spell.speed)/(myHero.ms/100)
 		else
 			return 0 
 		end
@@ -6267,8 +6267,8 @@ function SLEvade:Drawings(_,i)
 			end
 		end
 		if i.spell.type == "Ring" and not EMenu.Keys.DDraws:Value() then
-			DrawCircle(i.p.endPos.x,i.p.endPos.y,i.p.endPos.z,i.spell.radius,i.spell.radius/1.5,EMenu.Draws.SD.t:Value()+0.5,20,EMenu.Draws.SD.c:Value())
-			DrawCircle(i.p.endPos.x,i.p.endPos.y,i.p.endPos.z,i.spell.radius,i.spell.radius/1.5,EMenu.Draws.SD.t:Value()+0.5,20,EMenu.Draws.SD.c:Value())
+			DrawCircle(i.p.endPos.x,i.p.endPos.y,i.p.endPos.z,i.spell.radius,EMenu.Draws.SD.t:Value()+0.5,20,EMenu.Draws.SD.c:Value())
+			DrawCircle(i.p.endPos.x,i.p.endPos.y,i.p.endPos.z,i.spell.radius/1.5,EMenu.Draws.SD.t:Value()+0.5,20,EMenu.Draws.SD.c:Value())
 		end
 		if i.jp and (GetDistance(myHero,i.jp) > i.spell.radius + myHero.boundingRadius) and i.safe and i.spell.type == "Line" then
 			i.safe = nil
