@@ -4879,6 +4879,21 @@ function SLWalker:__init()
 	end
   }	
   
+  self.Channel = {
+	{name = "katarinar", duration = 1},
+	{name = "drain", duration = 5},
+	{name = "crowstorm", duration = 1.5},
+	{name = "consume", duration = 1.5},
+	{name = "absolutezero", duration = 1},
+	{name = "ezrealtrueshotbarrage", duration = 1},
+	{name = "galioidolofdurand", duration = 1},
+	{name = "reapthewhirlwind", duration = 1},
+	{name = "missfortunebullettime", duration = 1},
+	{name = "shenstandunited", duration = 1},
+	{name = "meditate", duration = 1},
+	{name = "gate", duration = 1.5},
+  }
+  
 	OMenu:Menu("FS", "Farm Settings")
 	OMenu.FS:Boolean("AJ", "Attack Jungle", true)
 	OMenu.FS:Boolean("AS", "Attack Structures", true)
@@ -4923,6 +4938,7 @@ function SLWalker:__init()
 	self.sa = {}
 	self.da = {}
 	self.pos = nil
+	self.c = {}
 
 	Callback.Add("ProcessSpellAttack", function(unit,spellProc) self:PrAtt(unit,spellProc) end)
 	Callback.Add("ProcessSpell", function(unit,spellProc) self:PrSp(unit,spellProc) end)
@@ -4931,6 +4947,15 @@ function SLWalker:__init()
 	Callback.Add("IssueOrder", function(order) self:IssOrd(order) end)
 	Callback.Add("CreateObj", function(obj) self:CreateO(obj) end)
 	Callback.Add("DeleteObj", function(obj) self:DeleteO(obj) end)
+	Callback.Add("Animation", function(u,a) self:An(u,a) end)
+end
+
+function SLWalker:An(u,a)
+	for _, i in pairs(self.c) do 
+		if u.isMe and a == "Run" then
+			self.c[_] = nil
+		end
+	end
 end
 
 function SLWalker:T()
@@ -4964,6 +4989,11 @@ self:Orb()
 			if GetDistance(i.o.pos,GetMousePos()) < OMenu.DS.CR:Value() and self.pos then
 				MoveToXYZ(self.pos)
 			end
+		end
+	end
+	for _,i in pairs(self.c) do
+		if i.s.target.dead then
+			self.c[_] = nil
 		end
 	end
 end
@@ -5101,6 +5131,15 @@ function SLWalker:moveEvery()
 	end
 end
 
+function SLWalker:DontOrb()
+	for _,i in pairs(self.c) do
+		if i and i.et and i.et > os.clock() then
+			return true
+		end
+	end
+	return false
+end
+
 function SLWalker:IssOrd(order)
 if not SLW then return end
 	if order.flag == 2 and OMenu.Hum.Enable:Value() then
@@ -5160,6 +5199,12 @@ function SLWalker:PrSp(unit,spellProc)
 			end
 		end
 		table.insert(self.ActiveAttacks, {Attacker = unit, Target = spellProc.target, starttime = os.clock()+spellProc.windUpTime*1000,projectilespeed = self.projectilespeeds[unit.charName], windUpTime = spellProc.windUpTime, animationTime = spellProc.animationTime})
+	end
+	for _,i in pairs(self.Channel) do
+		if spellProc.name:lower() == i.name and unit and unit.isMe and spellProc then
+			self.c[unit.networkID] = {et = os.clock() + i.duration + spellProc.windUpTime,s = spellProc}
+			DelayAction(function() self.c[unit.networkID] = nil end,i.duration)
+		end
 	end
 end
 
@@ -5311,7 +5356,7 @@ function SLWalker:GetTarget()
 end
 
 function SLWalker:Orb()
-	if not self:IsOrbwalking() then return end
+	if not self:IsOrbwalking() or self:DontOrb() then return end
 	if self:CanMove() or self:CanAttack() then
 		if self:CanAttack() then
 			if self:GetTarget() then
