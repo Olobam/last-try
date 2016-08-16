@@ -4410,6 +4410,9 @@ function SLWalker:__init()
     ["Kayle"] = function(source, target, ADDmg, APDmg, TRUEDmg)
 		return ADDmg, APDmg + (GotBuff(source, "kaylerighteousfurybuff") > 0 and 5*GetCastLevel(source, _E)+5+.15*GetBonusAP(source) or 0) + (GotBuff(source, "judicatorrighteousfury") > 0 and 5*GetCastLevel(source, _E)+5+.15*GetBonusAP(source) or 0), TRUEDmg
     end,
+	["KogMaw"] = function(source, target, ADDmg, APDmg, TRUEDmg)
+		return ADDmg*.55 + GotBuff(source, "KogMawBioArcaneBarrage") > 0 , 4 * GetCastLevel(source,_W) + (.02 + APDmg*.00075)*target.maxHealth, TRUEDmg
+	end,
     ["Leona"] = function(source, target, ADDmg, APDmg, TRUEDmg)
 		return ADDmg, APDmg + (GotBuff(source, "leonashieldofdaybreak") > 0 and 30*GetCastLevel(source, _Q)+10+.3*GetBonusAP(source) or 0), TRUEDmg
     end,
@@ -5012,9 +5015,6 @@ function SLEvade:__init()
 	EMenu:SubMenu("EvadeSpells", "EvadeSpell Settings")
 	EMenu:SubMenu("invulnerable", "Invulnerable Settings")
 	EMenu:SubMenu("Draws", "Drawing Settings")
-	EMenu:SubMenu("DS", "Dodge Settings")
-	EMenu.DS:Slider("ew", "Extra Spell Width", 10, 0, 100, 2)
-	EMenu.DS:Info("T", "Those Values are randomized")
 	EMenu:SubMenu("Advanced", "Advanced Settings")
 	EMenu.Advanced:Boolean("LDR", "Limit detection range", true)
 	EMenu.Advanced:Boolean("EMC", "Enable Minion Collision", true)
@@ -5497,17 +5497,6 @@ function SLEvade:Drawp()
 			i.p.startPos = Vector(i.o.startPos)
 			i.p.endPos = Vector(i.o.endPos)
 		end
-		if EMenu.D:Value() then
-			if not i.state then
-				i.spell.radius = i.spell.radius + math.random(0,EMenu.DS.ew:Value())
-			end
-			i.state = true
-		else
-			if not i.state then
-				self.Spells[_].radius = EMenu.Spells[_]["radius".._]:Value() + math.random(0,EMenu.DS.ew:Value())
-			end
-			i.state = true
-		end
 		if i.p then
 			self.endposs =  Vector(i.p.startPos) + i.spell.range * (Vector(i.p.endPos) - Vector(i.p.startPos)):normalized()
 			self.opos = self:sObjpos(_,i)
@@ -5653,13 +5642,13 @@ end
 
 function SLEvade:Status()
 	if not EMenu.Keys.DD:Value() and not (EMenu.Keys.DoD:Value() or EMenu.Keys.DoD2:Value()) then
-		DrawText("Evade : ON", 400, GetHPBarPos(myHero).x, GetHPBarPos(myHero).y+150, ARGB(255,255,255,255))
+		DrawText("Evade : ON", 400, myHero.pos2D.x-50,  myHero.pos2D.y, ARGB(255,255,255,255))
 	end
 	if EMenu.Keys.DD:Value() then
-		DrawText("Evade : OFF", 400, GetHPBarPos(myHero).x, GetHPBarPos(myHero).y+150, ARGB(255,255,255,255))
+		DrawText("Evade : OFF", 400, myHero.pos2D.x-50,  myHero.pos2D.y, ARGB(255,255,255,255))
 	end
 	if (EMenu.Keys.DoD:Value() or EMenu.Keys.DoD2:Value()) and not EMenu.Keys.DD:Value() then 
-		DrawText("Evade : ON", 400, GetHPBarPos(myHero).x, GetHPBarPos(myHero).y+150, GoS.Yellow)
+		DrawText("Evade : ON", 400, myHero.pos2D.x-50,  myHero.pos2D.y, GoS.Yellow)
 	end
 end
 
