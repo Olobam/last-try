@@ -3272,6 +3272,15 @@ class 'Veigar'
 
 function Veigar:__init()
 
+	self.CCType = { 
+	[5] = "Stun", 
+	[8] = "Taunt", 
+	[11] = "Snare", 
+	[21] = "Fear", 
+	[22] = "Charm", 
+	[24] = "Suppression",
+	}
+	
 	Veigar.Spell = {
 	[-1] = { delay = 0.1, speed = math.huge, width = 50, range = math.huge},
 	[0] = { delay = 0.1, speed = 2000, width = 100, range = 950},
@@ -3318,9 +3327,28 @@ function Veigar:__init()
 	BM:Boolean("AW", "Auto W on immobile", true)
 	
 	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("UpdateBuff", function(u,b) self:UpdateBuff(u,b) end)
+	Callback.Add("RemoveBuff", function(u,b) self:RemoveBuff(u,b) end)
+	
+	self.CC = false
 
 end
 
+function Veigar:UpdateBuff(u,b)
+	if u and u.team == MINION_ENEMY and b and u.isHero then
+		if self.CCType[b.Type] then
+			self.CC = true
+		end
+	end
+end
+
+function Veigar:RemoveBuff(u,b)
+	if u and u.team == MINION_ENEMY and b and u.isHero then
+		if self.CCType[b.Type] then
+			self.CC = false
+		end
+	end
+end
 
 function Veigar:Tick()
 	if myHero.dead then return end
@@ -3334,7 +3362,7 @@ function Veigar:Tick()
 	local target = GetCurrentTarget()
 	
 	self:AutoW(target)
-	
+
     if Mode == "Combo" then
 		self:Combo(target)
 	elseif Mode == "LaneClear" then
@@ -3430,7 +3458,7 @@ function Veigar:KS()
 end
 
 function Veigar:AutoW(u)
-	if u and BM.AW:Value() and SReady[1] and ValidTarget(u,self.Spell[1].range) and GotBuff(u, "veigareventhorizonstun") > 0 and (GotBuff(u, "snare") > 0 or GotBuff(u, "taunt") > 0 or GotBuff(u, "suppression") > 0 or GotBuff(u, "stun") > 0) then
+	if u and BM.AW:Value() and SReady[1] and ValidTarget(u,self.Spell[1].range) and self.CC then
 	local WPred = GetCircularAOEPrediction(u, self.Spell[1])
 		if WPred.hitChance >= (BM.p.hW:Value()/100) then			
 			CastSkillShot(1,WPred.castPos)
