@@ -206,6 +206,7 @@ local SLSChamps = {
 	["Sivir"] = true,
 	["Vladimir"] = true,
 	["Orianna"] = true,
+	["Veigar"] = true,
 	["KogMaw"] = true,
 }
 
@@ -1712,7 +1713,6 @@ function KogMaw:RemoveBuff(u,buffProc)
 	if u.isMe and buffProc.Name == "KogMawIcathianSurprise" then self.Passive = false end
 end
 
-
 -- __     __   _ _   _            
 -- \ \   / /__| ( ) | | _____ ____
 --  \ \ / / _ \ |/  | |/ / _ \_  /
@@ -3041,10 +3041,10 @@ function Orianna:__init()
 	}
 	
 	Dmg = {
-	[0] = function(unit) return CalcDamage(myHero, unit, 0, 30+30*myHero.level + 0.5 * myHero.ap) end,
-	[1] = function(unit) return CalcDamage(myHero, unit, 0, 25+45*myHero.level + 0.7 * myHero.ap) end,
-	[2] = function(unit) return CalcDamage(myHero, unit, 0, 30+30*myHero.level + 0.3 * myHero.ap) end,
-	[3] = function(unit) return CalcDamage(myHero, unit, 0, 75+75*myHero.level + 0.7 * myHero.ap) end,
+	[0] = function(unit) return CalcDamage(myHero, unit, 0, 30+30*GetCastLevel(myHero,0) + 0.5 * myHero.ap) end,
+	[1] = function(unit) return CalcDamage(myHero, unit, 0, 25+45*GetCastLevel(myHero,1) + 0.7 * myHero.ap) end,
+	[2] = function(unit) return CalcDamage(myHero, unit, 0, 30+30*GetCastLevel(myHero,2) + 0.3 * myHero.ap) end,
+	[3] = function(unit) return CalcDamage(myHero, unit, 0, 75+75*GetCastLevel(myHero,3) + 0.7 * myHero.ap) end,
 	}
 	
 	self.o = {}
@@ -3246,27 +3246,223 @@ end
 
 function Orianna:KS()
 	for _,target in pairs(GetEnemyHeroes()) do
-	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() and GetAPHP(target) < Dmg[0](target) then
-		local Pred = GetPrediction(target, self.Spell[0])
-		if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,myHero.pos) < self.Spell[0].range then
-			CastSkillShot(0,Pred.castPos)
+		if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() and GetAPHP(target) < Dmg[0](target) then
+			local Pred = GetPrediction(target, self.Spell[0])
+			if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,myHero.pos) < self.Spell[0].range then
+				CastSkillShot(0,Pred.castPos)
+			end
 		end
-	end
-	if SReady[1] and BM.C.W:Value() and EnemiesAround(self.Ball.pos, self.Spell[1].radius) >= BM.C.Wm:Value() and GetAPHP(target) < Dmg[1](target) then
-		CastSpell(1)
-	end
-	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() and GetAPHP(target) < Dmg[2](target) then
-		local VP = VectorPointProjectionOnLineSegment(Vector(myHero), Vector(target), Vector(self.Ball))
-		if GetDistance(VP, target) < self.Spell[2].radius then
-			CastSpell(2)
+		if SReady[1] and BM.C.W:Value() and EnemiesAround(self.Ball.pos, self.Spell[1].radius) >= BM.C.Wm:Value() and GetAPHP(target) < Dmg[1](target) then
+			CastSpell(1)
 		end
-	end
-	if SReady[3] and BM.C.R:Value() and EnemiesAround(self.Ball.pos, self.Spell[3].radius) >= BM.C.Rm:Value() and GetAPHP(target) < Dmg[3](target) then
-		CastSpell(3)
-	end
+		if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() and GetAPHP(target) < Dmg[2](target) then
+			local VP = VectorPointProjectionOnLineSegment(Vector(myHero), Vector(target), Vector(self.Ball))
+			if GetDistance(VP, target) < self.Spell[2].radius then
+				CastSpell(2)
+			end
+		end
+		if SReady[3] and BM.C.R:Value() and EnemiesAround(self.Ball.pos, self.Spell[3].radius) >= BM.C.Rm:Value() and GetAPHP(target) < Dmg[3](target) then
+			CastSpell(3)
+		end
 	end
 end
 
+
+class 'Veigar'
+
+function Veigar:__init()
+
+	Veigar.Spell = {
+	[-1] = { delay = 0.1, speed = math.huge, width = 50, range = math.huge},
+	[0] = { delay = 0.1, speed = 2000, width = 100, range = 950},
+	[1] = { delay = 0.1, speed = math.huge, range = 900 , radius = 225},
+	[2] = { delay = 0.6, speed = math.huge, range = 725 , radius = 400},
+	[3] = { range = 650 },
+	}
+
+	Dmg = {
+	[0] = function(u) return CalcDamage(myHero, u, 0, 30+40*GetCastLevel(myHero,0) + 0.6 * myHero.ap) end,
+	[1] = function(u) return CalcDamage(myHero, u, 0, 50+50*GetCastLevel(myHero,1) + myHero.ap) end,
+	[3] = function(u) return CalcDamage(myHero, u, 0, (75*GetCastLevel(myHero,3) + 100)*math.max((100-GetPercentHP(u))*1.5,200)*.01) end,
+	}
+	
+	BM:SubMenu("C", "Combo")
+	BM.C:Boolean("Q", "Use Q", true)
+	BM.C:Boolean("W", "Use W", true)
+	BM.C:Boolean("E", "Use E", true)
+	
+	BM:SubMenu("H", "Harass")
+	BM.H:Boolean("Q", "Use Q", true)
+	BM.H:Boolean("W", "Use W", true)
+	BM.H:Boolean("E", "Use E", true)	
+
+	BM:SubMenu("LC", "LaneClear")
+	BM.LC:Boolean("W", "Use W", true)
+	
+	BM:SubMenu("JC", "JungleClear")
+	BM.JC:Boolean("W", "Use W", true)
+
+	BM:SubMenu("p", "Prediction")
+	BM.p:Slider("hQ", "HitChance Q", 20, 0, 100, 1)
+	BM.p:Slider("hW", "HitChance W", 20, 0, 100, 1)
+	BM.p:Slider("hE", "HitChance E", 20, 0, 100, 1)
+
+	BM:SubMenu("KS", "Killsteal")
+	BM.KS:Boolean("Q", "Use Q", true)
+	BM.KS:Boolean("W", "Use W", true)
+	BM.KS:Boolean("R", "Use R", true)
+	
+	BM:SubMenu("f", "Farm")
+	BM.f:Boolean("AQ", "Auto Q farm", true)
+	
+	BM:Boolean("AW", "Auto W on immobile", true)
+	
+	Callback.Add("Tick", function() self:Tick() end)
+
+end
+
+
+function Veigar:Tick()
+	if myHero.dead then return end
+	
+	GetReady()
+	
+	self:KS()
+
+	self:FarmQ()
+	
+	local target = GetCurrentTarget()
+	
+	self:AutoW(target)
+	
+    if Mode == "Combo" then
+		self:Combo(target)
+	elseif Mode == "LaneClear" then
+		self:LaneClear()
+		self:JungleClear()
+	elseif Mode == "Harass" then
+		self:Harass(target)
+	else
+		return
+	end
+end
+
+function Veigar:Combo(u)	
+	if u then
+		if BM.C.Q:Value() and SReady[0] and ValidTarget(u, self.Spell[0].range+10) then
+			local QPred = GetPrediction(u,self.Spell[0])
+			if QPred.hitChance >= (BM.p.hQ:Value()/100) then				
+				CastSkillShot(0,QPred.castPos)
+			end
+		end		
+		if BM.C.W:Value() and SReady[1] and ValidTarget(u, self.Spell[1].range) then
+			local WPred = GetCircularAOEPrediction(u, self.Spell[1])
+			if WPred.hitChance >= (BM.p.hW:Value()/100) then				
+				CastSkillShot(1,WPred.castPos)
+			end
+		end	
+		if BM.C.E:Value() then
+			self:castE(u)
+		end
+	end
+end
+
+function Veigar:Harass(u)	
+	if u then
+		if BM.H.Q:Value() and SReady[0] and ValidTarget(u, self.Spell[0].range+10) then
+			local QPred = GetPrediction(u,self.Spell[0])
+			if QPred.hitChance >= (BM.p.hQ:Value()/100) and (not QPred:mCollision() or #QPred:mCollision() < 2) then				
+				CastSkillShot(0,QPred.castPos)
+			end
+		end		
+		if BM.H.W:Value() and SReady[1] and ValidTarget(u, self.Spell[1].range) then
+			local WPred = GetCircularAOEPrediction(u, self.Spell[1])
+			if WPred.hitChance >= (BM.p.hW:Value()/100) then				
+				CastSkillShot(1,WPred.castPos)
+			end
+		end	
+		if BM.H.E:Value() then
+			self:castE(u)
+		end
+	end
+end
+
+function Veigar:LaneClear()	
+	for _,i in pairs(minionManager.objects) do
+		if i.team == MINION_ENEMY and BM.LC.W:Value() and SReady[1] and ValidTarget(i, self.Spell[1].range) then
+			local WPred = GetCircularAOEPrediction(i, self.Spell[1])
+			if WPred.hitChance >= (BM.p.hW:Value()/100) then				
+				CastSkillShot(1,WPred.castPos)
+			end
+		end	
+	end
+end
+
+function Veigar:JungleClear()
+	for _,i in pairs(minionManager.objects) do
+		if i.team == MINION_JUNGLE and BM.JC.W:Value() and SReady[1] and ValidTarget(i, self.Spell[1].range) then
+			local WPred = GetCircularAOEPrediction(i, self.Spell[1])
+			if WPred.hitChance >= (BM.p.hW:Value()/100) then				
+				CastSkillShot(1,WPred.castPos)
+			end
+		end	
+	end
+end
+
+function Veigar:KS()
+	for _,i in pairs(GetEnemyHeroes()) do
+		if BM.KS.Q:Value() and SReady[0] and ValidTarget(i, self.Spell[0].range) and i.health < Dmg[0](i) then
+			local QPred = GetPrediction(i,self.Spell[0])
+			if QPred.hitChance >= (BM.p.hQ:Value()/100) and (not QPred:mCollision() or #QPred:mCollision() < 2) then				
+				CastSkillShot(0,QPred.castPos)
+			end
+		end
+		if BM.KS.W:Value() and SReady[1] and ValidTarget(i, self.Spell[1].range) and i.health < Dmg[1](i) then
+			local WPred = GetCircularAOEPrediction(i, self.Spell[1])
+			if WPred.hitChance >= (BM.p.hW:Value()/100) then				
+				CastSkillShot(1,WPred.castPos)
+			end
+		end	
+		if BM.KS.R:Value() and SReady[3] and ValidTarget(i, self.Spell[3].range) and i.health < Dmg[3](i) then 
+			CastTargetSpell(i,3)
+		end	
+	end
+end
+
+function Veigar:AutoW(u)
+	if u and BM.AW:Value() and SReady[1] and ValidTarget(u,self.Spell[1].range) and GotBuff(u, "veigareventhorizonstun") > 0 and (GotBuff(u, "snare") > 0 or GotBuff(u, "taunt") > 0 or GotBuff(u, "suppression") > 0 or GotBuff(u, "stun") > 0) then
+	local WPred = GetCircularAOEPrediction(u, self.Spell[1])
+		if WPred.hitChance >= (BM.p.hW:Value()/100) then			
+			CastSkillShot(1,WPred.castPos)
+		end
+	end
+end
+
+function Veigar:castE(u)
+	if u and SReady[2] and ValidTarget(u, 725) then
+		local EPred = GetCircularAOEPrediction(u, self.Spell[2])
+		local EMove = GetPrediction(u, self.Spell[-1])
+		if GetDistance(EMove.castPos , myHero.pos) < GetDistance(u.pos,myHero.pos) then
+			EPred.castPos = Vector(EPred.castPos)+((Vector(EPred.castPos)-myHero.pos):normalized()*325)
+		else
+			EPred.castPos = Vector(EPred.castPos)+((myHero.pos-Vector(EPred.castPos)):normalized()*325)
+		end
+		CastSkillShot(2,EPred.castPos)
+	end
+end
+
+function Veigar:FarmQ()
+	if BM.f.AQ:Value() and SReady[0] and Mode ~= "Combo" then
+		for _,i in pairs(minionManager.objects) do
+			if i.team ~= MINION_ALLY and ValidTarget(i,self.Spell[0].range) and i.health < Dmg[0](i) then
+				local QPred = GetPrediction(i,self.Spell[0])			
+				if not QPred:mCollision() or #QPred:mCollision() < 2 then
+					CastSkillShot(0,QPred.castPos)
+				end
+			end
+		end
+	end
+end
 
 
 ---------------------------------------------------------------------------------------------
