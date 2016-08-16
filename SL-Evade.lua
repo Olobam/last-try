@@ -1,5 +1,5 @@
 local SLEAutoUpdate = true
-local Stage, SLEvadeVer = "BETA", "0.17"
+local Stage, SLEvadeVer = "BETA", "0.18"
 local SLEPatchnew = nil
 if GetGameVersion():sub(3,4) >= "10" then
 		SLEPatchnew = GetGameVersion():sub(1,4)
@@ -197,9 +197,6 @@ function SLEvade:__init()
 	EMenu:SubMenu("EvadeSpells", "EvadeSpell Settings")
 	EMenu:SubMenu("invulnerable", "Invulnerable Settings")
 	EMenu:SubMenu("Draws", "Drawing Settings")
-	EMenu:SubMenu("DS", "Dodge Settings")
-	EMenu.DS:Slider("ew", "Extra Spell Width", 10, 0, 100, 2)
-	EMenu.DS:Info("T", "Those Values are randomized")
 	EMenu:SubMenu("Advanced", "Advanced Settings")
 	EMenu.Advanced:Boolean("LDR", "Limit detection range", true)
 	EMenu.Advanced:Boolean("EMC", "Enable Minion Collision", true)
@@ -627,8 +624,8 @@ function SLEvade:Skillshot()
         s.spell.mcollision = true
         s.spell.dangerous = false
         s.spell.radius = 120
-        s.spell.speed = 250
-        s.spell.delay = 0.4
+        s.spell.speed = 1300
+        s.spell.delay = 0.25
         s.p.endPos = Vector(2104,95,3196)
 		s.spell.range = 1200																			
         s.spell.type = "Line"
@@ -681,17 +678,6 @@ function SLEvade:Drawp()
 			i.p = {}
 			i.p.startPos = Vector(i.o.startPos)
 			i.p.endPos = Vector(i.o.endPos)
-		end
-		if EMenu.D:Value() then
-			if not i.state then
-				i.spell.radius = i.spell.radius + math.random(0,EMenu.DS.ew:Value())
-			end
-			i.state = true
-		else
-			if not i.state then
-				self.Spells[_].radius = EMenu.Spells[_]["radius".._]:Value() + math.random(0,EMenu.DS.ew:Value())
-			end
-			i.state = true
 		end
 		if i.p then
 			self.endposs =  Vector(i.p.startPos) + i.spell.range * (Vector(i.p.endPos) - Vector(i.p.startPos)):normalized()
@@ -838,20 +824,20 @@ end
 
 function SLEvade:Status()
 	if not EMenu.Keys.DD:Value() and not (EMenu.Keys.DoD:Value() or EMenu.Keys.DoD2:Value()) then
-		DrawText("Evade : ON", 400, GetHPBarPos(myHero).x, GetHPBarPos(myHero).y+150, ARGB(255,255,255,255))
+		DrawText("Evade : ON", 400, myHero.pos2D.x-50,  myHero.pos2D.y, ARGB(255,255,255,255))
 	end
 	if EMenu.Keys.DD:Value() then
-		DrawText("Evade : OFF", 400, GetHPBarPos(myHero).x, GetHPBarPos(myHero).y+150, ARGB(255,255,255,255))
+		DrawText("Evade : OFF", 400, myHero.pos2D.x-50,  myHero.pos2D.y, ARGB(255,255,255,255))
 	end
-	if EMenu.Keys.DoD:Value() or EMenu.Keys.DoD2:Value() and not EMenu.Keys.DD:Value() then 
-		DrawText("Evade : ON", 400, GetHPBarPos(myHero).x, GetHPBarPos(myHero).y+150, GoS.Yellow)
+	if (EMenu.Keys.DoD:Value() or EMenu.Keys.DoD2:Value()) and not EMenu.Keys.DD:Value() then 
+		DrawText("Evade : ON", 400, myHero.pos2D.x-50,  myHero.pos2D.y, GoS.Yellow)
 	end
 end
 
 function SLEvade:Humanizer(_,i)
 	if not i.status then
 		if (i.debug or EMenu.Spells[_]["H".._]:Value()) and i.caster and i.caster.visible then
-			return i.caster.distance/i.spell.speed - i.spell.delay*1.5
+			return (i.spell.delay + GetDistance(myHero,i.p.startPos) / i.spell.speed)/(myHero.ms/100)
 		else
 			return 0 
 		end
@@ -1452,8 +1438,8 @@ function SLEvade:Drawings(_,i)
 			end
 		end
 		if i.spell.type == "Ring" and not EMenu.Keys.DDraws:Value() then
-			DrawCircle(i.p.endPos.x,i.p.endPos.y,i.p.endPos.z,i.spell.radius,i.spell.radius/1.5,EMenu.Draws.SD.t:Value()+0.5,20,EMenu.Draws.SD.c:Value())
-			DrawCircle(i.p.endPos.x,i.p.endPos.y,i.p.endPos.z,i.spell.radius,i.spell.radius/1.5,EMenu.Draws.SD.t:Value()+0.5,20,EMenu.Draws.SD.c:Value())
+			DrawCircle(i.p.endPos.x,i.p.endPos.y,i.p.endPos.z,i.spell.radius,EMenu.Draws.SD.t:Value()+0.5,20,EMenu.Draws.SD.c:Value())
+			DrawCircle(i.p.endPos.x,i.p.endPos.y,i.p.endPos.z,i.spell.radius/1.5,EMenu.Draws.SD.t:Value()+0.5,20,EMenu.Draws.SD.c:Value())
 		end
 		if i.jp and (GetDistance(myHero,i.jp) > i.spell.radius + myHero.boundingRadius) and i.safe and i.spell.type == "Line" then
 			i.safe = nil
