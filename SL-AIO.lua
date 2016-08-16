@@ -4450,7 +4450,7 @@ function SLWalker:__init()
 		return ADDmg, APDmg + (GotBuff(source, "varusw") > 0 and (4*GetCastLevel(source, _W)+6+.25*GetBonusAP(source)) or 0) , TRUEDmg
     end,
     ["Vayne"] = function(source, target, ADDmg, APDmg, TRUEDmg)
-		return ADDmg + (GotBuff(source, "vaynetumblebonus") > 0 and (.05*GetCastLevel(source, _Q)+.25)*(ADDmg) or 0), 0, TRUEDmg + (GotBuff(target, "vaynesilvereddebuff") > 1 and 10*GetCastLevel(source, _W)+10+((1*GetCastLevel(source, _W)+3)*GetMaxHP(target)/100) or 0)
+		return ADDmg + (GotBuff(source, "vaynetumblebonus") > 0 and (.05*GetCastLevel(source, _Q)+.25)*(ADDmg) or 0), 0, TRUEDmg + (GotBuff(target, "VayneSilveredDebuff") > 1 and math.max(20+20*GetCastLevel(source,_W), 4+1.5*GetCastLevel(source,_W) / 100 * target.maxHealth) or 0)
     end,
     ["Vi"] = function(source, target, ADDmg, APDmg, TRUEDmg)
 		return ADDmg + (GotBuff(source, "vie") > 0 and 15*GetCastLevel(source, _E)-10+.15*(ADDmg)+.7*GetBonusAP(source) or 0) , APDmg, TRUEDmg
@@ -4464,6 +4464,7 @@ function SLWalker:__init()
 	OMenu.FS:Boolean("AJ", "Attack Jungle", true)
 	OMenu.FS:Boolean("AS", "Attack Structures", true)
 	OMenu.FS:Slider("FD", "Farm Delay", 0,-20,20,2)
+	OMenu.FS:DropDown("HPM", "Health Prediction", 1, {"SL","OpenPredict","GoS"})
 	
 	OMenu:Menu("D", "Drawings")
 	OMenu.D:Boolean("LHM", "Lasthit Marker", true)
@@ -4583,7 +4584,13 @@ if not SLW then return end
 end
 
 function SLWalker:PredictHP(unit,time)
-	return self:GetPredictedHealth(unit,time)
+	if OMenu.FS.HPM:Value() == 1 then
+		return self:GetPredictedHealth(unit,time,GetLatency()/2000)
+	elseif OMenu.FS.HPM:Value() == 2 then
+		return GetHealthPrediction(unit,time)
+	elseif OMenu.FS.HPM:Value() == 3 then
+		return unit.health - GetDamagePrediction(unit,time)
+	end
 end
 
 function SLWalker:Dmg(source,unit,spell)
@@ -4733,7 +4740,7 @@ function SLWalker:PrSp(unit,spellProc)
 				break
 			end
 		end
-		table.insert(self.ActiveAttacks, {Attacker = unit, Target = spellProc.target, starttime = os.clock(),projectilespeed = self.projectilespeeds[unit.charName], windUpTime = spellProc.windUpTime, animationTime = spellProc.animationTime})
+		table.insert(self.ActiveAttacks, {Attacker = unit, Target = spellProc.target, starttime = os.clock()+spellProc.windUpTime*1000,projectilespeed = self.projectilespeeds[unit.charName], windUpTime = spellProc.windUpTime, animationTime = spellProc.animationTime})
 	end
 end
 
@@ -4934,17 +4941,17 @@ function SLWalker:DeleteO(obj)
 	end
 end
 
-function SLWalker:GetPredictedHealth(unit, time)
+function SLWalker:GetPredictedHealth(unit, time, delay)
     local IncDamage = 0
     local i = 1
     local MaxDamage = 0
     local count = 0
-	local delay = 0.10
+	delay = delay or GetLatency()/2000
 
     while i <= #self.ActiveAttacks do
 		if self.ActiveAttacks[i].Attacker.alive and self.ActiveAttacks[i].Target.networkID == unit.networkID then
-			local hittime = self.ActiveAttacks[i].starttime + (GetDistance(self.ActiveAttacks[i].Target,self.ActiveAttacks[i].Attacker)/self.ActiveAttacks[i].projectilespeed) 
-			if self:GetTime() < hittime - (delay-OMenu.FS.FD:Value()*.1) and hittime < self:GetTime() + time then
+			local hittime = os.clock() - self.ActiveAttacks[i].starttime + (GetDistance(self.ActiveAttacks[i].Target,self.ActiveAttacks[i].Attacker)/self.ActiveAttacks[i].projectilespeed)
+			if self:GetTime() < hittime - (delay+OMenu.FS.FD:Value()*.1) and hittime < self:GetTime() + time then
 				IncDamage = IncDamage + self.ActiveAttacks[i].Attacker.totalDamage
 				count = count + 1
 				if self.ActiveAttacks[i].Attacker.totalDamage > MaxDamage then
