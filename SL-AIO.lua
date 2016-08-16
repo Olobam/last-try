@@ -206,6 +206,7 @@ local SLSChamps = {
 	["Sivir"] = true,
 	["Vladimir"] = true,
 	["Orianna"] = true,
+	["KogMaw"] = true,
 }
 
 if not FileExist(COMMON_PATH.. "Analytics.lua") then
@@ -235,6 +236,10 @@ end
 
 local function GetAPHP(unit)
 	return GetCurrentHP(unit) + GetDmgShield(unit) + GetMagicShield(unit)
+end
+
+local function IsLaneCreep(unit)
+	return unit.team ~= 300
 end
 
 local function GetReady()
@@ -1517,6 +1522,196 @@ function Aatrox:Stat(unit, buff)
 		self.W = "dmg"
 	end
 end
+
+--  _  __          _ __  __             
+-- | |/ /___  __ _( )  \/  |__ ___ __ __
+-- | ' </ _ \/ _` |/| |\/| / _` \ V  V /
+-- |_|\_\___/\__, | |_|  |_\__,_|\_/\_/ 
+ --          |___/                      
+  
+class 'KogMaw'
+
+function KogMaw:__init()
+
+	BM:SubMenu("C", "Combo")
+	BM.C:Boolean("Q", "Use Q", true)
+	BM.C:Boolean("W", "Use W", true)
+	BM.C:Boolean("E", "Use E", true)
+	BM.C:Boolean("R", "Use R", true)
+	BM.C:Boolean("P", "Use Passive", true)
+
+	BM:SubMenu("L", "LaneClear")
+	BM.L:Boolean("Q", "Use Q", false)
+	BM.L:Boolean("W", "Use W", false)
+	BM.L:Boolean("E", "Use E", false)
+	
+	BM:SubMenu("J", "JungleClear")
+	BM.J:Boolean("Q", "Use Q", true)
+	BM.J:Boolean("W", "Use W", true)
+	BM.J:Boolean("E", "Use E", false)
+	
+	BM:SubMenu("H", "Harass")
+	BM.H:Boolean("Q", "Use Q", true)
+	BM.H:Boolean("W", "Use W", true)
+	BM.H:Boolean("E", "Use E", false)
+	
+	BM:SubMenu("P", "Prediction")
+	BM.P:Slider("Q", "HitChance Q", 20, 0, 100, 1)
+	BM.P:Slider("E", "HitChance E", 20, 0, 100, 1)
+	BM.P:Slider("R", "HitChance R", 20, 0, 100, 1)
+
+	self.Passive = GotBuff(myHero,"KogMawIcathianSurprise") ~= 0
+	self.dmgPred = {}
+	self.soonHP = {}
+	self.WOn = CanUseSpell(myHero,2) == 8
+	
+	self.Dmg = {
+	[-1] = function (unit) return 100 + 25 *myHero.level end,
+	[0] = function (unit) return CalcDamage(myHero, unit, 0, 50 * GetCastLevel(myHero,0) + 30 + GetBonusAP(myHero)* .5) end, 
+	[1] = function (unit) return CalcDamage(myHero, unit, myHero.totalDamage*.55, 4 * GetCastLevel(myHero,1) + (.02 + myHero.ap*.00075)*unit.maxHealth) end, 
+	[2] = function (unit) return CalcDamage(myHero, unit, 0, 50 * GetCastLevel(myHero,2) + 10 + myHero.ap* 7 ) end, 
+	[3] = function (unit) return CalcDamage(myHero,unit,0,(30 + 40*GetCastLevel(myHero,3) + (myHero.totalDamage-myHero.damage) * .65 + .25 * myHero.ap)*(GetPercentHP(unit)>50 and 1 or (GetPercentHP(unit)<50 and 2 or 3))) end,
+	}
+	
+	self.Spell = {
+	[0] = { range = 1175, delay = .25, width = 75 , speed = 1650},
+	[1] = { range = 560 + 30 * myHero.level},
+	[2] = { range = 1360, delay = .25, width = 120, speed = 1400},
+	[3] = { range = 1800, delay = 1.2, speed = math.huge , radius = 225},
+	}
+	
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("Draw", function() self:Draw() end)
+	Callback.Add("UpdateBuff", function(unit,buffProc) self:UpdateBuff(unit,buffProc) end)
+	Callback.Add("RemoveBuff", function(unit,buffProc) self:RemoveBuff(unit,buffProc) end)
+	Callback.Add("ProcessSpellComplete", function(unit,spellProc) self:ProcessSpellComplete(unit,spellProc) end)
+	
+	DelayAction(function()
+		for _,i in pairs(GetEnemyHeroes()) do
+			self.dmgPred[i.networkID] = {}
+			self.soonHP[i.networkID] = {u = i, h = i.health}
+		end
+	end)
+end
+
+function KogMaw:Tick()
+	GetReady()
+	self.WOn = CanUseSpell(myHero,2) == 8
+	self:Pred()
+	local unit = GetCurrentTarget()
+	if Mode == "Combo" and unit.valid then
+		self:Combo(unit)
+	elseif Mode == "LaneClear" then
+		self:LaneClear()
+	elseif Mode == "Harass" then
+		self:Harass(unit)
+	else
+		return
+	end
+end
+
+function KogMaw:Draw()
+	for _,i in pairs(GetEnemyHeroes()) do
+		if i.valid then
+			DrawDmgOverHpBar(i,i.health,0,self.Dmg[3](i),GoS.White)
+		end
+	end
+end
+
+function KogMaw:Pred()
+	for _,i in pairs(self.dmgPred) do
+		self.soonHP[_].h = self.soonHP[_].u.health
+		for n,m in pairs(i) do
+			if os.time()  - n > m.s / 1800 then
+				m = nil
+			else
+				self.soonHP[_].h = self.soonHP[_].h - m.d
+			end
+		end
+	end
+end
+
+function KogMaw:Combo(unit)
+	if self.Passive and GetADHP(unit) < self.Dmg[-1](unit) then
+		MoveToXYZ(unit.pos)
+		return
+	end
+	if SReady[3] and ValidTarget(unit,self.Spell[3].range) and BM.C.R:Value() and (not SReady[1] or unit.distance > self.Spell[1].range) and self.soonHP[unit.networkID].h and self.soonHP[unit.networkID].h < self.Dmg[3](unit) then
+		local Pred = GetCircularAOEPrediction(unit, self.Spell[3])
+		if Pred.hitChance > BM.P.R:Value()*.01 then
+			CastSkillShot(3,Pred.castPos)
+		end
+	end
+	if SReady[1] and ValidTarget(unit,560 + 30 * myHero.level) and BM.C.W:Value() then
+		CastSpell(1)
+	end
+	if SReady[2] and ValidTarget(unit,self.Spell[2].range) and BM.C.E:Value() then
+		local Pred = GetPrediction(unit, self.Spell[2])
+		if Pred.hitChance > BM.P.E:Value()*.01 then
+			CastSkillShot(2,Pred.castPos)
+		end
+	end
+	if SReady[0] and ValidTarget(unit,self.Spell[0].range) and BM.C.Q:Value() then
+		local Pred = GetPrediction(unit, self.Spell[0])
+		if Pred.hitChance > BM.P.Q:Value()*.01 and not Pred:mCollision(1) then
+			CastSkillShot(0,Pred.castPos)
+		end
+	end
+end
+
+function KogMaw:Harass(unit)
+	if SReady[1] and ValidTarget(unit,560 + 30 * myHero.level) and BM.H.W:Value() then
+		CastSpell(1)
+	end
+	if SReady[2] and ValidTarget(unit,self.Spell[2].range) and BM.H.E:Value() then
+		local Pred = GetPrediction(unit, self.Spell[2])
+		if Pred.hitChance > BM.P.E:Value()*.01 then
+			CastSkillShot(2,Pred.castPos)
+		end
+	end
+	if SReady[0] and ValidTarget(unit,self.Spell[0].range) and BM.H.Q:Value() then
+		local Pred = GetPrediction(unit, self.Spell[0])
+		if Pred.hitChance > BM.P.Q:Value()*.01 and not Pred:mCollision(1) then
+			CastSkillShot(0,Pred.castPos)
+		end
+	end
+end
+
+function KogMaw:LaneClear()
+	for _,unit in pairs(minionManager.objects) do
+		if SReady[1] and ValidTarget(unit,560 + 30 * myHero.level) and ((IsLaneCreep(unit) and BM.L.W:Value()) or (not IsLaneCreep(unit) and BM.J.W:Value())) then
+			CastSpell(1)
+		end
+		if SReady[2] and ValidTarget(unit,self.Spell[2].range) and ((IsLaneCreep(unit) and BM.L.E:Value()) or (not IsLaneCreep(unit) and BM.J.E:Value())) then
+			local Pred = GetPrediction(unit, self.Spell[2])
+			if Pred.hitChance > BM.P.E:Value()*.01 then
+				CastSkillShot(2,Pred.castPos)
+			end
+		end
+		if SReady[0] and ValidTarget(unit,self.Spell[0].range) and ((IsLaneCreep(unit) and BM.L.Q:Value()) or (not IsLaneCreep(unit) and BM.J.Q:Value())) then
+			local Pred = GetPrediction(unit, self.Spell[0])
+			if Pred.hitChance > BM.P.Q:Value()*.01 and not Pred:mCollision(1) then
+				CastSkillShot(0,Pred.castPos)
+			end
+		end
+	end
+end
+
+
+function KogMaw:ProcessSpellComplete(u,spellProc)
+	if u.isMe and spellProc.target and spellProc.name:lower():find("attack") and spellProc.target.isHero and spellProc.target.valid then
+		self.dmgPred[spellProc.target.networkID][os.time()] = {d = (self.Dmg[2](spellProc.target) and self.WOn or myHero.totalDamage), s = spellProc.target.distance}
+	end
+end
+
+function KogMaw:UpdateBuff(u,buffProc)
+	if u.isMe and buffProc.Name == "KogMawIcathianSurprise" then self.Passive = true end
+end
+
+function KogMaw:RemoveBuff(u,buffProc)
+	if u.isMe and buffProc.Name == "KogMawIcathianSurprise" then self.Passive = false end
+end
+
 
 -- __     __   _ _   _            
 -- \ \   / /__| ( ) | | _____ ____
