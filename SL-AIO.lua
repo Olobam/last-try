@@ -208,18 +208,12 @@ local function DisableAll(b)
 	end
 end
 
-local function dArrow(s, e, w, c, v)--startpos,endpos,width,color
+local function dArrow(s, e, w, c)--startpos,endpos,width,color
 	local s2 = e-((s-e):normalized()*75):perpendicular()+(s-e):normalized()*75
 	local s3 = e-((s-e):normalized()*75):perpendicular2()+(s-e):normalized()*75
-	if v then
-		DrawLine3D(s.x,s.y,s.z,e.x,e.y,e.z,w,c)
-		DrawLine3D(s2.x,s2.y,s2.z,e.x,e.y,e.z,w,c)
-		DrawLine3D(s3.x,s3.y,s3.z,e.x,e.y,e.z,w,c)
-	else
-		DrawLine3D(s.x,s.y,s.z,e.x,e.y,e.z,w,ARGB(255,255,0,0))
-		DrawLine3D(s2.x,s2.y,s2.z,e.x,e.y,e.z,w,ARGB(255,255,0,0))
-		DrawLine3D(s3.x,s3.y,s3.z,e.x,e.y,e.z,w,ARGB(255,255,0,0))		
-	end
+	DrawLine3D(s.x,s.y,s.z,e.x,e.y,e.z,w,c)
+	DrawLine3D(s2.x,s2.y,s2.z,e.x,e.y,e.z,w,c)
+	DrawLine3D(s3.x,s3.y,s3.z,e.x,e.y,e.z,w,c)	
 end
 
 require 'OpenPredict'
@@ -6211,7 +6205,7 @@ function SLEvade:Skillshot()
         s.spell.mcollision = true
         s.spell.dangerous = false
         s.spell.radius = 120
-        s.spell.speed = 1300
+        s.spell.speed = 250
         s.spell.delay = 0.25
 		s.spell.range = 1200
         s.p.endPos = Vector(2104,95,3196)--Vector(GetMousePos()) + Vector(Vector(myHero) - GetMousePos()):normalized() * (s.spell.range + myHero.boundingRadius)																			
@@ -6226,7 +6220,7 @@ function SLEvade:Skillshot()
 end
 
 function SLEvade:Tickp()
-	heroes[myHero.networkID] = myHero
+	heroes[myHero.networkID] = nil
 	for _,i in pairs(self.obj) do
 		if i.o and EMenu.Advanced.LDR:Value() and i.spell.type == "Line" and GetDistance(myHero,i.o) >= 3000 and not self.globalults[_] then return end
 		if i.o and EMenu.Advanced.LDR:Value() and i.spell.type == "Return" and GetDistance(myHero,i.o) >= 3000 and not self.globalults[_] then return end
@@ -6424,7 +6418,7 @@ function SLEvade:Mpos(_,i)
 	if i.spell.type == "Circle" then 
 		if i.p and GetDistance(myHero,i.p.endPos) < i.spell.radius + myHero.boundingRadius and not i.safe then
 			if not i.mpos and not self.mposs then
-				i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * i.spell.radius
+				i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * (i.spell.radius+myHero.boundingRadius)
 				self.mposs = GetMousePos()
 			end
 		else
@@ -6434,7 +6428,7 @@ function SLEvade:Mpos(_,i)
 	elseif i.spell.type == "Line" then
 		if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe then
 			if not i.mpos and not self.mposs2 then
-				i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * i.spell.radius
+				i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * (i.spell.radius+myHero.boundingRadius)
 				self.mposs2 = GetMousePos()
 			end	
 		else
@@ -6444,7 +6438,7 @@ function SLEvade:Mpos(_,i)
 	elseif i.spell.type == "Rectangle" then
 		if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe then
 			if not i.mpos and not self.mposs3 then
-				i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * i.spell.radius
+				i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * (i.spell.radius+myHero.boundingRadius)
 				self.mposs3 = GetMousePos()
 			end	
 		else
@@ -6454,7 +6448,7 @@ function SLEvade:Mpos(_,i)
 	elseif i.spell.type == "Cone" then
 		if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe then
 			if not i.mpos and not self.mposs4 then
-				i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * i.spell.radius
+				i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * (i.spell.radius+myHero.boundingRadius)
 				self.mposs4 = GetMousePos()
 			end	
 		else
@@ -6464,7 +6458,7 @@ function SLEvade:Mpos(_,i)
 	elseif i.spell.type == "Return" then
 		if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe then
 			if not i.mpos and not self.mposs2 then
-				i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * i.spell.radius
+				i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * (i.spell.radius+myHero.boundingRadius)
 				self.mposs2 = GetMousePos()
 			end	
 		else
@@ -6474,7 +6468,7 @@ function SLEvade:Mpos(_,i)
 	elseif i.spell.type == "follow" then
 		if i.jp and GetDistance(myHero,i.jp) < i.spell.radius + myHero.boundingRadius and not i.safe then
 			if not i.mpos and not self.mposs2 then
-				i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * ((i.spell.radius + myHero.boundingRadius)*1.1)
+				i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * (i.spell.radius+myHero.boundingRadius)
 				self.mposs2 = GetMousePos()
 			end	
 		else
@@ -6988,7 +6982,7 @@ function SLEvade:Drawings2(_,i)
 			end 
 		end
 		if EMenu.Draws.DEPos:Value() and i.safe and (i.debug or ((not self.DodgeOnlyDangerous and EMenu.d:Value() <= EMenu.Spells[_]["d".._]:Value()) or (self.DodgeOnlyDangerous and EMenu.Spells[_]["IsD".._]:Value())) and EMenu.Spells[_]["Dodge".._]:Value() and EMenu.Spells[_]["Draw".._]:Value()) then			
-				dArrow(myHero.pos,i.safe,3,ARGB(255,0,255,0),not i.uDodge)
+				dArrow(myHero.pos,i.safe,3,ARGB(255,0,255,0))
 		end
 		if EMenu.Draws.DevOpt:Value() then
 			DrawCircle(self:Position(),50,1,20,GoS.Blue)
