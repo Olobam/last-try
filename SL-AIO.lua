@@ -3473,19 +3473,19 @@ end
 
 function Veigar:KS()
 	for _,i in pairs(GetEnemyHeroes()) do
-		if BM.KS.Q:Value() and SReady[0] and ValidTarget(i, self.Spell[0].range) and i.health < Dmg[0](i) then
+		if BM.KS.Q:Value() and SReady[0] and ValidTarget(i, self.Spell[0].range) and GetAPHP(i) < Dmg[0](i) then
 			local QPred = GetPrediction(i,self.Spell[0])
 			if QPred.hitChance >= (BM.p.hQ:Value()/100) and (not QPred:mCollision() or #QPred:mCollision() < 2) then				
 				CastSkillShot(0,QPred.castPos)
 			end
 		end
-		if BM.KS.W:Value() and SReady[1] and ValidTarget(i, self.Spell[1].range) and i.health < Dmg[1](i) then
+		if BM.KS.W:Value() and SReady[1] and ValidTarget(i, self.Spell[1].range) and GetAPHP(i) < Dmg[1](i) then
 			local WPred = GetCircularAOEPrediction(i, self.Spell[1])
 			if WPred.hitChance >= (BM.p.hW:Value()/100) then				
 				CastSkillShot(1,WPred.castPos)
 			end
 		end	
-		if BM.KS.R:Value() and SReady[3] and ValidTarget(i, self.Spell[3].range) and i.health < Dmg[3](i) then 
+		if BM.KS.R:Value() and SReady[3] and ValidTarget(i, self.Spell[3].range) and GetAPHP(i) < Dmg[3](i) then 
 			CastTargetSpell(i,3)
 		end	
 	end
@@ -3516,7 +3516,7 @@ end
 function Veigar:FarmQ()
 	if BM.f.AQ:Value() and SReady[0] and Mode ~= "Combo" then
 		for _,i in pairs(minionManager.objects) do
-			if i.team ~= MINION_ALLY and ValidTarget(i,self.Spell[0].range) and i.health < Dmg[0](i) then
+			if i.team ~= MINION_ALLY and ValidTarget(i,self.Spell[0].range) and GetAPHP(i) < Dmg[0](i) then
 				local QPred = GetPrediction(i,self.Spell[0])			
 				if not QPred:mCollision() or #QPred:mCollision() < 2 then
 					CastSkillShot(0,QPred.castPos)
@@ -3807,22 +3807,22 @@ end
 
 function Ahri:KS()
 	for _,i in pairs(GetEnemyHeroes()) do
-		if BM.KS.Q:Value() and SReady[0] and ValidTarget(i, self.Spell[0].range) and i.health < Dmg[0](i) then
+		if BM.KS.Q:Value() and SReady[0] and ValidTarget(i, self.Spell[0].range) and GetAPHP(i) < Dmg[0](i) then
 			local QPred = GetPrediction(i,self.Spell[0])
 			if QPred.hitChance >= (BM.p.hQ:Value()/100) then				
 				CastSkillShot(0,QPred.castPos)
 			end
 		end
-		if BM.KS.W:Value() and SReady[1] and ValidTarget(i, myHero.range+myHero.boundingRadius) and i.health < Dmg[1](i) then
+		if BM.KS.W:Value() and SReady[1] and ValidTarget(i, myHero.range+myHero.boundingRadius) and GetAPHP(i) < Dmg[1](i) then
 			CastSpell(1)
 		end	
-		if BM.KS.E:Value() and SReady[2] and ValidTarget(i, self.Spell[2].range) and i.health < Dmg[2](i) then
+		if BM.KS.E:Value() and SReady[2] and ValidTarget(i, self.Spell[2].range) and GetAPHP(i) < Dmg[2](i) then
 			local EPred = GetPrediction(i, self.Spell[2])
 			if EPred.hitChance >= (BM.p.hE:Value()/100) and not EPred:mCollision(1) then				
 				CastSkillShot(2,EPred.castPos)
 			end
 		end	
-		if BM.KS.R.E:Value() and SReady[3] and ValidTarget(i, 1000) and i.health < Dmg[3](i) then
+		if BM.KS.R.E:Value() and SReady[3] and ValidTarget(i, 1000) and GetAPHP(i) < Dmg[3](i) then
 			if BM.KS.R.RM:Value() == 1 then
 				local RPos = Vector(i) - (Vector(i) - Vector(myHero)):perpendicular():normalized() * GetDistance(myHero,i)			
 				CastSkillShot(3,RPos)
