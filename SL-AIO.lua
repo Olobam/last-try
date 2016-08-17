@@ -115,6 +115,28 @@ local function JungleMinionsAround(pos, range)
 	return c
 end
 
+local function AllyHeroesAround(pos, range)
+	local c = 0
+	if not pos or not range then return end
+	for k,v in pairs(GetAllyHeroes()) do 
+		if v and v.alive and GetDistanceSqr(pos,v) < range*range and v.team == myHero.team then
+			c = c + 1
+		end
+	end
+	return c
+end
+
+local function EnemyHeroesAround(pos, range)
+	local c = 0
+	if not pos or not range then return end
+	for k,v in pairs(GetEnemyHeroes()) do 
+		if v and v.alive and GetDistanceSqr(pos,v) < range*range and v.team == MINION_ENEMY then
+			c = c + 1
+		end
+	end
+	return c
+end
+
 local function Sample(obj)
     return {x=obj.pos.x, y=obj.pos.y, z=obj.pos.z, time=GetTickCount()/1000 }
 end
@@ -208,6 +230,7 @@ local SLSChamps = {
 	["Orianna"] = true,
 	["Veigar"] = true,
 	["KogMaw"] = true,
+	["Ahri"] = true,
 }
 
 if not FileExist(COMMON_PATH.. "Analytics.lua") then
@@ -271,7 +294,7 @@ Callback.Add("Load", function()
 	Init()
 	if SLSChamps[ChampName] and SLS.Loader.LC:Value() then
 		_G[ChampName]() 
-		if myHero.charName ~= "Orianna" then
+		if myHero.charName ~= "Orianna" and myHero.charName ~= "Ahri" then
 			Drawings()
 		end
 	end
@@ -3492,6 +3515,329 @@ function Veigar:FarmQ()
 	end
 end
 
+
+class 'Ahri'
+
+function Ahri:__init()
+
+	self.CCType = { 
+	[5] = "Stun", 
+	[8] = "Taunt", 
+	[11] = "Snare", 
+	[21] = "Fear", 
+	[22] = "Charm", 
+	[24] = "Suppression",
+	}
+
+	Ahri.Spell = {
+	[0] = { delay = 0.25, speed = 1700, width = 100, range = 1000},
+	[2] = { delay = 0.25, speed = 1600, width = 60 , range = 1000},
+	[3] = { range = 450},
+	}
+
+	Dmg = {
+	[0] = function(u) return CalcDamage(myHero, u, 0, 15+25*GetCastLevel(myHero,0) + 0.35 * myHero.ap) end,
+	[1] = function(u) return CalcDamage(myHero, u, 0, 15+25*GetCastLevel(myHero,1) + 0.4 * myHero.ap) end,
+	[2] = function(u) return CalcDamage(myHero, u, 0, 25+35*GetCastLevel(myHero,2) + 0.5 * myHero.ap) end,
+	[3] = function(u) return CalcDamage(myHero, u, 0, (30+40*GetCastLevel(myHero,3) + 0.3 * myHero.ap)*(self.R[myHero.networkID] or 1)) end,
+	}
+	
+	BM:SubMenu("C", "Combo")
+	BM.C:Boolean("Q", "Use Q", true)
+	BM.C:Boolean("W", "Use W", true)
+	BM.C:Boolean("E", "Use E", true)
+	BM.C:Menu("R", "R")
+	BM.C.R:Boolean("E", "Enabled", true)
+	BM.C.R:Slider("EAR", "EnemiesAround > x", 2, 1, 5, 1)
+	BM.C.R:Slider("AAR", "AlliesAround > x", 0, 0, 5, 1)
+	BM.C.R:Slider("MHP", "My Hero HP < x", 100, 0, 100, 5)
+	BM.C.R:Slider("EHP", "Enemy HP < x", 30, 0, 100, 5)
+	BM.C.R:DropDown("RM", "Ulti Mode", 1, {"Sideways", "MousePos"})
+	
+	BM:SubMenu("H", "Harass")
+	BM.H:Boolean("Q", "Use Q", true)
+	BM.H:Boolean("W", "Use W", true)
+	BM.H:Boolean("E", "Use E", true)	
+
+	BM:SubMenu("LC", "LaneClear")
+	BM.LC:Boolean("Q", "Use Q", true)
+	BM.LC:Boolean("W", "Use W", true)
+	BM.LC:Boolean("E", "Use E", true)	
+	
+	BM:SubMenu("JC", "JungleClear")
+	BM.JC:Boolean("Q", "Use Q", true)
+	BM.JC:Boolean("W", "Use W", true)
+	BM.JC:Boolean("E", "Use E", true)	
+
+	BM:SubMenu("p", "Prediction")
+	BM.p:Slider("hQ", "HitChance Q", 20, 0, 100, 1)
+	BM.p:Slider("hE", "HitChance E", 20, 0, 100, 1)
+
+	BM:SubMenu("KS", "Killsteal")
+	BM.KS:Boolean("Q", "Use Q", true)
+	BM.KS:Boolean("W", "Use W", true)
+	BM.KS:Boolean("E", "Use E", true)
+	BM.KS:Menu("R", "R")
+	BM.KS.R:Boolean("E", "Enabled", false)
+	BM.KS.R:DropDown("RM", "Ulti Mode", 1, {"Sideways", "MousePos"})
+
+	BM:SubMenu("Dr", "Drawings")
+	BM.Dr:Boolean("UD", "Use Drawings", false)
+	BM.Dr:ColorPick("Cc", "Circle color", {255,102,102,102})
+	BM.Dr:DropDown("DQ", "Draw Quality", 3, {"High", "Medium", "Low"})
+	BM.Dr:Slider("CW", "Circle width", 1, 1, 5, 1)
+	BM.Dr:Boolean("DQL", "Draw Q Line", true)
+	BM.Dr:Boolean("Q", "Draw Q", true)
+	BM.Dr:Boolean("E", "Draw E", true)
+	BM.Dr:Boolean("R", "Draw R", true)
+	
+	BM:Boolean("AQ", "Auto Q on immobile", true)
+	
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("UpdateBuff", function(u,b) self:UpdateBuff(u,b) end)
+	Callback.Add("RemoveBuff", function(u,b) self:RemoveBuff(u,b) end)
+	Callback.Add("Draw", function() self:D() end)
+	Callback.Add("CreateObj", function(o) self:CreateObj(o) end)
+	Callback.Add("DeleteObj", function(o) self:DeleteObj(o) end)
+	
+	self.CC = false
+	self.o = {}
+	self.R = {} 
+	self.sp = {
+	["AhriOrbMissile"]={type="Line"},
+	["AhriOrbReturn"]={type="return"},	
+	}
+end
+
+function Ahri:CreateObj(o)
+	if o.spellOwner.isMe and o and o.isSpell then
+		if (o.spellName == "AhriOrbMissile") or (o.spellName == "AhriOrbReturn") then
+			if not self.o[o.spellName] then self.o[o.spellName] = {} end
+			self.o[o.spellName].o = o
+			self.o[o.spellName].s = self.sp[o.spellName]
+		end
+	end
+end
+
+function Ahri:DeleteObj(o)
+	if o.spellOwner.isMe and o and o.isSpell then
+		if (o.spellName == "AhriOrbMissile") or (o.spellName == "AhriOrbReturn") then
+			self.o[o.spellName] = nil
+		end
+	end
+end
+
+function Ahri:UpdateBuff(u,b)
+	if u and u.isMe and b then
+		if b.Name == "AhriTumble" then
+			self.R[u.networkID] = b.Count 
+		end
+	end
+	if u and u.team == MINION_ENEMY and b and u.isHero then
+		if self.CCType[b.Type] then
+			self.CC = true
+		end
+	end
+end
+
+function Ahri:RemoveBuff(u,b)
+	if u and u.isMe and b then
+		if b.Name == "AhriTumble" then
+			self.R[u.networkID] = 0
+		end
+	end
+	if u and u.team == MINION_ENEMY and b and u.isHero then
+		if self.CCType[b.Type] then
+			self.CC = false
+		end
+	end
+end
+
+function Ahri:D()
+	if BM.Dr.UD:Value() then
+		for _,i in pairs(self.o) do
+			if i.o and i.o.valid and BM.Dr.DQL:Value() then
+				if i.s.type == "Line" then
+					dRectangleOutline(Vector(i.o.pos), Vector(i.o.endPos), 100+myHero.boundingRadius, BM.Dr.CW:Value(), BM.Dr.Cc:Value(), true)
+				else
+					dRectangleOutline(Vector(i.o.pos), Vector(myHero.pos), 100+myHero.boundingRadius, BM.Dr.CW:Value(), BM.Dr.Cc:Value(), true)
+				end
+			end
+		end
+		if BM.Dr.Q:Value() and SReady[0] then
+			DrawCircle(myHero.pos,self.Spell[0].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+		end
+		if BM.Dr.E:Value() and SReady[2] then
+			DrawCircle(myHero.pos,self.Spell[2].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+		end
+		if BM.Dr.R:Value() and SReady[3] then
+			DrawCircle(myHero.pos,self.Spell[3].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+		end
+	end
+end
+
+function Ahri:Tick()
+	for _,i in pairs(self.o) do
+		self:CleanObj(_,i)
+	end
+	if myHero.dead then return end
+	
+	GetReady()
+	
+	self:KS()
+	
+	local target = GetCurrentTarget()
+	
+	self:AutoQ()
+
+    if Mode == "Combo" then
+		self:Combo(target)
+	elseif Mode == "LaneClear" then
+		self:LaneClear()
+		self:JungleClear()
+	elseif Mode == "Harass" then
+		self:Harass(target)
+	else
+		return
+	end
+end
+
+function Ahri:Combo(u)	
+	if u then
+		if BM.C.Q:Value() and SReady[0] and ValidTarget(u, self.Spell[0].range) then
+			local QPred = GetPrediction(u,self.Spell[0])
+			if QPred.hitChance >= (BM.p.hQ:Value()/100) then				
+				CastSkillShot(0,QPred.castPos)
+			end
+		end		
+		if BM.C.W:Value() and SReady[1] and ValidTarget(u, myHero.range+myHero.boundingRadius) then
+			CastSpell(1)
+		end	
+		if BM.C.E:Value() and SReady[2] and ValidTarget(u, self.Spell[2].range) then
+			local EPred = GetPrediction(u, self.Spell[2])
+			if EPred.hitChance >= (BM.p.hE:Value()/100) and not EPred:mCollision(1) then				
+				CastSkillShot(2,EPred.castPos)
+			end
+		end	
+		if BM.C.R.E:Value() and SReady[3] and ValidTarget(u, 1000) and GetPercentHP(myHero) <= BM.C.R.MHP:Value() and GetPercentHP(u) <= BM.C.R.EHP:Value() and EnemyHeroesAround(myHero.pos,1000) >= BM.C.R.EAR:Value() and AllyHeroesAround(myHero.pos,1000) >= BM.C.R.AAR:Value() then
+			if BM.C.R.RM:Value() == 1 then
+				local RPos = Vector(u) - (Vector(u) - Vector(myHero)):perpendicular():normalized() * GetDistance(myHero,u)			
+				CastSkillShot(3,RPos)
+			elseif BM.C.R.RM:Value() == 2 then
+				CastSkillShot(3,GetMousePos())
+			end
+		end
+	end
+end
+
+function Ahri:Harass(u)	
+	if u then
+		if BM.C.Q:Value() and SReady[0] and ValidTarget(u, self.Spell[0].range) then
+			local QPred = GetPrediction(u,self.Spell[0])
+			if QPred.hitChance >= (BM.p.hQ:Value()/100) then				
+				CastSkillShot(0,QPred.castPos)
+			end
+		end		
+		if BM.C.W:Value() and SReady[1] and ValidTarget(u, myHero.range+myHero.boundingRadius) then
+			CastSpell(1)
+		end	
+		if BM.C.E:Value() and SReady[2] and ValidTarget(u, self.Spell[2].range) then
+			local EPred = GetPrediction(u, self.Spell[2])
+			if EPred.hitChance >= (BM.p.hE:Value()/100) and not EPred:mCollision(1) then				
+				CastSkillShot(2,EPred.castPos)
+			end
+		end	
+	end
+end
+
+function Ahri:LaneClear()	
+	for _,i in pairs(minionManager.objects) do
+		if i.team == MINION_ENEMY then
+			if BM.JC.Q:Value() and SReady[0] and ValidTarget(i, self.Spell[0].range) then
+				local QPred = GetPrediction(i,self.Spell[0])
+				if QPred.hitChance >= (BM.p.hQ:Value()/100) then				
+					CastSkillShot(0,QPred.castPos)
+				end
+			end		
+			if BM.JC.W:Value() and SReady[1] and ValidTarget(i, myHero.range+myHero.boundingRadius) then
+				CastSpell(1)
+			end	
+			if BM.JC.E:Value() and SReady[2] and ValidTarget(i, self.Spell[2].range) then
+				local EPred = GetPrediction(i, self.Spell[2])
+				if EPred.hitChance >= (BM.p.hE:Value()/100) then				
+					CastSkillShot(2,EPred.castPos)
+				end
+			end	
+		end
+	end
+end
+
+function Ahri:JungleClear()
+	for _,i in pairs(minionManager.objects) do
+		if i.team == MINION_JUNGLE then
+			if BM.JC.Q:Value() and SReady[0] and ValidTarget(i, self.Spell[0].range) then
+				local QPred = GetPrediction(i,self.Spell[0])
+				if QPred.hitChance >= (BM.p.hQ:Value()/100) then				
+					CastSkillShot(0,QPred.castPos)
+				end
+			end		
+			if BM.JC.W:Value() and SReady[1] and ValidTarget(i, myHero.range+myHero.boundingRadius) then			
+				CastSpell(1)
+			end	
+			if BM.JC.E:Value() and SReady[2] and ValidTarget(i, self.Spell[2].range) then
+				local EPred = GetPrediction(i, self.Spell[2])
+				if EPred.hitChance >= (BM.p.hE:Value()/100) then				
+					CastSkillShot(2,EPred.castPos)
+				end
+			end	
+		end
+	end
+end
+
+function Ahri:KS()
+	for _,i in pairs(GetEnemyHeroes()) do
+		if BM.KS.Q:Value() and SReady[0] and ValidTarget(i, self.Spell[0].range) and i.health < Dmg[0](i) then
+			local QPred = GetPrediction(i,self.Spell[0])
+			if QPred.hitChance >= (BM.p.hQ:Value()/100) then				
+				CastSkillShot(0,QPred.castPos)
+			end
+		end
+		if BM.KS.W:Value() and SReady[1] and ValidTarget(i, myHero.range+myHero.boundingRadius) and i.health < Dmg[1](i) then
+			CastSpell(1)
+		end	
+		if BM.KS.E:Value() and SReady[2] and ValidTarget(i, self.Spell[2].range) and i.health < Dmg[2](i) then
+			local EPred = GetPrediction(i, self.Spell[2])
+			if EPred.hitChance >= (BM.p.hE:Value()/100) and not EPred:mCollision(1) then				
+				CastSkillShot(2,EPred.castPos)
+			end
+		end	
+		if BM.KS.R.E:Value() and SReady[3] and ValidTarget(i, 1000) and i.health < Dmg[3](i) then
+			if BM.KS.R.RM:Value() == 1 then
+				local RPos = Vector(i) - (Vector(i) - Vector(myHero)):perpendicular():normalized() * GetDistance(myHero,i)			
+				CastSkillShot(3,RPos)
+			elseif BM.KS.R.RM:Value() == 2 then
+				CastSkillShot(3,GetMousePos())
+			end
+		end			
+	end
+end
+
+function Ahri:AutoQ()
+	for _,i in pairs(GetEnemyHeroes()) do
+		if i and BM.AQ:Value() and SReady[0] and ValidTarget(i,self.Spell[0].range) and self.CC then
+		local QPred = GetPrediction(i, self.Spell[0])
+			if QPred.hitChance >= (BM.p.hQ:Value()/100) then			
+				CastSkillShot(0,QPred.castPos)
+			end
+		end
+	end
+end
+
+function Ahri:CleanObj(_,i)
+	if i.o and not i.o.valid then
+		self.o[_] = nil
+	end
+end
 
 ---------------------------------------------------------------------------------------------
 -------------------------------------UTILITY-------------------------------------------------
