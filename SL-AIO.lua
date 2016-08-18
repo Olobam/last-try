@@ -1760,7 +1760,7 @@ function Velkoz:__init()
 	BM.C:Boolean("M", "Mouse follow",true)
 
 	BM:SubMenu("P", "Prediction")
-	BM.P:Slider("W", "HitChance Q", 20, 0, 100, 1)
+	BM.P:Slider("W", "HitChance W", 20, 0, 100, 1)
 	BM.P:Slider("E", "HitChance E", 20, 0, 100, 1)
 
 	BM:SubMenu("A", "Advanced")
@@ -1845,12 +1845,16 @@ function Velkoz:Combo(unit)
 	if Mode == "Combo" and not self.ult then
 		if SReady[1] and ValidTarget(unit,1050) and BM.C.W:Value() then
 			local WPred = GetPrediction(unit, self.Spell[1])
-			CastSkillShot(1,WPred.castPos)
+			if WPred.hitChance > BM.P.W:Value()*.01 then
+				CastSkillShot(1,WPred.castPos)
+			end
 		end
 			
 		if SReady[2] and ValidTarget(unit,850) and BM.C.E:Value() then
 			local EPred = GetCircularAOEPrediction(unit, self.Spell[2])
-			CastSkillShot(2,EPred.castPos)
+			if EPred.hitChance > BM.P.E:Value()*.01 then
+				CastSkillShot(2,EPred.castPos)
+			end
 		end
 		if SReady[3] and ValidTarget(unit,1500) and unit.distance > 350 and unit.health + unit.shieldAD + unit.shieldAP < self:RDmg(unit) and BM.C.R:Value() then
 			--SetCursorPos(unit.pos2D.x,unit.pos2D.y)
