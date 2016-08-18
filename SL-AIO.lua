@@ -5192,10 +5192,11 @@ function SLWalker:__init()
 	OMenu.FS:DropDown("HPM", "Health Prediction", 1, {"SL","OpenPredict","GoS"})
 	
 	OMenu:Menu("D", "Drawings")
-	OMenu.D:Boolean("LHM", "Lasthit Marker", true)
+	OMenu.D:Boolean("LHM", "Lasthit Marker", false)
 	OMenu.D:Boolean("DMAR", "Draw My Attack Range", true)
-	OMenu.D:Boolean("DEAR", "Draw Enemy Attack Range", true)
-	OMenu.D:Boolean("DHR", "Draw Holposition radius", true)
+	OMenu.D:Boolean("DEAR", "Draw Enemy Attack Range", false)
+	OMenu.D:Boolean("DAAR", "Draw Ally Attack Range", false)
+	OMenu.D:Boolean("DHR", "Draw Holposition radius", false)
 	
 	OMenu:Menu("K", "Keys")
 	OMenu.K:KeyBinding("C", "Combo Key", string.byte(" "))
@@ -5301,7 +5302,7 @@ if not SLW then return end
 		end		
 	end
 	for _,k in pairs(GetAllyHeroes()) do
-		if OMenu.D.DEAR:Value() and k.visible and k.alive then
+		if OMenu.D.DAAR:Value() and k.visible and k.alive then
 			DrawCircle(k.pos,k.range+k.boundingRadius*2,1.5,20,ARGB(255,255,100,50))
 		end		
 	end
