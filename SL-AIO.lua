@@ -5742,7 +5742,7 @@ function SLEvade:__init()
 	self.supportedtypes = {["Line"]={supported=true},["Circle"]={supported=true},["Cone"]={supported=true},["Rectangle"]={supported=true},["Arc"]={supported=false},["Ring"]={supported=true},["Threeway"]={supported=false},["follow"]={supported=true},["Return"]={supported=true}}
 	self.globalults = {["EzrealTrueshotBarrage"]={s=true},["EnchantedCrystalArrow"]={s=true},["DravenRCast"]={s=true},["JinxR"]={s=true}}
 	self.obj = {}
-	self.str = {[-1]="P",[0]="Q",[1]="W",[2]="E",[3]="R"}
+	self.str = {[-2]="AA",[-1]="P",[0]="Q",[1]="W",[2]="E",[3]="R"}
 	self.Flash = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerflash") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonerflash") and SUMMONER_2 or nil))
 	self.DodgeOnlyDangerous = false -- Dodge Only Dangerous
 	self.patha = nil -- wallcheck line
@@ -5924,12 +5924,13 @@ self.Spells = {
 	["GragasQ"]={charName="Gragas",slot=0,type="Circle",delay=0.25,range=1100,radius=275,speed=1300,addHitbox=true,danger=2,dangerous=false,proj="GragasQMissile",killTime=4.25,displayname="Barrel Roll",mcollision=false,killName="GragasQToggle"},
 	["GragasE"]={charName="Gragas",slot=2,type="Line",delay=0,range=800,radius=200,speed=800,addHitbox=true,danger=2,dangerous=false,proj="GragasE",killTime=0.5,displayname="Body Slam",mcollision=true},
 	["GragasR"]={charName="Gragas",slot=3,type="Circle",delay=0.25,range=1050,radius=375,speed=1800,addHitbox=true,danger=5,dangerous=true,proj="GragasRBoom",killTime=0.3,displayname="Explosive Cask",mcollision=false},
+	["GravesBasicAttack"]={charName="Graves",slot=-2,type="Cone",delay=0.2,range=750,radius=140,speed=math.huge,angle=45,addHitbox=true,danger=1,dangerous=false,proj="GravesBasicAttackSpread",killTime=1,displayname="Auto Attack",mcollision=false},
 	["GravesQLineMis"]={charName="Graves",slot=0,type="Rectangle",delay=0.2,range=750,radius=140,radius2=300,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="GravesQLineMis",killTime=1,displayname="Buckshot Rectangle",mcollision=false},
 	["GravesClusterShotSoundMissile"]={charName="Graves",slot=0,type="Line",delay=0.2,range=750,radius=60,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=0,displayname="Buckshot",mcollision=false},
 	["GravesQReturn"]={charName="Graves",slot=0,type="Line",delay=0,range=750,radius=60,speed=1150,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=0,displayname="Buckshot return",mcollision=false},
 	["GravesSmokeGrenade"]={charName="Graves",slot=1,type="Circle",delay=0.25,range=925,radius=275,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="GravesSmokeGrenadeBoom",killTime=4.5,displayname="SmokeScreen",mcollision=false},
 	["GravesChargeShot"]={charName="Graves",slot=3,type="Line",delay=0.2,range=1000,radius=100,speed=2100,addHitbox=true,danger=5,dangerous=true,proj="GravesChargeShotShot",killTime=0,displayname="CollateralDmg",mcollision=false},
-	["GravesChargeShotFxMissile2"]={charName="Graves",slot=3,type="Cone",delay=0,range=1000,radius=100,speed=2100,angle=60,addHitbox=true,danger=5,dangerous=true,proj="nil",killTime=0,displayname="CollateralDmg end",mcollision=false},
+	["GravesChargeShotFxMissile"]={charName="Graves",slot=3,type="Cone",delay=0,range=1000,radius=100,speed=2100,angle=60,addHitbox=true,danger=5,dangerous=true,proj="nil",killTime=0,displayname="CollateralDmg end",mcollision=false},
 	["HecarimUlt"]={charName="Hecarim",slot=3,type="Line",delay=0.2,range=1100,radius=300,speed=1200,addHitbox=true,danger=5,dangerous=true,proj="HecarimUltMissile",killTime=0.55,displayname="HecarimR",mcollision=false},
 	["HeimerdingerTurretEnergyBlast"]={charName="Heimerdinger",slot=0,type="Line",delay=0.4,range=1000,radius=70,speed=1000,addHitbox=true,danger=2,dangerous=false,proj="HeimerdingerTurretEnergyBlast",killTime=0,displayname="Turret",mcollision=false},
 	["HeimerdingerW"]={charName="Heimerdinger",slot=1,type="Cone",delay=0.25,range=800,radius=70,speed=1800,angle=10,addHitbox=true,danger=2,dangerous=false,proj="HeimerdingerWAttack2",killTime=0,displayname="HeimerUltW",mcollision=true},
@@ -5946,7 +5947,8 @@ self.Spells = {
 	["JayceShockBlastWallMis"]={charName="Jayce",slot=0,type="Line",delay=0.25,range=1300,radius=70,speed=2350,addHitbox=true,danger=2,dangerous=false,proj="JayceShockBlastWallMis",killTime=0,displayname="ShockBlastCharged",mcollision=true},
 	["JhinW"]={charName="Jhin",slot=1,type="Line",delay=0.75,range=2550,radius=40,speed=5000,addHitbox=true,danger=3,dangerous=true,proj="JhinWMissile",killTime=0,displayname="",mcollision=false},
 	["JhinRShot"]={charName="Jhin",slot=3,type="Line",delay=0.25,range=3500,radius=80,speed=5000,addHitbox=true,danger=3,dangerous=true,proj="JhinRShotMis",killTime=0,displayname="JhinR",mcollision=false},
-	["JinxW"]={charName="Jinx",slot=1,type="Line",delay=0.4,range=1600,radius=60,speed=2500,addHitbox=true,danger=3,dangerous=true,proj="JinxWMissile",killTime=0,displayname="Zap",mcollision=true},
+	["JinxW"]={charName="Jinx",slot=1,type="Line",delay=0.3,range=1600,radius=60,speed=2500,addHitbox=true,danger=3,dangerous=true,proj="JinxWMissile",killTime=.6,displayname="Zap",mcollision=true},
+	["JinxE"]={charName="Jinx",slot=2,type="Rectangle",delay=0.25,range=1600,radius=100,radius2=275,speed=math.huge,addHitbox=true,danger=3,dangerous=true,proj="JinxEHit",killTime=5,displayname="Zap",mcollision=true},
 	["JinxR"]={charName="Jinx",slot=3,type="Line",delay=0.6,range=20000,radius=140,speed=1700,addHitbox=true,danger=5,dangerous=true,proj="JinxR",killTime=0,displayname="Death Rocket",mcollision=false},
 	["KalistaMysticShot"]={charName="Kalista",slot=0,type="Line",delay=0.25,range=1200,radius=40,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="kalistamysticshotmis",killTime=0,displayname="MysticShot",mcollision=true},
 	["KarmaQ"]={charName="Karma",slot=0,type="Line",delay=0.25,range=1050,radius=60,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="KarmaQMissile",killTime=0,displayname="",mcollision=true},
@@ -6425,7 +6427,7 @@ function SLEvade:Mpos(_,i)
 	if i.spell.type == "Circle" then 
 		if i.p and GetDistance(myHero,i.p.endPos) < i.spell.radius + myHero.boundingRadius and not i.safe then
 			if not i.mpos and not self.mposs then
-				i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * (i.spell.radius+myHero.boundingRadius)
+				i.mpos = Vector(myHero) + Vector(Vector(GetMousePos()) - myHero.pos):normalized() * i.spell.radius
 				self.mposs = GetMousePos()
 			end
 		else
