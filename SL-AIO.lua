@@ -1,12 +1,150 @@
 local SLAIO = 0.01
 local SLPatchnew = nil
 local turrets = {}
+local str3 = {[0]="Q",[1]="W",[2]="E",[3]="R"}
 if GetGameVersion():sub(3,4) >= "10" then
 		SLPatchnew = GetGameVersion():sub(1,4)
 	else
 		SLPatchnew = GetGameVersion():sub(1,3)
 end
 local AutoUpdater = true
+
+require 'DamageLib'
+
+local function PredMenu(m,sp)
+	if not m["CP"] then m:DropDown("CP", "Choose Prediction", 1 ,{"OPred", "GPred", "IPred", "GoSPred"}) end
+	m:DropDown("h"..str3[sp], "Hitchance"..str3[sp], 2, {"Low", "Medium", "High"})
+	if m.CP:Value() == 4 then
+	elseif m.CP:Value() == 3 then
+		require 'IPrediction'
+	elseif m.CP:Value() == 2 then
+		require 'GPrediction'
+	elseif m.CP:Value() == 1 then
+		require 'OpenPredict'
+	end
+end
+
+local function GetValue(m,sp)
+	if not m["CP"] or not m["h"..str3[sp]] then return end
+	if m.CP:Value() == 4 then
+		if m["h"..str3[sp]]:Value() == 1 then
+			return 1
+		elseif m["h"..str3[sp]]:Value() == 2 then
+			return 1
+		elseif m["h"..str3[sp]]:Value() == 3 then
+			return 2
+		end
+	elseif m.CP:Value() == 3 then
+		if m["h"..str3[sp]]:Value() == 1 then
+			return 1
+		elseif m["h"..str3[sp]]:Value() == 2 then
+			return 2
+		elseif m["h"..str3[sp]]:Value() == 3 then
+			return 3
+		end
+	elseif m.CP:Value() == 2 then
+		if m["h"..str3[sp]]:Value() == 1 then
+			return 1
+		elseif m["h"..str3[sp]]:Value() == 2 then
+			return 2
+		elseif m["h"..str3[sp]]:Value() == 3 then
+			return 3
+		end
+	elseif m.CP:Value() == 1 then
+		if m["h"..str3[sp]]:Value() == 1 then
+			return .2
+		elseif m["h"..str3[sp]]:Value() == 2 then
+			return .45
+		elseif m["h"..str3[sp]]:Value() == 3 then
+			return .7
+		end
+	end
+end
+
+local function GetCollision(m,sp,t)
+	if not m["CP"] or not m["h"..str3[sp]] then return end
+	if m.CP:Value() == 4 then
+		return t.col or false
+	elseif m.CP:Value() == 3 then
+		return t.col or false
+	elseif m.CP:Value() == 2 then
+		if t.col then
+			return {"minion","champion"}
+		else
+			return nil
+		end
+	elseif m.CP:Value() == 1 then
+		return t.col or false
+	end
+end
+
+local function CastGenericSkillShot(s,u,t,sp,m)--source,unit,table,spell,menu	
+	if not m["CP"] or not m["h"..str3[sp]] then return end
+	t.width = t.width or t.radius
+	t.radius = t.width or t.radius
+	t.col = GetCollision(m,sp,t)
+	t.name = t.name or GetCastName(s,sp)
+	t.count = t.count or 1
+	t.angle = t.angle or 45
+	t.delay = t.delay or 0.250
+	t.speed = t.speed or math.huge
+	t.range = t.range or 1000
+	t.type = t.type or "circular"
+	t.aoe = t.aoe or false
+	if m.CP:Value() == 1 then	
+		if t.col then
+			if t.type:lower():find("lin") then
+				local Pred = GetPrediction(u, t)
+				if Pred.hitChance >= GetValue(m,sp) and not Pred:mCollision(t.count) and GetDistance(s,Pred.castPos) < t.range then
+					CastSkillShot(sp,Pred.castPos)
+				end
+			elseif t.type:lower():find("cir") then
+				local Pred = GetCircularAOEPrediction(u, t)
+				if Pred.hitChance >= GetValue(m,sp) and not Pred:mCollision(t.count) and GetDistance(s,Pred.castPos) < t.range then
+					CastSkillShot(sp,Pred.castPos)
+				end
+			elseif t.type:lower():find("con") then
+				local Pred = GetConicAOEPrediction(u, t)
+				if Pred.hitChance >= GetValue(m,sp) and not Pred:mCollision(t.count) and GetDistance(s,Pred.castPos) < t.range then
+					CastSkillShot(sp,Pred.castPos)
+				end
+			end
+		else
+			if t.type:lower():find("lin") then
+				local Pred = GetPrediction(u, t)
+				if Pred.hitChance >= GetValue(m,sp) and not Pred:mCollision(t.count) and GetDistance(s,Pred.castPos) < t.range then
+					CastSkillShot(sp,Pred.castPos)
+				end
+			elseif t.type:lower():find("cir") then
+				local Pred = GetCircularAOEPrediction(u, t)
+				if Pred.hitChance >= GetValue(m,sp) and not Pred:mCollision(t.count) and GetDistance(s,Pred.castPos) < t.range then
+					CastSkillShot(sp,Pred.castPos)
+				end
+			elseif t.type:lower():find("con") then
+				local Pred = GetConicAOEPrediction(u, t)
+				if Pred.hitChance >= GetValue(m,sp) and not Pred:mCollision(t.count) and GetDistance(s,Pred.castPos) < t.range then
+					CastSkillShot(sp,Pred.castPos)
+				end
+			end
+		end
+	elseif m.CP:Value() == 2 then
+		local Pred = _G.gPred:GetPrediction(u,s,t,t.aoe,t.col)
+		if Pred.HitChance >= GetValue(m,sp) then
+			CastSkillShot(sp,Pred.CastPosition)
+		end
+	elseif m.CP:Value() == 3 then
+		local Pred = (IPrediction.Prediction({name = t.name or "", speed = t.speed, delay = t.delay, range = t.range, width = t.width, collision = t.col, aoe = t.aoe, type = t.type:lower()}))
+		local hit, pos = Pred:Predict(u,s)
+		if hit >= GetValue(m,sp) and GetDistance(s,pos) < t.range then
+			CastSkillShot(sp,pos)
+		end
+	elseif m.CP:Value() == 4 then
+		local Pred = GetPredictionForPlayer(s.pos,u,u.ms, t.speed, t.delay*1000, t.range, t.width, t.col, true)
+		if Pred.HitChance == GetValue(m,sp) and GetDistance(s,Pred.PredPos) < t.range then
+			CastSkillShot(sp, Pred.PredPos)
+		end
+	end
+end
 
 local function dRectangleOutline(s, e, w, t, c, v)--start,end,width,thickness,color
 	local z1 = s+Vector(Vector(e)-s):perpendicular():normalized()*w/2
@@ -216,9 +354,6 @@ local function dArrow(s, e, w, c)--startpos,endpos,width,color
 	DrawLine3D(s3.x,s3.y,s3.z,e.x,e.y,e.z,w,c)	
 end
 
-require 'OpenPredict'
-require 'DamageLib'
-
 local SLSChamps = {	
 	["Vayne"] = true,
 	["Soraka"] = true,
@@ -243,9 +378,11 @@ if not FileExist(COMMON_PATH.. "Analytics.lua") then
 end
 
 if SLSChamps[myHero.charName] then
-	require("Analytics")
+	if FileExist(COMMON_PATH.. "Analytics.lua") then
+		require("Analytics")
 
-	Analytics("SL-AIO", "SL-Team", true)
+		Analytics("SL-AIO", "SL-Team", true)
+	end
 end
 
 local Name = GetMyHero()
@@ -407,6 +544,11 @@ function Init:__init()
 	if MapPositionGOS[ChampName] == true and FileExist(COMMON_PATH .. "MapPositionGOS.lua") then
 		if not _G.MapPosition then
 			require('MapPositionGoS')
+		end
+	end
+	if myHero.charName == "Vayne" or myHero.charName == "Veigar" then
+		if not _G.OpenPredict then
+			require 'OpenPredict'
 		end
 	end
 end
@@ -708,7 +850,7 @@ class 'Blitzcrank'
 function Blitzcrank:__init()
 
 	Blitzcrank.Spell = {
-	[0] = { delay = 0.25, speed = 1800, width = 70, range = 900 },
+	[0] = { delay = 0.25, speed = 1800, width = 70, range = 900, type = "line",col = true },
 	[1] = { range = 0 },
 	[2] = { range = 0 },
 	[3] = { range = 650 }
@@ -747,7 +889,6 @@ function Blitzcrank:__init()
 	BM.KS:Boolean("R", "Use R", true)
 	
 	BM:Menu("p", "Prediction")
-	BM.p:Slider("hQ", "HitChance Q", 20, 0, 100, 1)
 	
 	Callback.Add("Tick", function() self:Tick() end)
 	AntiChannel()
@@ -758,6 +899,10 @@ function Blitzcrank:__init()
 	BM.AC:Boolean("R","Use R", true)
 	end
 	end,.001)
+
+	for i = 0,0 do
+		PredMenu(BM.p, i)	
+	end
 end
 
 function Blitzcrank:Tick()
@@ -781,51 +926,39 @@ function Blitzcrank:AntiChannel(unit,range)
 	if BM.AC.Q:Value() and range < 600 and SReady[3] then
 		CastSpell(3)
 	elseif BM.AC.R:Value() and SReady[0] and range < Blitzcrank.Spell[0].range then
-		local Pred = GetPrediction(unit, Blitzcrank.Spell[0])
-		if not Pred:mCollision(1) then
-			CastSkillShot(0,Pred.castPos)
-		end
+		CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
 	end
 end
 
 function Blitzcrank:Combo(target)
-		if SReady[0] and ValidTarget(target, self.Spell[0].range*1.1) and BM.C.Q:Value() then
-			local Pred = GetPrediction(target, self.Spell[0])
-			if Pred.hitChance >= BM.p.hQ:Value()/100 and not Pred:mCollision(1) and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-				CastSkillShot(0,Pred.castPos)
-			end
-		end
-		if SReady[1] and ValidTarget(target, 1000) and BM.C.W:Value() and GetDistance(myHero,target) <= 850 and SReady[0] then
-			CastSpell(1)
-		end
-		if SReady[2] and ValidTarget(target, 250) and BM.C.E:Value() then
-			CastSpell(2)
-		end
-		if SReady[3] and ValidTarget(target, GetCastRange(myHero,3)) and EnemiesAround(GetOrigin(myHero), GetCastRange(myHero,3)) >= BM.C.EAR:Value() and BM.C.R:Value() then
-			CastSpell(3)
-		end
+	if SReady[0] and ValidTarget(target, self.Spell[0].range*1.1) and BM.C.Q:Value() then
+		CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
+	end
+	if SReady[1] and ValidTarget(target, 1000) and BM.C.W:Value() and GetDistance(myHero,target) <= 850 and SReady[0] then
+		CastSpell(1)
+	end
+	if SReady[2] and ValidTarget(target, 250) and BM.C.E:Value() then
+		CastSpell(2)
+	end
+	if SReady[3] and ValidTarget(target, GetCastRange(myHero,3)) and EnemiesAround(GetOrigin(myHero), GetCastRange(myHero,3)) >= BM.C.EAR:Value() and BM.C.R:Value() then
+		CastSpell(3)
+	end
 end
 
 function Blitzcrank:Harass(target)
-		if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.H.Q:Value() then
-			local Pred = GetPrediction(target, self.Spell[0])
-			if Pred.hitChance >= BM.p.hQ:Value()/100 and not Pred:mCollision(1) and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-				CastSkillShot(0,Pred.castPos)
-			end
-		end
-		if SReady[2] and ValidTarget(target, 300) and BM.H.E:Value() then
-			CastSpell(2)
-		end 
+	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.H.Q:Value() then
+		CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
+	end
+	if SReady[2] and ValidTarget(target, 300) and BM.H.E:Value() then
+		CastSpell(2)
+	end 
 end
 
 function Blitzcrank:LaneClear()
 	for _,minion in pairs(minionManager.objects) do
 		if GetTeam(minion) == MINION_ENEMY then
 			if SReady[0] and ValidTarget(minion, self.Spell[0].range) and BM.LC.Q:Value() then
-			local Pred = GetPrediction(minion, self.Spell[0])
-				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-					CastSkillShot(0,Pred.castPos)
-				end
+				CastGenericSkillShot(myHero,minion,self.Spell[0],0,BM.p)
 			end
 			if SReady[2] and ValidTarget(minion, 300) and BM.LC.E:Value() then
 				CastSpell(2)
@@ -841,10 +974,7 @@ function Blitzcrank:JungleClear()
 	for _,mob in pairs(minionManager.objects) do
 		if GetTeam(mob) == MINION_ENEMY then
 			if SReady[0] and ValidTarget(mob, self.Spell[0].range) and BM.JC.Q:Value() then
-			local Pred = GetPrediction(mob, self.Spell[0])
-				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-					CastSkillShot(0,Pred.castPos)
-				end
+				CastGenericSkillShot(myHero,mob,self.Spell[0],0,BM.p)
 			end
 			if SReady[2] and ValidTarget(mob, 300) and BM.JC.E:Value() then
 				CastSpell(2)
@@ -860,10 +990,7 @@ function Blitzcrank:KS()
 	if not BM.KS.Enable:Value() then return end
 	for _,unit in pairs(GetEnemyHeroes()) do
 		if GetAPHP(unit) < Dmg[0](unit) and SReady[0] and ValidTarget(unit, self.Spell[0].range) and BM.KS.Q:Value() then
-			local Pred = GetPrediction(unit, self.Spell[0])
-			if Pred.hitChance >= BM.p.hQ:Value()/100 and not Pred:mCollision(1) and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-				CastSkillShot(0,Pred.castPos)
-			end
+			CastGenericSkillShot(myHero,unit,self.Spell[0],0,BM.p)
 		end
 		if GetADHP(unit) < Dmg[2](unit) and SReady[2] and ValidTarget(unit, 300) and BM.KS.E:Value() then
 			CastSpell(2)
@@ -891,9 +1018,9 @@ class 'Soraka'
 function Soraka:__init()
 
 	Soraka.Spell = {
-	[0] = { delay = 0.250, speed = math.huge, width = 235, range = 800 },
+	[0] = { delay = 0.250, speed = math.huge, width = 235, range = 800, type = "circular",col = false },
 	[1] = { range = 550 },
-	[2] = { delay = 1.75, speed = math.huge, width = 310, range = 900 }
+	[2] = { delay = 1.75, speed = math.huge, width = 310, range = 900, type = "circular", col = false}
 	}
 	
 	Dmg = {
@@ -943,8 +1070,6 @@ function Soraka:__init()
 	BM.JC:Boolean("E", "Use E", true)
 	
 	BM:Menu("p", "Prediction")
-	BM.p:Slider("hQ", "HitChance Q", 20, 0, 100, 1)
-	BM.p:Slider("hE", "HitChance E", 20, 0, 100, 1)
 	BM.p:Slider("aE", "Adjust E Delay", 1.5, .5, 2, .1)
 	
 	Callback.Add("Tick", function() self:Tick() end)
@@ -952,6 +1077,9 @@ function Soraka:__init()
 	DelayAction( function ()
 	if BM["AC"] then BM.AC:Info("ad", "Use Spell(s) : ") BM.AC:Boolean("E","Use E", true) end
 	end,.001)
+	for i = 0,2,2 do
+		PredMenu(BM.p, i)	
+	end
 end
 
 function Soraka:AntiChannel(unit,range)
@@ -989,32 +1117,20 @@ end
 function Soraka:Combo(target)
 	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() then
 		self.Spell[0].delay = .25 + (GetDistance(myHero,target) / self.Spell[0].range)*.75
-		local Pred = GetCircularAOEPrediction(target, self.Spell[0])
-		if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-			CastSkillShot(0,Pred.castPos)
-		end
+		CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
 	end
 	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() then
-		local Pred = GetCircularAOEPrediction(target, self.Spell[2])
-		if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[2].range then
-			CastSkillShot(2,Pred.castPos)
-		end
+		CastGenericSkillShot(myHero,target,self.Spell[2],2,BM.p)
 	end
 end
 
 function Soraka:Harass(target)
-		if SReady[0] and ValidTarget(target, self.Spell[0].range*1.1) and BM.H.Q:Value() then
-			self.Spell[0].delay = .25 + (GetDistance(myHero,target) / self.Spell[0].range)*.55
-			local Pred = GetCircularAOEPrediction(target, self.Spell[0])
-			if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-				CastSkillShot(0,Pred.castPos)
-		end
-		if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.H.E:Value() then
-			local Pred = GetCircularAOEPrediction(target, self.Spell[2])
-			if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[2].range then
-				CastSkillShot(2,Pred.castPos)
-			end
-		end
+	if SReady[0] and ValidTarget(target, self.Spell[0].range*1.1) and BM.H.Q:Value() then
+		self.Spell[0].delay = .25 + (GetDistance(myHero,target) / self.Spell[0].range)*.55
+		CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
+	end
+	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.H.E:Value() then
+		CastGenericSkillShot(myHero,target,self.Spell[2],2,BM.p)
 	end
 end
 
@@ -1022,17 +1138,11 @@ function Soraka:KS()
 	if not BM.KS.Enable:Value() then return end
 	for _,unit in pairs(GetEnemyHeroes()) do
 		if GetAPHP(unit) < Dmg[0](unit) and SReady[0] and ValidTarget(unit, self.Spell[0].range) and BM.KS.Q:Value() then
-			self.Spell[0].delay = .25 + (GetDistance(myHero,target) / self.Spell[0].range)*.55
-			local Pred = GetCircularAOEPrediction(unit, self.Spell[0])
-			if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-				CastSkillShot(0,Pred.castPos)
-			end
+			self.Spell[0].delay = .25 + (GetDistance(myHero,unit) / self.Spell[0].range)*.55
+			CastGenericSkillShot(myHero,unit,self.Spell[0],0,BM.p)
 		end
 		if GetAPHP(unit) < Dmg[2](unit) and SReady[2] and ValidTarget(unit, self.Spell[2].range) and BM.KS.E:Value() then
-			local Pred = GetCircularAOEPrediction(unit, self.Spell[2])
-			if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[2].range then
-				CastSkillShot(2,Pred.castPos)
-			end
+			CastGenericSkillShot(myHero,unit,self.Spell[2],2,BM.p)
 		end
 	end
 end
@@ -1042,16 +1152,10 @@ function Soraka:LaneClear()
 		if GetTeam(minion) == MINION_ENEMY then
 			if SReady[0] and ValidTarget(minion, self.Spell[0].range*1.1) and BM.LC.Q:Value() then
 				self.Spell[0].delay = .25 + (GetDistance(myHero,minion) / self.Spell[0].range)*.55
-				local Pred = GetCircularAOEPrediction(minion, self.Spell[0])
-				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-					CastSkillShot(0,Pred.castPos)
-				end
+				CastGenericSkillShot(myHero,minion,self.Spell[0],0,BM.p)
 			end
 			if SReady[2] and ValidTarget(minion, self.Spell[2].range) and BM.LC.E:Value() then
-				local Pred = GetCircularAOEPrediction(minion, self.Spell[2])
-				if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[2].range then
-					CastSkillShot(2,Pred.castPos)
-				end
+				CastGenericSkillShot(myHero,minion,self.Spell[2],2,BM.p)
 			end
 		end
 	end
@@ -1062,16 +1166,10 @@ function Soraka:JungleClear()
 		if GetTeam(mob) == MINION_JUNGLE then
 			if SReady[0] and ValidTarget(mob, self.Spell[0].range*1.1) and BM.JC.Q:Value() then
 				self.Spell[0].delay = .25 + (GetDistance(myHero,mob) / self.Spell[0].range)*.55
-				local Pred = GetCircularAOEPrediction(mob, self.Spell[0])
-				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-					CastSkillShot(0,Pred.castPos)
-				end
+				CastGenericSkillShot(myHero,mob,self.Spell[0],0,BM.p)
 			end
 			if SReady[2] and ValidTarget(mob, self.Spell[2].range) and BM.JC.E:Value() then
-				local Pred = GetCircularAOEPrediction(mob, self.Spell[2])
-				if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[2].range then
-					CastSkillShot(2,Pred.castPos)
-				end
+				CastGenericSkillShot(myHero,mob,self.Spell[2],2,BM.p)
 			end
 		end
 	end
@@ -1101,7 +1199,7 @@ class 'Sivir'
 function Sivir:__init()
 	
 	Sivir.Spell = { 
-	[0] = { delay = 0.250, speed = 1350, width = 85, range = 1075 },
+	[0] = { delay = 0.250, speed = 1350, width = 85, range = 1075, type = "line", col = false},
 	}
 	
 	Dmg = {
@@ -1129,11 +1227,14 @@ function Sivir:__init()
 	BM.KS:Boolean("Q", "Use Q", true)
 	
 	BM:Menu("p", "Prediction")
-	BM.p:Slider("hQ", "HitChance Q", 20, 0, 100, 1)
 	
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("ProcessSpellComplete", function(unit,spell) self:AAReset(unit,spell) end)
 	HitMe()
+	
+	for i = 0,0 do
+		PredMenu(BM.p, i)	
+	end
 end
 
 function Sivir:Tick()
@@ -1177,10 +1278,7 @@ end
 
 function Sivir:Combo(target)
 	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() then
-		local Pred = GetPrediction(target, self.Spell[0])
-		if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-			CastSkillShot(0,Pred.castPos)
-		end
+		CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
 	end
 	if SReady[3] and ValidTarget(target, 800) and BM.C.R:Value() and EnemiesAround(myHero,800) >= BM.C.RE:Value() and GetPercentHP(myHero) < BM.C.RHP:Value() and GetPercentHP(target) < BM.C.REHP:Value() then
 		CastSpell(3)
@@ -1191,10 +1289,7 @@ function Sivir:LaneClear()
 	for _,minion in pairs(minionManager.objects) do
 		if GetTeam(minion) == MINION_ENEMY then
 			if SReady[0] and ValidTarget(minion, self.Spell[0].range) and BM.LC.Q:Value() then
-				local Pred = GetPrediction(minion, self.Spell[0])
-				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-					CastSkillShot(0,Pred.castPos)
-				end
+				CastGenericSkillShot(myHero,minion,self.Spell[0],0,BM.p)
 			end
 		end
 	end
@@ -1204,10 +1299,7 @@ function Sivir:JungleClear()
 	for _,mob in pairs(minionManager.objects) do
 		if GetTeam(mob) == MINION_JUNGLE then
 			if SReady[0] and ValidTarget(mob, self.Spell[0].range) and BM.JC.Q:Value() then
-				local Pred = GetPrediction(mob, self.Spell[0])
-				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-					CastSkillShot(0,Pred.castPos)
-				end
+				CastGenericSkillShot(myHero,mob,self.Spell[0],0,BM.p)
 			end
 		end
 	end
@@ -1216,10 +1308,7 @@ end
 function Sivir:KS()
 	for _,target in pairs(GetEnemyHeroes()) do
 		if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.KS.Q:Value() and GetAPHP(target) < Dmg[0](target) then
-			local Pred = GetPrediction(target, self.Spell[0])
-			if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-				CastSkillShot(0,Pred.castPos)
-			end
+			CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
 		end
 	end
 end
@@ -1234,7 +1323,7 @@ class 'Nocturne'
 
 function Nocturne:__init()
 	Nocturne.Spell = {
-	[0] = { delay = 0.250, speed = 1400, width = 120, range = 1125 },
+	[0] = { delay = 0.250, speed = 1400, width = 120, range = 1125, type = "line", col = false },
 	[2] = { range = 425},
 	[3] = { range = function() return 1750 + GetCastLevel(myHero,3)*750 end},
 	}
@@ -1263,12 +1352,15 @@ function Nocturne:__init()
 	BM.KS:Boolean("Q", "Use Q", true)
 	
 	BM:Menu("p", "Prediction")
-	BM.p:Slider("hQ", "HitChance Q", 20, 0, 100, 1)
 	
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:Draw() end)
 	
 	HitMe()
+	
+	for i = 0,0 do
+		PredMenu(BM.p, i)	
+	end
 end
 
 function Nocturne:Tick()
@@ -1293,10 +1385,7 @@ function Nocturne:KS()
 	self.marker = false
 	for _,target in pairs(GetEnemyHeroes()) do
 		if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.KS.Q:Value() and GetADHP(target) < Dmg[0](target) then
-		local Pred = GetPrediction(target, self.Spell[0])
-			if Pred.hitChance >= BM.p.hQ:Value()*.01 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-				CastSkillShot(0,Pred.castPos)
-			end
+			CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
 		end
 		if SReady[3] and ValidTarget(target, self.Spell[3].range()) and GetADHP(target) < Dmg[0](target) + Dmg[3](target) + Dmg[2](target) + myHero.totalDamage*2 then
 			self.marker = target
@@ -1310,10 +1399,7 @@ end
 
 function Nocturne:Combo(target)
 	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() then
-		local Pred = GetPrediction(target, self.Spell[0])
-		if Pred.hitChance >= BM.p.hQ:Value()*.01 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-			CastSkillShot(0,Pred.castPos)
-		end
+		CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
 	end
 	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() then
 		CastTargetSpell(target,2)
@@ -1324,15 +1410,9 @@ function Nocturne:LaneClear()
 	for _,minion in pairs(minionManager.objects) do
 		if SReady[0] and ValidTarget(minion, self.Spell[0].range) then
 			if GetTeam(minion) == MINION_ENEMY and BM.LC.Q:Value() then
-				local Pred = GetPrediction(minion, self.Spell[0])
-				if Pred.hitChance >= BM.p.hQ:Value()*.01 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-					CastSkillShot(0,Pred.castPos)
-				end
+				CastGenericSkillShot(myHero,minion,self.Spell[0],0,BM.p)
 			elseif GetTeam(minion) == 300 and BM.JC.Q:Value() then
-				local Pred = GetPrediction(minion, self.Spell[0])
-				if Pred.hitChance >= BM.p.hQ:Value()*.01 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-					CastSkillShot(0,Pred.castPos)
-				end
+				CastGenericSkillShot(myHero,minion,self.Spell[0],0,BM.p)
 			end
 		end
 	end
@@ -1365,9 +1445,9 @@ class "Aatrox"
 function Aatrox:__init()
 	
 	Aatrox.Spell = { 
-	[0] = { delay = 0.2, range = 650, speed = 1500, radius = 113 },
+	[0] = { delay = 0.2, range = 650, speed = 1500, width = 113, type = "circular", col = false },
 	[1] = { range = 0 },
-	[2] = { delay = 0.1, range = 1000, speed = 1000, width = 150 },
+	[2] = { delay = 0.1, range = 1000, speed = 1000, width = 150, type = "line", col = false },
 	[3] = { range = 550 }
 	}
 	
@@ -1404,8 +1484,6 @@ function Aatrox:__init()
 	BM.KS:Boolean("E", "Use E", true)
 	
 	BM:Menu("p", "Prediction")
-	BM.p:Slider("hQ", "HitChance Q", 20, 0, 100, 1)
-	BM.p:Slider("hE", "HitChance E", 20, 0, 100, 1)
 
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("UpdateBuff", function(unit,buff) self:Stat(unit,buff) end)
@@ -1414,6 +1492,10 @@ function Aatrox:__init()
 		self.W = "dmg"
 	else
 		self.W = "heal"
+	end
+
+	for i = 0,2,2 do
+		PredMenu(BM.p, i)	
 	end
 end  
 
@@ -1453,22 +1535,13 @@ end
 
 function Aatrox:Combo(target)
 	if SReady[0] and ValidTarget(target, self.Spell[0].range*1.1) and BM.C.Q:Value() then
-		local Pred = GetCircularAOEPrediction(target, self.Spell[0])
-		if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-			CastSkillShot(0,Pred.castPos)
-		end
+		CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
 	end
 	if SReady[2] and ValidTarget(target, self.Spell[2].range*1.1) and BM.C.E:Value() then
-		local Pred = GetPrediction(target, self.Spell[2])
-		if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[2].range then
-			CastSkillShot(2,Pred.castPos)
-		end
+		CastGenericSkillShot(myHero,target,self.Spell[2],2,BM.p)
 	end
 	if SReady[3] and ValidTarget(target, 550) and BM.C.R:Value() and EnemiesAround(myHero,550) >= BM.C.RE:Value() then
-		local Pred = GetPrediction(target, self.Spell[2])
-		if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[2].range then
-			CastSkillShot(2,Pred.castPos)
-		end
+		CastSpell(3)
 	end
 end
 
@@ -1485,16 +1558,10 @@ function Aatrox:LaneClear()
 	for _,minion in pairs(minionManager.objects) do
 		if GetTeam(minion) == MINION_ENEMY then
 			if SReady[0] and ValidTarget(minion, self.Spell[0].range*1.1) and BM.LC.Q:Value() then
-			local Pred = GetCircularAOEPrediction(minion, self.Spell[0])
-				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-					CastSkillShot(0,Pred.castPos)
-				end
+				CastGenericSkillShot(myHero,minion,self.Spell[0],0,BM.p)
 			end
 			if SReady[2] and ValidTarget(minion, self.Spell[2].range*1.1) and BM.LC.E:Value() then
-			local Pred = GetPrediction(minion, self.Spell[2])
-				if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[2].range then
-					CastSkillShot(2,Pred.castPos)
-				end
+				CastGenericSkillShot(myHero,minion,self.Spell[2],2,BM.p)
 			end
 		end
 	end		
@@ -1504,10 +1571,7 @@ function Aatrox:JungleClear()
 	for _,mob in pairs(minionManager.objects) do
 		if GetTeam(mob) == MINION_JUNGLE then
 			if SReady[0] and ValidTarget(mob, self.Spell[0].range) and BM.JC.Q:Value() then
-			local Pred = GetCircularAOEPrediction(mob, self.Spell[0])
-				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-					CastSkillShot(0,Pred.castPos)
-				end
+				CastGenericSkillShot(myHero,minion,self.Spell[0],0,BM.p)
 			end
 			if SReady[1] and BM.C.W:Value() and ValidTarget(mob,750) then
 				if GetPercentHP(myHero) < BM.C.WT:Value()+1 and self.W == "dmg" then
@@ -1517,10 +1581,7 @@ function Aatrox:JungleClear()
 				end
 			end
 			if SReady[2] and ValidTarget(mob, self.Spell[2].range) and BM.JC.E:Value() then
-			local Pred = GetPrediction(mob, self.Spell[2])
-				if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[2].range then
-					CastSkillShot(2,Pred.castPos)
-				end
+				CastGenericSkillShot(myHero,minion,self.Spell[2],2,BM.p)
 			end
 		end
 	end		
@@ -1530,16 +1591,10 @@ function Aatrox:KS()
 	if not BM.KS.Enable:Value() then return end
 	for _,unit in pairs(GetEnemyHeroes()) do
 		if GetADHP(unit) < Dmg[0](unit) and SReady[0] and ValidTarget(unit, self.Spell[0].range*1.1) and BM.KS.Q:Value() then
-			local Pred = GetCircularAOEPrediction(unit, self.Spell[0])
-			if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-				CastSkillShot(0,Pred.castPos)
-			end
+			CastGenericSkillShot(myHero,unit,self.Spell[0],0,BM.p)
 		end
 		if GetAPHP(unit) < Dmg[2](unit) and SReady[2] and ValidTarget(unit, self.Spell[2].range*1.1) and BM.KS.E:Value() then
-			local Pred = GetPrediction(unit, self.Spell[2])
-			if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[2].range then
-				CastSkillShot(2,Pred.castPos)
-			end
+			CastGenericSkillShot(myHero,unit,self.Spell[2],2,BM.p)
 		end
 	end
 end
@@ -1584,10 +1639,7 @@ function KogMaw:__init()
 	BM.H:Boolean("W", "Use W", true)
 	BM.H:Boolean("E", "Use E", false)
 	
-	BM:SubMenu("P", "Prediction")
-	BM.P:Slider("Q", "HitChance Q", 20, 0, 100, 1)
-	BM.P:Slider("E", "HitChance E", 20, 0, 100, 1)
-	BM.P:Slider("R", "HitChance R", 20, 0, 100, 1)
+	BM:SubMenu("p", "Prediction")
 
 	self.Passive = GotBuff(myHero,"KogMawIcathianSurprise") ~= 0
 	self.dmgPred = {}
@@ -1603,10 +1655,10 @@ function KogMaw:__init()
 	}
 	
 	self.Spell = {
-	[0] = { range = 1175, delay = .25, width = 75 , speed = 1650},
+	[0] = { range = 1175, delay = .25, width = 75 , speed = 1650, type = "line",col=true},
 	[1] = { range = 560 + 30 * myHero.level},
-	[2] = { range = 1360, delay = .25, width = 120, speed = 1400},
-	[3] = { range = 1800, delay = 1.2, speed = math.huge , radius = 225},
+	[2] = { range = 1360, delay = .25, width = 120, speed = 1400, type = "line",col=false},
+	[3] = { range = 1800, delay = 1.2, speed = math.huge , radius = 225, type = "circular",col=false},
 	}
 	
 	Callback.Add("Tick", function() self:Tick() end)
@@ -1621,6 +1673,11 @@ function KogMaw:__init()
 			self.soonHP[i.networkID] = {u = i, h = i.health}
 		end
 	end)
+	
+	for i = 2,3 do
+		PredMenu(BM.p, i)	
+	end
+	PredMenu(BM.p, 0)
 end
 
 function KogMaw:Tick()
@@ -1666,25 +1723,16 @@ function KogMaw:Combo(unit)
 		return
 	end
 	if SReady[3] and ValidTarget(unit,self.Spell[3].range) and BM.C.R:Value() and (not SReady[1] or unit.distance > self.Spell[1].range) and self.soonHP[unit.networkID].h and self.soonHP[unit.networkID].h < self.Dmg[3](unit) then
-		local Pred = GetCircularAOEPrediction(unit, self.Spell[3])
-		if Pred.hitChance > BM.P.R:Value()*.01 then
-			CastSkillShot(3,Pred.castPos)
-		end
+		CastGenericSkillShot(myHero,target,self.Spell[3],3,BM.p)
 	end
 	if SReady[1] and ValidTarget(unit,560 + 30 * myHero.level) and BM.C.W:Value() then
 		CastSpell(1)
 	end
 	if SReady[2] and ValidTarget(unit,self.Spell[2].range) and BM.C.E:Value() then
-		local Pred = GetPrediction(unit, self.Spell[2])
-		if Pred.hitChance > BM.P.E:Value()*.01 then
-			CastSkillShot(2,Pred.castPos)
-		end
+		CastGenericSkillShot(myHero,target,self.Spell[2],2,BM.p)
 	end
 	if SReady[0] and ValidTarget(unit,self.Spell[0].range) and BM.C.Q:Value() then
-		local Pred = GetPrediction(unit, self.Spell[0])
-		if Pred.hitChance > BM.P.Q:Value()*.01 and not Pred:mCollision(1) then
-			CastSkillShot(0,Pred.castPos)
-		end
+		CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
 	end
 end
 
@@ -1693,16 +1741,10 @@ function KogMaw:Harass(unit)
 		CastSpell(1)
 	end
 	if SReady[2] and ValidTarget(unit,self.Spell[2].range) and BM.H.E:Value() then
-		local Pred = GetPrediction(unit, self.Spell[2])
-		if Pred.hitChance > BM.P.E:Value()*.01 then
-			CastSkillShot(2,Pred.castPos)
-		end
+		CastGenericSkillShot(myHero,target,self.Spell[2],2,BM.p)
 	end
 	if SReady[0] and ValidTarget(unit,self.Spell[0].range) and BM.H.Q:Value() then
-		local Pred = GetPrediction(unit, self.Spell[0])
-		if Pred.hitChance > BM.P.Q:Value()*.01 and not Pred:mCollision(1) then
-			CastSkillShot(0,Pred.castPos)
-		end
+		CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
 	end
 end
 
@@ -1712,16 +1754,10 @@ function KogMaw:LaneClear()
 			CastSpell(1)
 		end
 		if SReady[2] and ValidTarget(unit,self.Spell[2].range) and ((IsLaneCreep(unit) and BM.L.E:Value()) or (not IsLaneCreep(unit) and BM.J.E:Value())) then
-			local Pred = GetPrediction(unit, self.Spell[2])
-			if Pred.hitChance > BM.P.E:Value()*.01 then
-				CastSkillShot(2,Pred.castPos)
-			end
+			CastGenericSkillShot(myHero,target,self.Spell[2],2,BM.p)
 		end
 		if SReady[0] and ValidTarget(unit,self.Spell[0].range) and ((IsLaneCreep(unit) and BM.L.Q:Value()) or (not IsLaneCreep(unit) and BM.J.Q:Value())) then
-			local Pred = GetPrediction(unit, self.Spell[0])
-			if Pred.hitChance > BM.P.Q:Value()*.01 and not Pred:mCollision(1) then
-				CastSkillShot(0,Pred.castPos)
-			end
+			CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
 		end
 	end
 end
@@ -1759,9 +1795,7 @@ function Velkoz:__init()
 	BM.C:Boolean("R", "Use R",true)
 	BM.C:Boolean("M", "Mouse follow",true)
 
-	BM:SubMenu("P", "Prediction")
-	BM.P:Slider("W", "HitChance W", 20, 0, 100, 1)
-	BM.P:Slider("E", "HitChance E", 20, 0, 100, 1)
+	BM:SubMenu("p", "Prediction")
 
 	BM:SubMenu("A", "Advanced")
 	BM.A:Slider("S", "SplitMod", .075, .05, .1, .005)
@@ -1786,8 +1820,8 @@ function Velkoz:__init()
 	self.Spell = {
 	[0] = { range = 1000, delay =.25, width = 75, speed = 1150},
 	[-1]= { range = 1300, delay =.25, width = 75, speed = 813},
-	[1] = { delay = .1, speed = 1700, width = 100, range = 1050},
-	[2] = { delay = .6, speed = math.huge, range = 850, radius = 200 },
+	[1] = { delay = .1, speed = 1700, width = 100, range = 1050,type = "line",col=false},
+	[2] = { delay = .6, speed = math.huge, range = 850, radius = 200,type = "circular",col=false },
 	}
 	
 	Callback.Add("Tick", function() self:Tick() end)
@@ -1804,6 +1838,9 @@ function Velkoz:__init()
 	if BM["AGC"] then BM.AGC:Info("ad", "Use Spell(s) : ") BM.AGC:Boolean("E","Use E", true) end
 	end,.001)
 	--]]
+	for i = 1,2 do
+		PredMenu(BM.p, i)	
+	end
 end
 
 --[[
@@ -1844,17 +1881,11 @@ end
 function Velkoz:Combo(unit)
 	if Mode == "Combo" and not self.ult then
 		if SReady[1] and ValidTarget(unit,1050) and BM.C.W:Value() then
-			local WPred = GetPrediction(unit, self.Spell[1])
-			if WPred.hitChance > BM.P.W:Value()*.01 then
-				CastSkillShot(1,WPred.castPos)
-			end
+			CastGenericSkillShot(myHero,unit,self.Spell[1],1,BM.p)
 		end
 			
 		if SReady[2] and ValidTarget(unit,850) and BM.C.E:Value() then
-			local EPred = GetCircularAOEPrediction(unit, self.Spell[2])
-			if EPred.hitChance > BM.P.E:Value()*.01 then
-				CastSkillShot(2,EPred.castPos)
-			end
+			CastGenericSkillShot(myHero,unit,self.Spell[2],2,BM.p)
 		end
 		if SReady[3] and ValidTarget(unit,1500) and unit.distance > 350 and unit.health + unit.shieldAD + unit.shieldAP < self:RDmg(unit) and BM.C.R:Value() then
 			--SetCursorPos(unit.pos2D.x,unit.pos2D.y)
@@ -1967,9 +1998,9 @@ function Jinx:__init()
 
 
 	self.Spell = {
-	[1] = { delay = 0.6, speed = 3000, width = 85, range = 1500},
-	[2] = { delay = 1, speed = 887, width = 120, range = 900},
-	[3] = { delay = 0.6, speed = 1700, width = 140, range = math.huge}
+	[1] = { delay = 0.6, speed = 3000, width = 85, range = 1500,type = "line",col=true},
+	[2] = { delay = 1, speed = 887, width = 120, range = 900,type = "circular",col=false},
+	[3] = { delay = 0.6, speed = 1700, width = 140, range = math.huge,type = "line",col=false}
 	}
 	
 	
@@ -2019,14 +2050,14 @@ function Jinx:__init()
 	BM.KS:Slider("DTT", "R - min Distance to target", 1000, 675, 20000, 10)
 	
 	BM:Menu("p", "Prediction")
-	BM.p:Slider("hW", "HitChance W", 20, 0, 100, 1)
-	BM.p:Slider("hE", "HitChance E", 20, 0, 100, 1)
-	BM.p:Slider("hR", "HitChance R", 50, 0, 100, 1)
 	
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("UpdateBuff", function(unit,buff) self:UpdateBuff(unit,buff) end)
 	Callback.Add("RemoveBuff", function(unit,buff) self:RemoveBuff(unit,buff) end)
-	
+
+	for i = 1,3 do
+		PredMenu(BM.p, i)	
+	end
 end
 
 function Jinx:UpdateBuff(unit, buff)
@@ -2093,19 +2124,12 @@ function Jinx:Combo(target)
 	end
 	
 	if SReady[1] and ValidTarget(target, self.Spell[1].range) and BM.C.W:Value() and GetDistance(myHero,target)>100 then
-		local Pred = GetPrediction(target, self.Spell[1])
-		if Pred.hitChance >= BM.p.hW:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[1].range and not Pred:mCollision(1) then
-			CastSkillShot(1,Pred.castPos)
-		end
+		CastGenericSkillShot(myHero,unit,self.Spell[1],1,BM.p)
 	end
 	
 	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() then
-		local Pred = GetPrediction(target, self.Spell[2])
-		if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[2].range then
-			CastSkillShot(2,Pred.castPos)
-		end
-	end
-	
+		CastGenericSkillShot(myHero,unit,self.Spell[2],2,BM.p)
+	end	
 end
 
 function Jinx:Harass(target)
@@ -2134,19 +2158,12 @@ function Jinx:Harass(target)
 	end
 	
 	if SReady[1] and ValidTarget(target, self.Spell[1].range) and BM.H.W:Value() and GetDistance(myHero,target)>100 then
-		local Pred = GetPrediction(target, self.Spell[1])
-		if Pred.hitChance >= BM.p.hW:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[1].range and not Pred:mCollision(1) then
-			CastSkillShot(1,Pred.castPos)
-		end
+		CastGenericSkillShot(myHero,unit,self.Spell[1],1,BM.p)
 	end
 	
 	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.H.E:Value() then
-		local Pred = GetPrediction(target, self.Spell[2])
-		if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[2].range then
-			CastSkillShot(2,Pred.castPos)
-		end
-	end
-	
+		CastGenericSkillShot(myHero,unit,self.Spell[2],2,BM.p)
+	end	
 end
 
 function Jinx:LaneClear()
@@ -2167,10 +2184,7 @@ function Jinx:LaneClear()
 			end
 			
 			if SReady[1] and ValidTarget(minion, self.Spell[1].range) and BM.LC.W:Value() then
-				local Pred = GetPrediction(minion, self.Spell[1])
-				if Pred.hitChance >= BM.p.hW:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[1].range and not Pred:mCollision(1) then
-					CastSkillShot(1,Pred.castPos)
-				end
+				CastGenericSkillShot(myHero,unit,self.Spell[1],1,BM.p)
 			end
 		end
 	end
@@ -2194,10 +2208,7 @@ function Jinx:JungleClear()
 			end
 			
 			if SReady[1] and ValidTarget(mob, self.Spell[1].range) and BM.LC.W:Value() then
-				local Pred = GetPrediction(mob, self.Spell[1])
-				if Pred.hitChance >= BM.p.hW:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[1].range and not Pred:mCollision(1) then
-					CastSkillShot(1,Pred.castPos)
-				end
+				CastGenericSkillShot(myHero,unit,self.Spell[1],1,BM.p)
 			end
 		end
 	end
@@ -2217,22 +2228,13 @@ function Jinx:KS()
 	if not BM.KS.Enable:Value() then return end
 	for _,unit in pairs(GetEnemyHeroes()) do
 		if GetADHP(unit) < Dmg[1](unit) and SReady[1] and ValidTarget(unit, self.Spell[1].range) and BM.KS.W:Value() then
-			local Pred = GetPrediction(unit, self.Spell[1])
-			if Pred.hitChance >= BM.p.hW:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[1].range and not Pred:mCollision(1) then
-				CastSkillShot(1,Pred.castPos)
-			end
+			CastGenericSkillShot(myHero,unit,self.Spell[1],1,BM.p)
 		end
 		if GetAPHP(unit) < Dmg[2](unit) and SReady[2] and ValidTarget(unit, self.Spell[2].range) and BM.KS.E:Value() then
-			local Pred = GetPrediction(unit, self.Spell[2])
-			if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[2].range then
-				CastSkillShot(2,Pred.castPos)
-			end
+			CastGenericSkillShot(myHero,unit,self.Spell[2],2,BM.p)
 		end
 		if GetADHP(unit) < Dmg[3](unit) and SReady[3] and ValidTarget(unit, BM.KS.mDTT:Value()) and BM.KS.R:Value() and GetDistance(unit) >= BM.KS.DTT:Value() then
-			local Pred = GetPrediction(unit, self.Spell[3])
-			if Pred.hitChance >= BM.p.hR:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[3].range and not Pred:hCollision(1) then
-				CastSkillShot(3,Pred.castPos)
-			end
+			CastGenericSkillShot(myHero,unit,self.Spell[3],3,BM.p)
 		end
 	end
 end
@@ -2261,7 +2263,7 @@ function Kalista:__init()
 	
 	Kalista.Spell = {
 	[-1] = { delay = .3, speed = math.huge, width = 1, range = 1500},
-	[0] = { delay = 0.25, speed = 2000, width = 50, range = 1150},
+	[0] = { delay = 0.25, speed = 2000, width = 50, range = 1150,type = "line",col=true},
 	[1] = { range = 5000 },
 	[2] = { range = 1000 },
 	[3] = { range = 1500 }
@@ -2319,6 +2321,9 @@ function Kalista:__init()
 	Callback.Add("RemoveBuff", function(unit, buff) self:RemoveBuff(unit, buff) end)
 	Callback.Add("ProcessSpellComplete", function(unit, spell) self:AAReset(unit, spell) end)
 
+	for i = 0,0 do
+		PredMenu(BM.p, i)	
+	end
 end
 
 function Kalista:UpdateBuff(unit, buff) 
@@ -2365,10 +2370,7 @@ function Kalista:AAReset(unit, spell)
 	local ta = spell.target
 	if unit == myHero and ta ~= nil and spell.name:lower():find("attack") and SReady[0] and ValidTarget(ta, self.Spell[0].range) then
 		if ((Mode == "Combo" and BM.C.Q:Value()) or (Mode == "Harass" and BM.H.Q:Value()) and GetObjectType(ta) == Obj_AI_Hero) or (Mode == "LaneClear" and ((BM.JC.Q:Value() and (GetObjectType(ta)==Obj_AI_Camp or GetObjectType(ta)==Obj_AI_Minion)) or (BM.LC.Q:Value() and GetObjectType(ta)==Obj_AI_Minion))) then
-			local Pred = GetPrediction(ta, self.Spell[0])
-			if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-				CastSkillShot(0,Pred.castPos)
-			end
+			CastGenericSkillShot(myHero,unit,self.Spell[0],0,BM.p)
 		end
 	end
 end
@@ -2384,10 +2386,7 @@ end
 function Kalista:KS()
 	for _,target in pairs(GetEnemyHeroes()) do
 		if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.KS.Q:Value() and GetADHP(target) < Dmg[0](target) then
-			local Pred = GetPrediction(target, self.Spell[0])
-			if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[0].range then
-				CastSkillShot(0,Pred.castPos)
-			end
+			CastGenericSkillShot(myHero,unit,self.Spell[0],0,BM.p)
 		end
 		if SReady[2] and ValidTarget(target, 1000) and BM.AE.UseC:Value() and (GetADHP(target) + BM.AE.OK:Value()) < Dmg[2](target) and self.eTrack[GetNetworkID(target)] > 0 then
 			DelayAction(function()
@@ -2493,7 +2492,7 @@ function Nasus:__init()
 	Nasus.Spell = {
 		[0] = { delay = 0.3, range = 250},
 		[1] = { delay = .2, range = 600 },
-		[2] = { delay = .1, speed = math.huge, range = 650, radius = 395},
+		[2] = { delay = .1, speed = math.huge, range = 650, radius = 395,type = "circular",col=false},
 		[3] = { range = 200 }
 	}
 	
@@ -2514,6 +2513,8 @@ function Nasus:__init()
 	BM:SubMenu("ks", "Killsteal")
 	BM.ks:Boolean("KSQ","Killsteal with Q", true)
 	BM.ks:Boolean("KSE","Killsteal with E", true)
+	
+	BM:SubMenu("p","Prediction")
 
 
 --Var
@@ -2521,6 +2522,10 @@ function Nasus:__init()
 	self.Stacks = GetBuffData(myHero, "NasusQStacks").Stacks
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:Draw() end)
+
+	for i = 2,2 do
+		PredMenu(BM.p, i)	
+	end
 end
 
 -- Start
@@ -2568,10 +2573,7 @@ function Nasus:Combo(unit)
 		CastTargetSpell(unit,1)
 	end		
 	if SReady[2] and BM.c.E:Value() and ValidTarget(unit, self.Spell[2].range) then
-		local EPred=GetCircularAOEPrediction(unit, self.Spell[2])
-		if EPred and EPred.hitChance >= 0.2 then
-			CastSkillShot(2,EPred.castPos)
-		end
+		CastGenericSkillShot(myHero,unit,self.Spell[2],2,BM.p)
 	end				
 end
 
@@ -2598,10 +2600,7 @@ function Nasus:KS()
 			AttackUnit(unit)
 		end
 		if BM.ks.KSE:Value() and Ready(_E) and ValidTarget(unit,self.Spell[2].range) and GetCurrentHP(unit)+GetDmgShield(unit)+GetMagicShield(unit) <  CalcDamage(myHero, unit, 0, 15+40*GetCastLevel(myHero,_E)+GetBonusAP(myHero)*6) then 
-			local NasusE=GetCircularAOEPrediction(unit, self.Spell[2])
-			if EPred and EPred.hitChance >= .2 then
-				CastSkillShot(_E,EPred.castPos)
-			end
+			CastGenericSkillShot(myHero,unit,self.Spell[2],2,BM.p)
 		end
 	end
 end
@@ -2893,7 +2892,7 @@ function Vladimir:__init()
 	[0] = { range = 600 },
 	[1] = { range = 150 },
 	[2] = { range = 600 },
-	[3] = { delay = 0.25, speed = math.huge, range = 700, radius = 175},
+	[3] = { delay = 0.25, speed = math.huge, range = 700, radius = 175,type = "circular",col=false},
 	}
 	
 	Dmg = {
@@ -2927,7 +2926,6 @@ function Vladimir:__init()
 	BM.KS:Boolean("R", "Use R", false)
 	
 	BM:Menu("p", "Prediction")
-	BM.p:Slider("hR", "HitChance R", 40, 0, 100, 1)
 	
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("Draw", function() self:Draw() end)
@@ -2937,6 +2935,10 @@ function Vladimir:__init()
 	
 	self.ECharge = nil
 	self.AA = AttackUnit
+
+	for i = 3,3 do
+		PredMenu(BM.p, i)	
+	end
 end
 
 function Vladimir:HitMe(k,pos,dt,ty)
@@ -2984,10 +2986,7 @@ function Vladimir:Combo(target)
 		CastSkillShot(2,myHero.pos)
 	end
 	if SReady[3] and ValidTarget(target, self.Spell[3].range) and BM.C.R:Value() and EnemiesAround(GetOrigin(target), self.Spell[3].radius) >= BM.C.REA:Value() then
-		local Pred = GetCircularAOEPrediction(target, self.Spell[3])
-		if Pred.hitChance >= BM.p.hR:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[3].range then
-			CastSkillShot(3,Pred.castPos)
-		end
+		CastGenericSkillShot(myHero,unit,self.Spell[3],3,BM.p)
 	end
 end
 
@@ -3066,7 +3065,7 @@ class 'Orianna'
 function Orianna:__init()
 
 	Orianna.Spell = {
-	[0] = { range = 815, delay = 0, radius = 80, speed = 1200 },
+	[0] = { range = 815, delay = 0, radius = 80, speed = 1200,type = "line",col=false },
 	[1] = { radius = 255 },
 	[2] = { range = 1095, radius = 80 },
 	[3] = { radius = 410 },
@@ -3113,7 +3112,6 @@ function Orianna:__init()
 	BM.KS:Boolean("R", "Use R", false)
 	
 	BM:Menu("p", "Prediction")
-	BM.p:Slider("hQ", "HitChance Q", 40, 0, 100, 1)
 	
 	BM:Menu("Dr", "Drawings")
 	BM.Dr:Boolean("UD", "Use Drawings", false)
@@ -3133,6 +3131,9 @@ function Orianna:__init()
 	Callback.Add("Tick", function() self:T() end)
 	Callback.Add("UpdateBuff", function(unit,buffProc) self:UB(unit,buffProc) end)
 	
+	for i = 0,0 do
+		PredMenu(BM.p, i)	
+	end
 end
 
 function Orianna:CO(obj)
@@ -3207,10 +3208,7 @@ end
 
 function Orianna:Combo(target)
 	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() then
-		local Pred = GetPrediction(target, self.Spell[0])
-		if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,myHero.pos) < self.Spell[0].range then
-			CastSkillShot(0,Pred.castPos)
-		end
+		CastGenericSkillShot(myHero,unit,self.Spell[0],0,BM.p)
 	end
 	if SReady[1] and BM.C.W:Value() and EnemiesAround(self.Ball.pos, self.Spell[1].radius) >= BM.C.Wm:Value() then
 		CastSpell(1)
@@ -3228,10 +3226,7 @@ end
 
 function Orianna:Harass(target)
 	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.H.Q:Value() then
-		local Pred = GetPrediction(target, self.Spell[0])
-		if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,myHero.pos) < self.Spell[0].range then
-			CastSkillShot(0,Pred.castPos)
-		end
+		CastGenericSkillShot(myHero,unit,self.Spell[0],0,BM.p)
 	end
 	if SReady[1] and BM.H.W:Value() and EnemiesAround(self.Ball.pos, self.Spell[1].radius) >= BM.H.Wm:Value() then
 		CastSpell(1)
@@ -3242,10 +3237,7 @@ function Orianna:LaneClear()
 	for _,minion in pairs(minionManager.objects) do
 		if minion.team == MINION_ENEMY then
 			if SReady[0] and ValidTarget(minion, self.Spell[0].range) and BM.LC.Q:Value() then
-				local Pred = GetPrediction(minion, self.Spell[0])
-				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,myHero.pos) < self.Spell[0].range then
-					CastSkillShot(0,Pred.castPos)
-				end
+				CastGenericSkillShot(myHero,unit,self.Spell[0],0,BM.p)
 			end
 			if SReady[1] and BM.LC.W:Value() and EnemyMinionsAround(self.Ball.pos, self.Spell[1].radius) >= BM.LC.Wm:Value() then
 				CastSpell(1)
@@ -3258,10 +3250,7 @@ function Orianna:JungleClear()
 	for _,minion in pairs(minionManager.objects) do
 		if minion.team == MINION_JUNGLE then
 			if SReady[0] and ValidTarget(minion, self.Spell[0].range) and BM.JC.Q:Value() then
-				local Pred = GetPrediction(minion, self.Spell[0])
-				if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,myHero.pos) < self.Spell[0].range then
-					CastSkillShot(0,Pred.castPos)
-				end
+				CastGenericSkillShot(myHero,unit,self.Spell[0],0,BM.p)
 			end
 			if SReady[1] and BM.JC.W:Value() and JungleMinionsAround(self.Ball.pos, self.Spell[1].radius) >= BM.JC.Wm:Value() then
 				CastSpell(1)
@@ -3279,10 +3268,7 @@ end
 function Orianna:KS()
 	for _,target in pairs(GetEnemyHeroes()) do
 		if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() and GetAPHP(target) < Dmg[0](target) then
-			local Pred = GetPrediction(target, self.Spell[0])
-			if Pred.hitChance >= BM.p.hQ:Value()/100 and GetDistance(Pred.castPos,myHero.pos) < self.Spell[0].range then
-				CastSkillShot(0,Pred.castPos)
-			end
+			CastGenericSkillShot(myHero,unit,self.Spell[0],0,BM.p)
 		end
 		if SReady[1] and BM.C.W:Value() and EnemiesAround(self.Ball.pos, self.Spell[1].radius) >= BM.C.Wm:Value() and GetAPHP(target) < Dmg[1](target) then
 			CastSpell(1)
@@ -3345,7 +3331,7 @@ function Veigar:__init()
 
 	BM:SubMenu("p", "Prediction")
 	BM.p:Slider("hQ", "HitChance Q", 20, 0, 100, 1)
-	BM.p:Slider("hW", "HitChance W", 20, 0, 100, 1)
+	BM.p:Slider("hW", "Hitchance W", 20, 0, 100, 1)
 	BM.p:Slider("hE", "HitChance E", 20, 0, 100, 1)
 
 	BM:SubMenu("KS", "Killsteal")
@@ -3363,7 +3349,7 @@ function Veigar:__init()
 	Callback.Add("RemoveBuff", function(u,b) self:RemoveBuff(u,b) end)
 	
 	self.CC = false
-
+	
 end
 
 function Veigar:UpdateBuff(u,b)
@@ -3539,8 +3525,8 @@ function Ahri:__init()
 	}
 
 	Ahri.Spell = {
-	[0] = { delay = 0.25, speed = 1700, width = 100, range = 1000},
-	[2] = { delay = 0.25, speed = 1600, width = 60 , range = 1000},
+	[0] = { delay = 0.25, speed = 1700, width = 100, range = 1000,type = "line",col=false},
+	[2] = { delay = 0.25, speed = 1600, width = 60 , range = 1000,type = "line",col=true},
 	[3] = { range = 450},
 	}
 
@@ -3579,8 +3565,6 @@ function Ahri:__init()
 	BM.JC:Boolean("E", "Use E", true)	
 
 	BM:SubMenu("p", "Prediction")
-	BM.p:Slider("hQ", "HitChance Q", 20, 0, 100, 1)
-	BM.p:Slider("hE", "HitChance E", 20, 0, 100, 1)
 
 	BM:SubMenu("KS", "Killsteal")
 	BM.KS:Boolean("Q", "Use Q", true)
@@ -3616,6 +3600,10 @@ function Ahri:__init()
 	["AhriOrbMissile"]={type="Line"},
 	["AhriOrbReturn"]={type="return"},	
 	}
+	
+	for i = 0,2,2 do
+		PredMenu(BM.p,i)
+	end
 end
 
 function Ahri:CreateObj(o)
@@ -3714,19 +3702,13 @@ end
 function Ahri:Combo(u)	
 	if u then
 		if BM.C.Q:Value() and SReady[0] and ValidTarget(u, self.Spell[0].range) then
-			local QPred = GetPrediction(u,self.Spell[0])
-			if QPred.hitChance >= (BM.p.hQ:Value()/100) then				
-				CastSkillShot(0,QPred.castPos)
-			end
+			CastGenericSkillShot(myHero,u,self.Spell[0],0,BM.p)
 		end		
 		if BM.C.W:Value() and SReady[1] and ValidTarget(u, myHero.range+myHero.boundingRadius) then
 			CastSpell(1)
 		end	
 		if BM.C.E:Value() and SReady[2] and ValidTarget(u, self.Spell[2].range) then
-			local EPred = GetPrediction(u, self.Spell[2])
-			if EPred.hitChance >= (BM.p.hE:Value()/100) and not EPred:mCollision(1) then				
-				CastSkillShot(2,EPred.castPos)
-			end
+			CastGenericSkillShot(myHero,u,self.Spell[2],2,BM.p)
 		end	
 		if BM.C.R.E:Value() and SReady[3] and ValidTarget(u, 1000) and GetPercentHP(myHero) <= BM.C.R.MHP:Value() and GetPercentHP(u) <= BM.C.R.EHP:Value() and EnemyHeroesAround(myHero.pos,1000) >= BM.C.R.EAR:Value() and AllyHeroesAround(myHero.pos,1000) >= BM.C.R.AAR:Value() then
 			if BM.C.R.RM:Value() == 1 then
@@ -3742,19 +3724,13 @@ end
 function Ahri:Harass(u)	
 	if u then
 		if BM.C.Q:Value() and SReady[0] and ValidTarget(u, self.Spell[0].range) then
-			local QPred = GetPrediction(u,self.Spell[0])
-			if QPred.hitChance >= (BM.p.hQ:Value()/100) then				
-				CastSkillShot(0,QPred.castPos)
-			end
+			CastGenericSkillShot(myHero,u,self.Spell[0],0,BM.p)
 		end		
 		if BM.C.W:Value() and SReady[1] and ValidTarget(u, myHero.range+myHero.boundingRadius) then
 			CastSpell(1)
 		end	
 		if BM.C.E:Value() and SReady[2] and ValidTarget(u, self.Spell[2].range) then
-			local EPred = GetPrediction(u, self.Spell[2])
-			if EPred.hitChance >= (BM.p.hE:Value()/100) and not EPred:mCollision(1) then				
-				CastSkillShot(2,EPred.castPos)
-			end
+			CastGenericSkillShot(myHero,u,self.Spell[2],2,BM.p)
 		end	
 	end
 end
@@ -3763,19 +3739,13 @@ function Ahri:LaneClear()
 	for _,i in pairs(minionManager.objects) do
 		if i.team == MINION_ENEMY then
 			if BM.JC.Q:Value() and SReady[0] and ValidTarget(i, self.Spell[0].range) then
-				local QPred = GetPrediction(i,self.Spell[0])
-				if QPred.hitChance >= (BM.p.hQ:Value()/100) then				
-					CastSkillShot(0,QPred.castPos)
-				end
+				CastGenericSkillShot(myHero,i,self.Spell[0],0,BM.p)
 			end		
 			if BM.JC.W:Value() and SReady[1] and ValidTarget(i, myHero.range+myHero.boundingRadius) then
 				CastSpell(1)
 			end	
 			if BM.JC.E:Value() and SReady[2] and ValidTarget(i, self.Spell[2].range) then
-				local EPred = GetPrediction(i, self.Spell[2])
-				if EPred.hitChance >= (BM.p.hE:Value()/100) then				
-					CastSkillShot(2,EPred.castPos)
-				end
+				CastGenericSkillShot(myHero,i,self.Spell[2],2,BM.p)
 			end	
 		end
 	end
@@ -3785,19 +3755,13 @@ function Ahri:JungleClear()
 	for _,i in pairs(minionManager.objects) do
 		if i.team == MINION_JUNGLE then
 			if BM.JC.Q:Value() and SReady[0] and ValidTarget(i, self.Spell[0].range) then
-				local QPred = GetPrediction(i,self.Spell[0])
-				if QPred.hitChance >= (BM.p.hQ:Value()/100) then				
-					CastSkillShot(0,QPred.castPos)
-				end
+				CastGenericSkillShot(myHero,i,self.Spell[0],0,BM.p)
 			end		
 			if BM.JC.W:Value() and SReady[1] and ValidTarget(i, myHero.range+myHero.boundingRadius) then			
 				CastSpell(1)
 			end	
 			if BM.JC.E:Value() and SReady[2] and ValidTarget(i, self.Spell[2].range) then
-				local EPred = GetPrediction(i, self.Spell[2])
-				if EPred.hitChance >= (BM.p.hE:Value()/100) then				
-					CastSkillShot(2,EPred.castPos)
-				end
+				CastGenericSkillShot(myHero,i,self.Spell[2],2,BM.p)
 			end	
 		end
 	end
@@ -3806,19 +3770,13 @@ end
 function Ahri:KS()
 	for _,i in pairs(GetEnemyHeroes()) do
 		if BM.KS.Q:Value() and SReady[0] and ValidTarget(i, self.Spell[0].range) and GetAPHP(i) < Dmg[0](i) then
-			local QPred = GetPrediction(i,self.Spell[0])
-			if QPred.hitChance >= (BM.p.hQ:Value()/100) then				
-				CastSkillShot(0,QPred.castPos)
-			end
+			CastGenericSkillShot(myHero,i,self.Spell[0],0,BM.p)
 		end
 		if BM.KS.W:Value() and SReady[1] and ValidTarget(i, myHero.range+myHero.boundingRadius) and GetAPHP(i) < Dmg[1](i) then
 			CastSpell(1)
 		end	
 		if BM.KS.E:Value() and SReady[2] and ValidTarget(i, self.Spell[2].range) and GetAPHP(i) < Dmg[2](i) then
-			local EPred = GetPrediction(i, self.Spell[2])
-			if EPred.hitChance >= (BM.p.hE:Value()/100) and not EPred:mCollision(1) then				
-				CastSkillShot(2,EPred.castPos)
-			end
+			CastGenericSkillShot(myHero,i,self.Spell[2],2,BM.p)
 		end	
 		if BM.KS.R.E:Value() and SReady[3] and ValidTarget(i, 1000) and GetAPHP(i) < Dmg[3](i) then
 			if BM.KS.R.RM:Value() == 1 then
@@ -3834,10 +3792,7 @@ end
 function Ahri:AutoQ()
 	for _,i in pairs(GetEnemyHeroes()) do
 		if i and BM.AQ:Value() and SReady[0] and ValidTarget(i,self.Spell[0].range) and self.CC then
-		local QPred = GetPrediction(i, self.Spell[0])
-			if QPred.hitChance >= (BM.p.hQ:Value()/100) then			
-				CastSkillShot(0,QPred.castPos)
-			end
+			CastGenericSkillShot(myHero,i,self.Spell[0],0,BM.p)
 		end
 	end
 end
