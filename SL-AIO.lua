@@ -112,17 +112,17 @@ local function CastGenericSkillShot(s,u,t,sp,m)--source,unit,table,spell,menu
 		else
 			if t.type:lower():find("lin") then
 				local Pred = GetPrediction(u, t)
-				if Pred.hitChance >= GetValue(m,sp) and not Pred:mCollision(t.count) and GetDistance(s,Pred.castPos) < t.range then
+				if Pred.hitChance >= GetValue(m,sp) and GetDistance(s,Pred.castPos) < t.range then
 					CastSkillShot(sp,Pred.castPos)
 				end
 			elseif t.type:lower():find("cir") then
 				local Pred = GetCircularAOEPrediction(u, t)
-				if Pred.hitChance >= GetValue(m,sp) and not Pred:mCollision(t.count) and GetDistance(s,Pred.castPos) < t.range then
+				if Pred.hitChance >= GetValue(m,sp) and GetDistance(s,Pred.castPos) < t.range then
 					CastSkillShot(sp,Pred.castPos)
 				end
 			elseif t.type:lower():find("con") then
 				local Pred = GetConicAOEPrediction(u, t)
-				if Pred.hitChance >= GetValue(m,sp) and not Pred:mCollision(t.count) and GetDistance(s,Pred.castPos) < t.range then
+				if Pred.hitChance >= GetValue(m,sp) and GetDistance(s,Pred.castPos) < t.range then
 					CastSkillShot(sp,Pred.castPos)
 				end
 			end
