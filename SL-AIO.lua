@@ -253,6 +253,31 @@ local function AllyMinionsAround(pos, range)
 	return c
 end
 
+local function GetLowestUnit(range)
+	if not range then return myHero.range+myHero.boundingRadius*2 end
+	local t, p = nil, math.huge
+	for _,i in pairs(minionManager.objects) do
+		if i.alive and i and i.team ~= myHero.team then
+			if ValidTarget(i, range) and i.health < p then
+				t = i
+				p = i.health
+			end
+		end
+	end
+	return t
+end
+
+local function GetHighestUnit(i,range)
+	if not range then return myHero.range+myHero.boundingRadius*2 end
+	local t = nil
+		if i and i.alive and i.team ~= myHero.team then
+			if ValidTarget(i, range) and not t or GetMaxHP(i) > GetMaxHP(t) then
+				t = i
+			end
+		end
+  return t
+end
+
 local function EnemyMinionsAround(pos, range)
 	local c = 0
 	if pos == nil then return 0 end
@@ -5419,27 +5444,6 @@ if not SLW then return end
 	end
 end
 
-function SLWalker:GetLowestUnit(i)
-  local t, p = nil, math.huge
-	if i and i.team ~= myHero.team then
-		if ValidTarget(i, self.aarange) and i.health < p then
-			t = i
-			p = i.health
-		end
-	end
-  return t
-end
-
-function SLWalker:GetHighestUnit(i)
-  local t = nil
-	if i and i.team ~= myHero.team then
-		if ValidTarget(i, self.aarange) and not t or GetMaxHP(i) > GetMaxHP(t) then
-			t = i
-		end
-	end
-  return t
-end
-
 function SLWalker:PrAtt(unit, spellProc)
 if not SLW then return end
 	if unit.isMe and spellProc then
@@ -5535,7 +5539,7 @@ function SLWalker:JungleClear()
 			if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
 				return nil
 			else
-				return self:GetHighestUnit(o)
+				return GetHighestUnit(o,self.aarange)
 			end
 		end
 	end
@@ -5550,7 +5554,7 @@ function SLWalker:LaneClear()
 						if self:PredictHP(o,(2000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)*GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
 							return nil
 						else
-							return self:GetLowestUnit(o)
+							return GetLowestUnit(self.aarange)
 						end
 					end
 				else
@@ -5561,7 +5565,7 @@ function SLWalker:LaneClear()
 					if self:PredictHP(o,(2000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)*GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
 						return nil
 					else
-						return self:GetLowestUnit(o)
+						return GetLowestUnit(self.aarange)
 					end
 				end
 			end
@@ -5573,7 +5577,7 @@ function SLWalker:LastHit()
 	for _,o in pairs(minionManager.objects) do
 		if o.team ~= MINION_ALLY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
 			if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
-				 return self:GetLowestUnit(o)
+				 return GetLowestUnit(self.aarange)
 			end
 		end
 	end
@@ -5605,7 +5609,7 @@ function SLWalker:Harass()
 		if o and o.team == MINION_ENEMY then
 			if self:CanOrb(o) and ValidTarget(o,self.aarange)then
 				if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
-					return self:GetLowestUnit(o)
+					return GetLowestUnit(self.aarange)
 				end
 			end
 		end
