@@ -608,7 +608,7 @@ function SLOrb:__init()
 		["LastHit"] = "LastHit",
 		["LaneClear"] = "LaneClear",
 		}    
-		elseif _G.GoSWalkLoaded then
+	elseif _G.GoSWalkLoaded then
 		ModeTable = {
 		[0] = "Combo",
 		[1] = "Harass",
@@ -625,7 +625,7 @@ function SLOrb:__init()
 	elseif _G.DAC_Loaded then
 		OrbMode = function() return DAC:Mode() end
 	elseif _G.GoSWalkLoaded then
-		OrbMode = function() return _G.GoSWalk:GetCurrentMode() end
+		OrbMode = function() return _G.GoSWalk.CurrentMode end
 	elseif _G.AutoCarry_Loaded  then
 		OrbMode = function() return DACR:Mode() end
 	elseif _G.SLW then
