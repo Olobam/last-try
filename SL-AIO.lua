@@ -495,6 +495,9 @@ Callback.Add("Load", function()
 		if SLU.Load.LH:Value() then
 			Humanizer()
 		end
+		if SLU.Load.LAW:Value() then 
+			Awareness()
+		end
 		if SLU.Load.LRLI:Value() then 
 			Reallifeinfo()
 		end
@@ -559,6 +562,8 @@ function Init:__init()
 		SLU.Load:Boolean("LAL", "Load AutoLevel", true)
 		SLU.Load:Info("0.4", "")
 		SLU.Load:Boolean("LH", "Load Humanizer", true)
+		SLU.Load:Info("0.5.", "")
+		SLU.Load:Boolean("LAW", "Load Awareness", true)
 		SLU.Load:Info("0.6.", "")
 		SLU.Load:Boolean("LRLI", "Load Real life info", true)
 		SLU.Load:Info("0.6yc", "")
@@ -4519,6 +4524,145 @@ function Humanizer:Draw()
 	end
 end
 
+
+class 'Awareness'
+
+function Awareness:__init()
+
+	self.Wards = {}
+	self.Wards2 = {}
+	self.t = 0
+	
+	SLU:Menu("A", "|SL| Awareness")
+	SLU.A:Menu("WT", "Ward Tracker")
+	SLU.A.WT:Boolean("E", "Enabled",true)
+	SLU.A.WT:Boolean("DS", "Draw on Screen", true)
+	SLU.A.WT:Boolean("DM", "Draw Minimap", true)
+	SLU.A.WT:Boolean("TEW", "Track Enemy Wards", true)
+	SLU.A.WT:Boolean("TAW", "Track Ally Wards", false)
+	SLU.A.WT:DropDown("Cq", "Circle Quality", 3, {"High", "Medium", "Low"})
+	SLU.A.WT:Slider("Cw", "Circle Width", 1.5,0,3,0.5)
+	SLU.A:Info("MSTM", "More Soon TM")
+	
+	Callback.Add("Tick", function() self:Tk() end)
+	Callback.Add("CreateObj", function(o) self:CreO(o) end)
+	Callback.Add("DeleteObj", function(o) self:DelO(o) end)
+	Callback.Add("Draw", function() self:DrawScreen() end)
+	Callback.Add("DrawMinimap", function() self:draMin() end)
+	Callback.Add("UpdateBuff", function(u,b) self:UpdBuff(u,b) end)
+	Callback.Add("RemoveBuff", function(u,b) self:RemBuff(u,b) end)
+end
+
+function Awareness:UpdBuff(u,b)
+	if u and b then
+		if b.Name == "sightwardstealth" then
+			self.t = math.ceil((b.ExpireTime-b.StartTime)/10)
+		end
+	end
+end
+
+function Awareness:RemBuff(u,b)
+	if u and b then
+		if b.Name == "sightwardstealth" then
+			self.t = 0
+		end
+	end
+end
+
+function Awareness:GetDuration(i)
+	return math.ceil(self.t-(GetTickCount()-i.s)*.001)
+end
+
+function Awareness:CreO(o)
+	if o and o.networkID then
+		if o.name:lower():find("visionward") then
+			if  ((o.team == myHero.team and SLU.A.WT.TAW:Value()) or (o.team ~= myHero.team and SLU.A.WT.TEW:Value()))  then
+				if not self.Wards[o.networkID] then self.Wards[o.networkID] = {} end
+				self.Wards[o.networkID].o = o
+			end
+		end
+		if o.name:lower():find("sightward") then
+			if  ((o.team == myHero.team and SLU.A.WT.TAW:Value()) or (o.team ~= myHero.team and SLU.A.WT.TEW:Value()))  then
+				if not self.Wards2[o.networkID] then self.Wards2[o.networkID] = {} end
+				self.Wards2[o.networkID].o = o
+				self.Wards2[o.networkID].s = GetTickCount()
+			end
+		end
+	end
+end
+
+function Awareness:DelO(o)
+	if o and o.networkID then
+		if o.name:lower():find("visionward") then
+			if  ((o.team == myHero.team and SLU.A.WT.TAW:Value()) or (o.team ~= myHero.team and SLU.A.WT.TEW:Value()))  then
+				self.Wards[o.networkID] = nil
+			end
+		end
+		if o.name:lower():find("sightward") then
+			if  ((o.team == myHero.team and SLU.A.WT.TAW:Value()) or (o.team ~= myHero.team and SLU.A.WT.TEW:Value()))  then
+				self.Wards2[o.networkID] = nil
+			end
+		end
+	end
+end
+
+function Awareness:DrawScreen()
+	if not SLU.A.WT.E:Value() or not SLU.A.WT.DS:Value() then return end
+	for _,i in pairs(self.Wards) do
+		if i.o and i.o.valid then
+			if i.o.team ~= myHero.team then
+				DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,255,0))
+			else
+				DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,0,255))
+			end
+		end
+	end
+	for _,i in pairs(self.Wards2) do
+		if i.o and i.o.valid then
+			if i.o.team ~= myHero.team then
+				DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,242,2,222))
+			else
+				DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,255,0))
+			end
+			DrawTextSmall(self:GetDuration(i), WorldToScreen(0,i.o.pos).x, WorldToScreen(0,i.o.pos).y, GoS.White)
+		end
+	end
+end
+
+function Awareness:draMin()
+	if not SLU.A.WT.E:Value() or not SLU.A.WT.DM:Value() then return end
+	for _,i in pairs(self.Wards) do
+		if i.o and i.o.valid then
+			if i.o.team ~= myHero.team then
+				DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,255,0))
+			else
+				DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,0,255))
+			end
+		end
+	end
+	for _,i in pairs(self.Wards2) do
+		if i.o and i.o.valid then
+			if i.o.team ~= myHero.team then
+				DrawCircleMinimap(i.o.pos,350,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,242,2,222))
+			else
+				DrawCircleMinimap(i.o.pos,350,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,255,0))
+			end
+		end
+	end
+end
+
+function Awareness:Tk()
+	for _,i in pairs(self.Wards) do
+		if i.o and not i.o.valid then
+			self.Wards[_] = nil 
+		end
+	end
+	for _,i in pairs(self.Wards2) do
+		if i.o and not i.o.valid then
+			self.Wards2[_] = nil 
+		end
+	end
+end
 
 class 'Reallifeinfo'
 
