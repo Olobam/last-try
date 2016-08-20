@@ -10,13 +10,13 @@ end
 local AutoUpdater = true
 
 require 'DamageLib'
+require 'IPrediction'
 
 local function PredMenu(m,sp)
 	if not m["CP"] then m:DropDown("CP", "Choose Prediction", 1 ,{"OPred", "GPred", "IPred", "GoSPred"}) end
 	m:DropDown("h"..str3[sp], "Hitchance"..str3[sp], 2, {"Low", "Medium", "High"})
 	if m.CP:Value() == 4 then
 	elseif m.CP:Value() == 3 then
-		require 'IPrediction'
 	elseif m.CP:Value() == 2 then
 		require 'GPrediction'
 	elseif m.CP:Value() == 1 then
@@ -78,6 +78,19 @@ local function GetCollision(m,sp,t)
 	end
 end
 
+local function GetType(m,sp,t)
+	if not m["CP"] or not m["h"..str3[sp]] then return end
+	if m.CP:Value() == 3 then
+		if t.type == "line" then
+			return "linear"
+		else
+			return "circular"
+		end
+	else
+		return t.type or "circular"
+	end
+end
+
 local function CastGenericSkillShot(s,u,t,sp,m)--source,unit,table,spell,menu	
 	if not m["CP"] or not m["h"..str3[sp]] then return end
 	t.width = t.width or t.radius
@@ -89,7 +102,7 @@ local function CastGenericSkillShot(s,u,t,sp,m)--source,unit,table,spell,menu
 	t.delay = t.delay or 0.250
 	t.speed = t.speed or math.huge
 	t.range = t.range or 1000
-	t.type = t.type or "circular"
+	t.type = GetType(m,sp,t)
 	t.aoe = t.aoe or false
 	if m.CP:Value() == 1 then	
 		if t.col then
@@ -133,11 +146,11 @@ local function CastGenericSkillShot(s,u,t,sp,m)--source,unit,table,spell,menu
 			CastSkillShot(sp,Pred.CastPosition)
 		end
 	elseif m.CP:Value() == 3 then
-		local Pred = (IPrediction.Prediction({name = t.name or "", speed = t.speed, delay = t.delay, range = t.range, width = t.width, collision = t.col, aoe = t.aoe, type = t.type:lower()}))
-		local hit, pos = Pred:Predict(u,s)
-		if hit >= GetValue(m,sp) and GetDistance(s,pos) < t.range then
-			CastSkillShot(sp,pos)
-		end
+		local Predicted = IPrediction.Prediction({name=t.name, range=t.range, speed=t.speed, delay=t.delay, width=t.width, type=t.type, collision=t.col, collisionM=t.col, collisionH=t.col})
+		local hit, pos = Predicted:Predict(u,s)
+			if hit >= GetValue(m,sp) then
+				CastSkillShot(sp, pos)
+          end
 	elseif m.CP:Value() == 4 then
 		local Pred = GetPredictionForPlayer(s.pos,u,u.ms, t.speed, t.delay*1000, t.range, t.width, t.col, true)
 		if Pred.HitChance == GetValue(m,sp) and GetDistance(s,Pred.PredPos) < t.range then
