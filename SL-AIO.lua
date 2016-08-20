@@ -4531,18 +4531,38 @@ function Awareness:__init()
 
 	self.Wards = {}
 	self.Wards2 = {}
+	self.R = {}
 	self.t = 0
-	
+	self.E = {}
+	self.offy = 60
 	SLU:Menu("A", "|SL| Awareness")
 	SLU.A:Menu("WT", "Ward Tracker")
 	SLU.A.WT:Boolean("E", "Enabled",true)
 	SLU.A.WT:Boolean("DS", "Draw on Screen", true)
-	SLU.A.WT:Boolean("DM", "Draw Minimap", true)
+	SLU.A.WT:Boolean("DM", "Draw on Minimap", true)
 	SLU.A.WT:Boolean("TEW", "Track Enemy Wards", true)
 	SLU.A.WT:Boolean("TAW", "Track Ally Wards", false)
 	SLU.A.WT:DropDown("Cq", "Circle Quality", 3, {"High", "Medium", "Low"})
 	SLU.A.WT:Slider("Cw", "Circle Width", 1.5,0,3,0.5)
+	SLU.A:Menu("ME", "Missing Enemies")
+	SLU.A.ME:Boolean("E", "Enabled", true)
+	SLU.A.ME:Boolean("DT", "Draw Timer", true)
+	SLU.A.ME:Boolean("DC", "Draw Circle", true)
+	SLU.A.ME:Info("as", "")
+	DelayAction(function() 
+		for _, i in pairs(GetEnemyHeroes()) do
+			SLU.A.ME:Boolean("D"..i.charName, "Draw "..i.charName, true)
+		end
+	end)
+	SLU.A:Menu("RT", "Recall Tracker")
+	SLU.A.RT:Boolean("E", "Enabled", true)
+	SLU.A.RT:Boolean("DT", "Draw Timer", true)
+	SLU.A.RT:Boolean("DU", "Draw Unit pos", true)
 	SLU.A:Info("MSTM", "More Soon TM")
+	
+	for _,i in pairs(GetEnemyHeroes()) do 
+		self.E[_] = {u = i, l = 0, p = nil, p2 = nil, ms = 0} 
+	end
 	
 	Callback.Add("Tick", function() self:Tk() end)
 	Callback.Add("CreateObj", function(o) self:CreO(o) end)
@@ -4551,6 +4571,16 @@ function Awareness:__init()
 	Callback.Add("DrawMinimap", function() self:draMin() end)
 	Callback.Add("UpdateBuff", function(u,b) self:UpdBuff(u,b) end)
 	Callback.Add("RemoveBuff", function(u,b) self:RemBuff(u,b) end)
+	Callback.Add("ProcessRecall", function(u,r) self:PrRe(u,r) end)
+end
+
+function Awareness:PrRe(u,r)
+	if u.team ~= myHero.team and r.isStart then
+		table.insert(self.R, {u = u, s = GetGameTimer(), d = (r.totalTime/1000)})
+		self.offy = self.offy + 30
+	else
+		table.remove(self.R, 1)
+	end
 end
 
 function Awareness:UpdBuff(u,b)
@@ -4607,48 +4637,80 @@ function Awareness:DelO(o)
 end
 
 function Awareness:DrawScreen()
-	if not SLU.A.WT.E:Value() or not SLU.A.WT.DS:Value() then return end
-	for _,i in pairs(self.Wards) do
-		if i.o and i.o.valid then
-			if i.o.team ~= myHero.team then
-				DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,255,0))
-			else
-				DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,0,255))
+	if SLU.A.WT.E:Value() and SLU.A.WT.DS:Value() then
+		for _,i in pairs(self.Wards) do
+			if i.o and i.o.valid then
+				if i.o.team ~= myHero.team then
+					DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,255,0))
+				else
+					DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,0,255))
+				end
+			end
+		end
+		for _,i in pairs(self.Wards2) do
+			if i.o and i.o.valid then
+				if i.o.team ~= myHero.team then
+					DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,242,2,222))
+				else
+					DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,255,0))
+				end
+				DrawTextSmall(self:GetDuration(i), WorldToScreen(0,i.o.pos).x, WorldToScreen(0,i.o.pos).y, GoS.White)
 			end
 		end
 	end
-	for _,i in pairs(self.Wards2) do
-		if i.o and i.o.valid then
-			if i.o.team ~= myHero.team then
-				DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,242,2,222))
-			else
-				DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,255,0))
+	for _,i in pairs(self.R) do
+		if SLU.A.RT.E:Value() then
+			if i.s and i.u and i.d then
+				if SLU.A.RT.DT:Value() then
+					DrawText(i.u.charName.." - Recalled in : "..math.ceil(i.d - (GetGameTimer() - i.s)), 30,WorldToScreen(0,i.u.pos).x,WorldToScreen(0,i.u.pos).y,GoS.Yellow)
+					DrawText(i.u.charName.." - Recalled in : "..math.ceil(i.d - (GetGameTimer() - i.s)),20,20,self.offy-30,GoS.Yellow)
+				end
+				if SLU.A.RT.DU:Value() then
+					DrawCircle(i.u.pos, i.u.boundingRadius*1.5,1,20,GoS.Yellow)
+				end
 			end
-			DrawTextSmall(self:GetDuration(i), WorldToScreen(0,i.o.pos).x, WorldToScreen(0,i.o.pos).y, GoS.White)
 		end
 	end
 end
 
 function Awareness:draMin()
-	if not SLU.A.WT.E:Value() or not SLU.A.WT.DM:Value() then return end
-	for _,i in pairs(self.Wards) do
-		if i.o and i.o.valid then
-			if i.o.team ~= myHero.team then
-				DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,255,0))
-			else
-				DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,0,255))
+	if SLU.A.WT.E:Value() and SLU.A.WT.DM:Value() then 
+		for _,i in pairs(self.Wards) do
+			if i.o and i.o.valid then
+				if i.o.team ~= myHero.team then
+					DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,255,0))
+				else
+					DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,0,255))
+				end
+			end
+		end
+		for _,i in pairs(self.Wards2) do
+			if i.o and i.o.valid then
+				if i.o.team ~= myHero.team then
+					DrawCircleMinimap(i.o.pos,350,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,242,2,222))
+				else
+					DrawCircleMinimap(i.o.pos,350,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,255,0))
+				end
 			end
 		end
 	end
-	for _,i in pairs(self.Wards2) do
-		if i.o and i.o.valid then
-			if i.o.team ~= myHero.team then
-				DrawCircleMinimap(i.o.pos,350,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,242,2,222))
-			else
-				DrawCircleMinimap(i.o.pos,350,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,255,0))
+    for _,i in pairs(self.E) do
+		if SLU.A.ME.E:Value() and i.u and SLU.A.ME["D"..i.u.charName]:Value() then
+			if i.u.visible and i.u.alive then
+				i.p = WorldToMinimap(i.u.pos)
+				i.p2 = i.u.pos
+				i.ms = i.u.ms
+				i.l = GetGameTimer()
+			elseif i.u.alive and i.l and i.ms and i.p2 and i.p and i.l and i.p2.x and i.p2.y and GetGameTimer()-i.l < 20 and (GetGameTimer()-i.l)*i.ms < 4000 then
+				if SLU.A.ME.DC:Value()  then
+					DrawCircleMinimap(i.p2, (GetGameTimer()-i.l)*i.ms, 0, 0, ARGB(1.25*(20-GetGameTimer()-i.l),255,255,255))
+				end
+				if SLU.A.ME.DT:Value() then
+					DrawText(math.floor(GetGameTimer()-i.l),12,i.p.x,i.p.y, ARGB(255,255,255,255))
+				end
 			end
 		end
-	end
+    end
 end
 
 function Awareness:Tk()
