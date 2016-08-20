@@ -15,9 +15,7 @@ require 'IPrediction'
 local function PredMenu(m,sp)
 	if not m["CP"] then m:DropDown("CP", "Choose Prediction", 1 ,{"OPred", "GPred", "IPred", "GoSPred"}) end
 	m:DropDown("h"..str3[sp], "Hitchance"..str3[sp], 2, {"Low", "Medium", "High"})
-	if m.CP:Value() == 4 then
-	elseif m.CP:Value() == 3 then
-	elseif m.CP:Value() == 2 then
+	if m.CP:Value() == 2 then
 		require 'GPrediction'
 	elseif m.CP:Value() == 1 then
 		require 'OpenPredict'
