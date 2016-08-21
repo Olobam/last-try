@@ -4533,6 +4533,9 @@ function Awareness:__init()
 	self.Wards2 = {}
 	self.R = {}
 	self.t = 0
+	self.monsters = {}
+	self.mobs = {["SRU_Baron"]={s=1200,d=420}, ["SRU_Dragon"]={s=150,d=360}, ["SRU_Red"]={s=105,d=300}, ["SRU_Blue"]={s=105,d=300}, ["SRU_Krug"]={s=50,d=100}, ["SRU_Murkwolf"]={s=105,d=103}, ["SRU_Razorbeak"]={s=105,d=90}, ["SRU_Gromp"]={s=105,d=145}, ["Sru_Crab"]={s=150,d=120}}
+	self.j = nil
 	self.E = {}
 	self.offy = 60
 	SLU:Menu("A", "|SL| Awareness")
@@ -4548,16 +4551,25 @@ function Awareness:__init()
 	SLU.A.ME:Boolean("E", "Enabled", true)
 	SLU.A.ME:Boolean("DT", "Draw Timer", true)
 	SLU.A.ME:Boolean("DC", "Draw Circle", true)
-	SLU.A.ME:Info("as", "")
+	SLU.A.ME:Menu("DE", "Enable Draw for :")
 	DelayAction(function() 
 		for _, i in pairs(GetEnemyHeroes()) do
-			SLU.A.ME:Boolean("D"..i.charName, "Draw "..i.charName, true)
+			SLU.A.ME.DE:Boolean("D"..i.charName, "Draw "..i.charName, true)
 		end
-	end)
+	end,.001)
 	SLU.A:Menu("RT", "Recall Tracker")
 	SLU.A.RT:Boolean("E", "Enabled", true)
 	SLU.A.RT:Boolean("DT", "Draw Timer", true)
 	SLU.A.RT:Boolean("DU", "Draw Unit pos", true)
+	SLU.A:Menu("JT", "Jungle Tracker")
+	SLU.A.JT:Boolean("E", "Enabled", true)
+	SLU.A.JT:Boolean("TJ", "Track Enemy Jungler", true)
+	SLU.A.JT:Menu("ET", "Enable Timer for : ")
+	DelayAction(function()
+		for m,p in pairs(self.mobs) do
+			SLU.A.JT.ET:Boolean(m, m, true)
+		end
+	end,.001)
 	SLU.A:Info("MSTM", "More Soon TM")
 	
 	for _,i in pairs(GetEnemyHeroes()) do 
@@ -4599,8 +4611,8 @@ function Awareness:RemBuff(u,b)
 	end
 end
 
-function Awareness:GetDuration(i)
-	return math.ceil(self.t-(GetTickCount()-i.s)*.001)
+function Awareness:GetDuration(t,i)
+	return math.ceil(t-(GetTickCount()-i.s)*.001)
 end
 
 function Awareness:CreO(o)
@@ -4654,7 +4666,7 @@ function Awareness:DrawScreen()
 				else
 					DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,255,0))
 				end
-				DrawTextSmall(self:GetDuration(i), WorldToScreen(0,i.o.pos).x, WorldToScreen(0,i.o.pos).y, GoS.White)
+				DrawTextSmall(self:GetDuration(self.t,i), WorldToScreen(0,i.o.pos).x, WorldToScreen(0,i.o.pos).y, GoS.White)
 			end
 		end
 	end
@@ -4669,6 +4681,13 @@ function Awareness:DrawScreen()
 					DrawCircle(i.u.pos, i.u.boundingRadius*1.5,1,20,GoS.Yellow)
 				end
 			end
+		end
+	end
+	if self.j and self.j.visible and self.j.alive then
+		if self.j.distance < 4000 and self.j.distance > 2000 then
+			DrawLine3D(myHero.pos.x, myHero.pos.y,myHero.pos.z, self.j.pos.x, self.j.pos.y,self.j.pos.z, 2, GoS.White)
+		elseif self.j.distance < 2000 then			
+			DrawLine3D(myHero.pos.x, myHero.pos.y,myHero.pos.z, self.j.pos.x, self.j.pos.y,self.j.pos.z, 2, GoS.Red)
 		end
 	end
 end
@@ -4695,7 +4714,7 @@ function Awareness:draMin()
 		end
 	end
     for _,i in pairs(self.E) do
-		if SLU.A.ME.E:Value() and i.u and SLU.A.ME["D"..i.u.charName]:Value() then
+		if SLU.A.ME.E:Value() and i.u and SLU.A.ME.DE["D"..i.u.charName]:Value() then
 			if i.u.visible and i.u.alive then
 				i.p = WorldToMinimap(i.u.pos)
 				i.p2 = i.u.pos
@@ -4711,6 +4730,19 @@ function Awareness:draMin()
 			end
 		end
     end
+	if self.j and self.j.alive and self.j.visible and SLU.A.JT.E:Value() and SLU.A.JT.TJ:Value() then
+		DrawCircleMinimap(self.j.pos, 350, 1, 20, GoS.Red)
+		DrawText("Jungler",12,WorldToMinimap(self.j.pos).x,WorldToMinimap(self.j.pos).y, ARGB(255,255,255,255))
+	end
+	for _, i in pairs(self.monsters) do
+		if i and i.s and not i.alive then
+			if i.pos then
+				if GetGameTimer()>i.st then
+					DrawText(self:GetDuration(i.d,i),12,WorldToMinimap(i.pos).x,WorldToMinimap(i.pos).y, ARGB(255,255,255,255))
+				end
+			end
+		end
+	end
 end
 
 function Awareness:Tk()
@@ -4723,6 +4755,32 @@ function Awareness:Tk()
 		if i.o and not i.o.valid then
 			self.Wards2[_] = nil 
 		end
+	end
+	for _, i in pairs(GetEnemyHeroes()) do
+		if GetCastName(myHero,SUMMONER_1):lower():find("summonersmite") then
+			self.j = i
+		elseif GetCastName(myHero,SUMMONER_2):lower():find("summonersmite") then
+			self.j = i
+		else
+			self.j = nil
+		end
+	end
+	for _,i in pairs(minionManager.objects) do
+		for k,p in pairs(self.mobs) do
+			if i.team == MINION_JUNGLE and k == i.charName and SLU.A.JT.ET[k]:Value() and SLU.A.JT.E:Value() then
+				if not self.monsters[i.networkID] then self.monsters[i.networkID] = {} end
+				self.monsters[i.networkID].pos = i.pos
+				if not i.alive then
+					self.monsters[i.networkID].i = i
+					self.monsters[i.networkID].s = GetTickCount()
+					self.monsters[i.networkID].d = p.d
+					self.monsters[i.networkID].st = p.s
+				end
+			end
+		end	
+	end
+	for _,i in pairs(self.monsters) do
+			DelayAction(function() self.monsters[_] = nil end,i.d) 
 	end
 end
 
