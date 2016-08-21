@@ -4757,9 +4757,9 @@ function Awareness:Tk()
 		end
 	end
 	for _, i in pairs(GetEnemyHeroes()) do
-		if GetCastName(myHero,SUMMONER_1):lower():find("summonersmite") then
+		if GetCastName(i,SUMMONER_1):lower():find("summonersmite") then
 			self.j = i
-		elseif GetCastName(myHero,SUMMONER_2):lower():find("summonersmite") then
+		elseif GetCastName(i,SUMMONER_2):lower():find("summonersmite") then
 			self.j = i
 		else
 			self.j = nil
