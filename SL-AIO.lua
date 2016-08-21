@@ -1,6 +1,7 @@
 local SLAIO = 0.01
 local SLPatchnew = nil
 local turrets = {}
+local spawn = nil
 local str3 = {[0]="Q",[1]="W",[2]="E",[3]="R"}
 if GetGameVersion():sub(3,4) >= "10" then
 		SLPatchnew = GetGameVersion():sub(1,4)
@@ -330,6 +331,9 @@ OnObjectLoad(function(obj)
 	if obj and obj.type == Obj_AI_Turret and obj.team == MINION_ENEMY then
 		turrets[obj.networkID] = obj
 	end
+	if obj.type == Obj_AI_SpawnPoint and obj.team ~= myHero.team then
+		spawn = obj
+    end
 end)
 
 local function DisableAll(b)
@@ -4536,6 +4540,12 @@ function Awareness:__init()
 	self.monsters = {}
 	self.mobs = {["SRU_Baron"]={s=1200,d=420}, ["SRU_Dragon"]={s=150,d=360}, ["SRU_Red"]={s=105,d=300}, ["SRU_Blue"]={s=105,d=300}, ["SRU_Krug"]={s=50,d=100}, ["SRU_Murkwolf"]={s=105,d=103}, ["SRU_Razorbeak"]={s=105,d=90}, ["SRU_Gromp"]={s=105,d=145}, ["Sru_Crab"]={s=150,d=120}}
 	self.j = nil
+	self.spells = {
+	["Ashe"] = {d = 0.25, s = 1450,w=120,sp=3,c=true,dmg=function(unit) return 75+175*GetCastLevel(myHero,3)*myHero.ap end,},
+	["Draven"] = {d = 0.4,s = 2000,w=120,sp=3,c=false,dmg=function(unit) return 75+100*GetCastLevel(myHero,3)+1.1*myHero.totalDamage end,},
+	["Ezreal"] = {d = 1, s = 2000,w=140,sp=3,c=false,dmg=function(unit) return 200+150*GetCastLevel(myHero,3)+0.9*myHero.ap+myHero.totalDamage end,}, 
+	["Jinx"] = {d = 0.6, s = 1650,w=130,sp=3,c=true,dmg=function(unit) return 150+100*GetCastLevel(myHero,3)+20+5*GetCastLevel(myHero,3)*.001*(unit.maxHealth - unit.health)+myHero.totalDamage end,}
+	}
 	self.E = {}
 	self.offy = 60
 	SLU:Menu("A", "|SL| Awareness")
@@ -4561,6 +4571,17 @@ function Awareness:__init()
 	SLU.A.RT:Boolean("E", "Enabled", true)
 	SLU.A.RT:Boolean("DT", "Draw Timer", true)
 	SLU.A.RT:Boolean("DU", "Draw Unit pos", true)
+	if self.spells[myHero.charName] then
+		SLU.A.RT:Menu("U", "Recall Ult : ")
+		SLU.A.RT:Boolean("ER", "Enable Recall Ult", true)
+		DelayAction(function() 
+			for _, i in pairs(GetEnemyHeroes()) do
+				SLU.A.RT.U:Boolean(i.charName, i.charName, true)
+			end
+		end,.001)	
+	else
+		SLU.A.RT:Info("Rec", "Recall Ult isnt supported for "..myHero.charName)
+	end
 	SLU.A:Menu("JT", "Jungle Tracker")
 	SLU.A.JT:Boolean("E", "Enabled", true)
 	SLU.A.JT:Boolean("TJ", "Track Enemy Jungler", true)
@@ -4588,7 +4609,7 @@ end
 
 function Awareness:PrRe(u,r)
 	if u.team ~= myHero.team and r.isStart then
-		table.insert(self.R, {u = u, s = GetGameTimer(), d = (r.totalTime/1000)})
+		table.insert(self.R, {u = u, s = GetGameTimer(), d = (r.totalTime/1000),at=GetGameTimer() + (r.totalTime - r.passedTime)*.001})
 		self.offy = self.offy + 30
 	else
 		table.remove(self.R, 1)
@@ -4782,8 +4803,30 @@ function Awareness:Tk()
 	for _,i in pairs(self.monsters) do
 			DelayAction(function() self.monsters[_] = nil end,i.d) 
 	end
+	for _, i in pairs(self.spells) do
+		for k,p in pairs(self.R) do
+			if self.spells[myHero.charName] then
+				if p.at-(GetDistance(p.u.pos,spawn.pos)/i.s+i.d)-GetGameTimer()+GetLatency()*.001 < 0 and IsReady(i.sp) and SLU.A.RT.ER:Value() and SLU.A.RT.E:Value() and SLU.A.RT.U[p.u.charName]:Value() then
+					if p.u.health < self.spells[myHero.charName].dmg(i.u) and not self:Coll() then
+						CastSkillShot(i.sp,spawn.pos)
+					end	
+				end
+			end
+		end
+	end
 end
 
+function Awareness:Coll()
+	for m,p in pairs(GetEnemyHeroes()) do
+		if p and p.alive and self.spells[myHero.charName].c and self.spells[myHero.charName].w and myHero.alive and spawn then
+			local vP = VectorPointProjectionOnLineSegment(Vector(myHero.pos),Vector(spawn.pos),Vector(p.pos))
+			if vP and GetDistance(vP,p.pos) < (self.spells[myHero.charName].w+p.boundingRadius) then
+				return true
+			end
+		end
+	end
+	return false
+end
 class 'Reallifeinfo'
 
 function Reallifeinfo:__init()
