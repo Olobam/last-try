@@ -4683,7 +4683,7 @@ function Awareness:DrawScreen()
 			end
 		end
 	end
-	if self.j and self.j.visible and self.j.alive then
+	if self.j and self.j.visible and self.j.alive and SLU.A.JT.E:Value() and SLU.A.JT.TJ:Value() then
 		if self.j.distance < 4000 and self.j.distance > 2000 then
 			DrawLine3D(myHero.pos.x, myHero.pos.y,myHero.pos.z, self.j.pos.x, self.j.pos.y,self.j.pos.z, 2, GoS.White)
 		elseif self.j.distance < 2000 then			
