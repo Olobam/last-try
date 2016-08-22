@@ -1,4 +1,25 @@
 local SLAIO = 0.01
+
+local SLSChamps = {	
+	["Vayne"] = true,
+	["Soraka"] = true,
+	["Blitzcrank"] = true,
+	["Kalista"] = true,
+	["Velkoz"] = true,
+	["Nasus"] = true,
+	["Jinx"] = true,
+	["Aatrox"] = true,
+	["Kindred"] = true,
+	["Nocturne"] = true,
+	["Sivir"] = true,
+	["Vladimir"] = true,
+	["Orianna"] = true,
+	["Veigar"] = true,
+	["KogMaw"] = true,
+	["Ahri"] = true,
+	["Khazix"] = true,
+}
+
 local SLPatchnew = nil
 local turrets = {}
 local spawn = nil
@@ -393,25 +414,6 @@ local function dArrow(s, e, w, c)--startpos,endpos,width,color
 	DrawLine3D(s2.x,s2.y,s2.z,e.x,e.y,e.z,w,c)
 	DrawLine3D(s3.x,s3.y,s3.z,e.x,e.y,e.z,w,c)	
 end
-
-local SLSChamps = {	
-	["Vayne"] = true,
-	["Soraka"] = true,
-	["Blitzcrank"] = true,
-	["Kalista"] = true,
-	["Velkoz"] = true,
-	["Nasus"] = true,
-	["Jinx"] = true,
-	["Aatrox"] = true,
-	["Kindred"] = true,
-	["Nocturne"] = true,
-	["Sivir"] = true,
-	["Vladimir"] = true,
-	["Orianna"] = true,
-	["Veigar"] = true,
-	["KogMaw"] = true,
-	["Ahri"] = true,
-}
 
 if not FileExist(COMMON_PATH.. "Analytics.lua") then
   DownloadFileAsync("https://raw.githubusercontent.com/LoggeL/GoS/master/Analytics.lua", COMMON_PATH .. "Analytics.lua", function() end)
@@ -2928,6 +2930,252 @@ function Kindred:WallBetween(p1, p2, distance) --p1 and p2 are Vectors3d
 	end
 end
 
+class "Khazix"
+
+function Khazix:__init()
+
+	Spell = {
+	[0] = { range = 325, evolved = false},
+	[1] = { delay = .25, speed = 1700, width = 70, range = 1025},
+	[2] = { delay = .25, speed = 1500, width = 0, range = 750},
+	}
+	
+	Dmg = {
+	[-1] = function (unit) return CalcDamage(myHero, unit, 0, ({15,20,25,35,45,55,65,75,85,95,110,125,140,150,160,170,180,190})[myHero.level] + myHero.ap *.5) end,
+	[0] =  function (unit) return CalcDamage(myHero, unit, (55 + 15 * GetCastLevel(myHero,0) + GetBonusDmg(myHero) * 1.2)*(self.Isolated[unit.networkID] and 1.3 or 1) + (Spell[0].evolved and 10 * myHero.level + GetBonusDmg(myHero)*1.04 or 0),0) end,
+	[1] =  function (unit) return CalcDamage(myHero, unit,  50 + 30 * GetCastLevel(myHero,1) + GetBonusDmg(myHero), 0) end,
+	[2] =  function (unit) return CalcDamage(myHero, unit,  30 + 35 * GetCastLevel(myHero,2) + GetBonusDmg(myHero) * .2 ,0) end, 
+	}
+
+	self.Dashes = 
+	{
+		["Vayne"]	 	 = {Spellslot = 0, Range = 300, Name = "Q"},
+		["Riven"]	 	 = {Spellslot = 2, Range = 325, Name = "E"},
+		["Ezreal"]		 = {Spellslot = 2, Range = 450, Name = "E"},
+		["Caitlyn"]		 = {Spellslot = 2, Range = 400, Name = "E"},
+		["Kassadin"] 	 = {Spellslot = 3, Range = 700, Name = "R"},
+		["Graves"]		 = {Spellslot = 2, Range = 425, Name = "E"},
+		["Renekton"]  	 = {Spellslot = 2, Range = 450, Name = "E"},
+		["Aatrox"]		 = {Spellslot = 0, Range = 650, Name = "Q"},
+		["Gragas"]		 = {Spellslot = 2, Range = 600, Name = "E"},
+		["Khazix"]		 = {Spellslot = 2, Range = 600, Name = "E"},
+		["Lucian"]		 = {Spellslot = 2, Range = 425, Name = "E"},
+		["Sejuani"]		 = {Spellslot = 0, Range = 650, Name = "Q"},
+		["Shen"]		 = {Spellslot = 2, Range = 575, Name = "E"},
+		["Tryndamere"] 	 = {Spellslot = 2, Range = 660, Name = "E"},
+		["Tristana"]  	 = {Spellslot = 1, Range = 900, Name = "W"},
+		["Corki"]	 	 = {Spellslot = 1, Range = 800, Name = "W"},
+	}
+
+	BM:Menu("C", "Combo")
+		BM.C:Boolean("Q", "Use Q", true)
+		BM.C:Boolean("W", "Use W", true)
+		BM.C:Boolean("E", "Use E", true)
+		BM.C:SubMenu("R", "R Options")
+		BM.C.R:Boolean("R", "Use R", true)
+
+	BM:Menu("H", "Harass")
+		BM.H:Boolean("Q", "Use Q", true)
+		BM.H:Boolean("W", "Use W", true)
+		
+	BM:Menu("L", "LaneClear")
+		BM.L:Boolean("Q", "Use Q", true)
+		BM.L:Boolean("W", "Use W", true)
+		BM.L:Boolean("E", "Use E", false)
+	
+	BM:Menu("H", "LastHit")
+		BM.H:Boolean("Q", "Use Q", true)
+		
+	BM:Menu("KS", "KillSteal")
+		BM.KS:Boolean("Q", "Use Q", true)
+		BM.KS:Boolean("W", "Use W", true)
+	
+	BM:Menu("J", "Jump Settings")	
+		BM.J:Boolean("S","Save Jump", true)
+
+	BM:Menu("P", "HitChance")
+		BM.P:Slider("W", "W HitChance", 20, 1, 100)
+
+	for i, k in pairs(GetEnemyHeroes()) do
+		if self.Dashes[k.charName] then
+			BM.J:Boolean(k.networkID, "Follow "..k.charName.." "..self.Dashes[k.charName].Name, true)
+		end
+	end
+
+	self.Passive = true
+	self.IsStealth = false
+	self.Isolated = {}
+	self.Point = nil
+
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("UpdateBuff", function(unit, buff) self:OnUpdate(unit, buff) end)
+	Callback.Add("RemoveBuff", function(unit, buff) self:OnRemove(unit, buff) end)
+	Callback.Add("ProcessSpellComplete", function(unit, spell) self:ProcComplete(unit, spell) end)
+	Callback.Add("CreateObj", function(o) self:CreateObj(o) end)
+	Callback.Add("DeleteObj", function(o) self:DeleteObj(o) end)
+	Callback.Add("Animation", function(u,a) self:Animation(u,a) end)
+end
+
+function Khazix:Tick()
+	GetReady()
+	if GetCastName(myHero, 0) == "KhazixQLong" then
+		Spell[0].range = 375
+		Spell[0].evolved = true
+	end
+	if GetCastName(myHero, 2) == "KhazixELong" then
+		Spell[2].range = 950
+		Spell[2].evolved = true
+	end
+	
+	local target = GetCurrentTarget()
+	self:KS()
+	if Mode == "Combo" and target.valid then
+		self:Combo(target)
+	elseif Mode == "LaneClear" then
+		self:LaneClear()
+	elseif Mode == "LastHit" then
+		self:LastHit()
+	elseif Mode == "Harass" and target.valid then
+		self:Harass(target)
+	else
+		return
+	end
+end
+
+function Khazix:KS()
+	for _,unit in pairs(GetEnemyHeroes()) do
+		if BM.KS.Q:Value() and ValidTarget(unit, Spell[0].range) and SReady[0] and Dmg[0](unit) < GetADHP(unit) then
+			CastTargetSpell(unit,0)
+		elseif BM.KS.W:Value() and ValidTarget(unit, Spell[1].range) and SReady[1] and Dmg[1](unit) < GetADHP(unit) then
+			self:UseW(unit)
+		end
+	end
+end
+
+function Khazix:Combo(unit)
+	self:UseQ(unit)
+	if BM.C.W:Value() and GetDistance(unit) > GetHitBox(myHero) + Spell[0].range + GetHitBox(unit) and (not (self.Dashes[unit.charName] and CanUseSpell(unit, self.Dashes[unit.charName].Spellslot) == READY) or unit.distance > Spell.E.range*.75 or unit.health < Dmg[0](unit)*2 or not BM.J.S:Value()) then
+		self:UseE(unit)
+	end
+	if not SReady[2] or GetDistance(unit) < GetHitBox(myHero)+ Spell[0].range + GetHitBox(unit) then
+		self:UseW(unit)
+	end
+	self:UseR(unit)
+end
+
+function Khazix:Harass(unit)
+	if ValidTarget(unit, myHero.boundingRadius + Spell[0].range + unit.boundingRadius) and SReady[0] and BM.H.Q:Value() then
+		CastTargetSpell(unit,0)
+	elseif SReady[1] and ValidTarget(creep,Spell[1].range) and BM.H.W:Value() then
+		self:UseW(unit)
+	end
+end
+
+function Khazix:LastHit()
+	for _,creep in pairs(minionManager.objects) do
+		if SReady[0] and ValidTarget(creep,Spell[0].range) and BM.H.Q:Value() and Dmg[0](creep) > creep.health then
+			CastTargetSpell(creep,0)
+		end
+	end
+end
+
+function Khazix:LaneClear()
+	for _,creep in pairs(minionManager.objects) do
+		if SReady[0] and ValidTarget(creep,Spell[0].range) and BM.L.Q:Value() then
+			CastTargetSpell(creep,0)
+		elseif SReady[1] and ValidTarget(creep,Spell[1].range) and BM.L.W:Value() then
+			CastSkillShot(1,GetPrediction(creep,Spell[1]).castPos)
+		elseif SReady[2] and ValidTarget(creep,Spell[2].range) and BM.L.E:Value() then
+			CastSkillShot(2,GetPrediction(creep,Spell[2]).castPos)
+		end
+	end
+end
+
+function Khazix:UseQ(Unit)
+	if ValidTarget(Unit, myHero.boundingRadius + Spell[0].range + Unit.boundingRadius) and SReady[0] and BM.C.Q:Value() then
+		CastTargetSpell(Unit, 0)
+	end
+end
+
+function Khazix:UseW(Unit)
+	local W = GetPrediction(Unit, Spell[1])
+	if ValidTarget(Unit, Spell[1].range) and SReady[1] and W.hitChance >= (BM.P.W:Value()*.01) and not W:mCollision(1) then
+		CastSkillShot(1, W.castPos)
+	end
+end
+
+function Khazix:UseE(Unit)
+	local E = GetPrediction(Unit, Spell[2])
+	if ValidTarget(Unit, Spell[2].range) and SReady[2] and BM.C.E:Value() then
+		CastSkillShot(2, GetOrigin(Unit))
+	end
+end
+
+function Khazix:UseR(Unit)
+	if BM.C.R.R:Value() and ValidTarget(Unit, Spell[2].range) and SReady[3] and not self.Passive and not SReady[2] then
+		CastSpell(3)
+	end
+end
+
+function Khazix:Proc(unit, spellProc)
+	if self.Dashes[unit.charName] and Mode == "Combo" and SReady[2] and spellProc.name == GetCastName(unit, self.Dashes[unit.charName].Spellslot) and unit == GetCurrentTarget() and GetDistance(spellProc.endPos) > myHero.boundingRadius +Spell[0].range + unit.boundingRadius and GetDistance(spellProc.endPos) < Spell[2].range and BM.J[unit.networkID]:Value() and GetDistace(spellProc.startPos) < GetDistace(spellProc.endPos) then
+		CastSkillShot(2, spellProc.endPos)
+	end
+end
+
+function Khazix:ProcComplete(unit, spellProc)
+--	if unit.isMe and spellProc.name:lower():find("attack") and spellProc.target.valid then
+--		self:UseQ(spellProc.target)
+--	end
+end
+
+function Khazix:Animation(unit,animation)
+	if unit.isMe and animation:lower():find("evo") and not animation:find("_") then
+		DelayAction(function()
+			CastSpell(13)
+		end,.1)
+	end
+end
+
+function Khazix:OnUpdate(unit, buffproc)
+	if unit.isMe and buffproc then
+		if buffproc.Name == "KhazixPDamage" then
+			self.Passive = true
+		elseif buffproc.Name == "Khazixrstealth" then
+			self.IsStealth = true
+		end
+	end
+end
+
+function Khazix:OnRemove(unit, buffproc)
+	if unit.isMe and buffproc then
+		if buffproc.Name == "KhazixPDamage" then
+			self.Passive = false
+		elseif buffproc.Name == "Khazixrstealth" then
+			self.IsStealth = false
+		end
+	end
+end
+
+function Khazix:CreateObj(o)
+	if o.name:lower():find("indicator") and o.name:lower():find("singleenemy") then
+		for _,i in pairs(GetEnemyHeroes()) do
+			if GetDistance(i,o) < 20 then
+				self.Isolated[i.networkID] = true
+			end
+		end
+	end
+end
+
+function Khazix:DeleteObj(o)
+	if o.name:lower():find("indicator") and o.name:lower():find("singleenemy") then
+		for _,i in pairs(GetEnemyHeroes()) do
+			if GetDistance(i,o) < 20 then
+				self.Isolated[i.networkID] = false
+			end
+		end
+	end
+end
 
 class 'Vladimir'
 
