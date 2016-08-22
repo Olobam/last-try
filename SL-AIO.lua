@@ -23,6 +23,7 @@ local SLSChamps = {
 local SLPatchnew = nil
 local turrets = {}
 local spawn = nil
+local Spell = {}
 local str3 = {[0]="Q",[1]="W",[2]="E",[3]="R"}
 if GetGameVersion():sub(3,4) >= "10" then
 		SLPatchnew = GetGameVersion():sub(1,4)
@@ -780,7 +781,7 @@ function Vayne:Tick()
 end
 
 function Vayne:CastE(unit)
-	local e = GetPrediction(unit, self.Spell[2])
+	local e = GetPrediction(unit, Spell[2])
 	local ePos = Vector(e.castPos)
 	local c = math.ceil(BM.C.a:Value())
 	local cd = math.ceil(BM.C.pd:Value()/c)
@@ -844,7 +845,7 @@ function Vayne:AAReset(unit, spell)
 end
 
 function Vayne:Combo(target)
-	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() then
+	if SReady[2] and ValidTarget(target, Spell[2].range) and BM.C.E:Value() then
 		self:CastE(target)
 	end
 	if SReady[3] and ValidTarget(target, 800) and BM.C.R:Value() and EnemiesAround(myHero,800) >= BM.C.RE:Value() and GetPercentHP(myHero) < BM.C.RHP:Value() and GetPercentHP(target) < BM.C.REHP:Value() then
@@ -853,14 +854,14 @@ function Vayne:Combo(target)
 end
 
 function Vayne:Harass(target)
-	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.H.E:Value() then
+	if SReady[2] and ValidTarget(target, Spell[2].range) and BM.H.E:Value() then
 		self:CastE(target)
 	end
 end
 
 function Vayne:JungleClear()
  for _,mob in pairs(minionManager.objects) do
-	if SReady[2] and ValidTarget(mob, self.Spell[2].range) and BM.JC.E:Value() and GetTeam(mob) == MINION_JUNGLE then
+	if SReady[2] and ValidTarget(mob, Spell[2].range) and BM.JC.E:Value() and GetTeam(mob) == MINION_JUNGLE then
 		self:CastE(mob)
 	end
  end
@@ -868,7 +869,7 @@ end
 
 function Vayne:LaneClear()
  for _,minion in pairs(minionManager.objects) do
-	if SReady[2] and ValidTarget(minion, self.Spell[2].range) and BM.LC.E:Value() and GetTeam(minion) == MINION_ENEMY then
+	if SReady[2] and ValidTarget(minion, Spell[2].range) and BM.LC.E:Value() and GetTeam(minion) == MINION_ENEMY then
 		self:CastE(minion)
 	end
  end
@@ -876,7 +877,7 @@ end
 
 function Vayne:KS()
 	for _,target in pairs(GetEnemyHeroes()) do
-		if SReady[2] and GetADHP(target) < Dmg[2](target) and ValidTarget(target, self.Spell[2].range) then
+		if SReady[2] and GetADHP(target) < Dmg[2](target) and ValidTarget(target, Spell[2].range) then
 			CastTargetSpell(target, 2)
 		end
 	end
@@ -973,13 +974,13 @@ function Blitzcrank:AntiChannel(unit,range)
 	if BM.AC.Q:Value() and range < 600 and SReady[3] then
 		CastSpell(3)
 	elseif BM.AC.R:Value() and SReady[0] and range < Blitzcrank.Spell[0].range then
-		CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
+		CastGenericSkillShot(myHero,target,Spell[0],0,BM.p)
 	end
 end
 
 function Blitzcrank:Combo(target)
-	if SReady[0] and ValidTarget(target, self.Spell[0].range*1.1) and BM.C.Q:Value() then
-		CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
+	if SReady[0] and ValidTarget(target, Spell[0].range*1.1) and BM.C.Q:Value() then
+		CastGenericSkillShot(myHero,target,Spell[0],0,BM.p)
 	end
 	if SReady[1] and ValidTarget(target, 1000) and BM.C.W:Value() and GetDistance(myHero,target) <= 850 and SReady[0] then
 		CastSpell(1)
@@ -993,8 +994,8 @@ function Blitzcrank:Combo(target)
 end
 
 function Blitzcrank:Harass(target)
-	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.H.Q:Value() then
-		CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
+	if SReady[0] and ValidTarget(target, Spell[0].range) and BM.H.Q:Value() then
+		CastGenericSkillShot(myHero,target,Spell[0],0,BM.p)
 	end
 	if SReady[2] and ValidTarget(target, 300) and BM.H.E:Value() then
 		CastSpell(2)
@@ -1004,8 +1005,8 @@ end
 function Blitzcrank:LaneClear()
 	for _,minion in pairs(minionManager.objects) do
 		if GetTeam(minion) == MINION_ENEMY then
-			if SReady[0] and ValidTarget(minion, self.Spell[0].range) and BM.LC.Q:Value() then
-				CastGenericSkillShot(myHero,minion,self.Spell[0],0,BM.p)
+			if SReady[0] and ValidTarget(minion, Spell[0].range) and BM.LC.Q:Value() then
+				CastGenericSkillShot(myHero,minion,Spell[0],0,BM.p)
 			end
 			if SReady[2] and ValidTarget(minion, 300) and BM.LC.E:Value() then
 				CastSpell(2)
@@ -1020,8 +1021,8 @@ end
 function Blitzcrank:JungleClear()
 	for _,mob in pairs(minionManager.objects) do
 		if GetTeam(mob) == MINION_ENEMY then
-			if SReady[0] and ValidTarget(mob, self.Spell[0].range) and BM.JC.Q:Value() then
-				CastGenericSkillShot(myHero,mob,self.Spell[0],0,BM.p)
+			if SReady[0] and ValidTarget(mob, Spell[0].range) and BM.JC.Q:Value() then
+				CastGenericSkillShot(myHero,mob,Spell[0],0,BM.p)
 			end
 			if SReady[2] and ValidTarget(mob, 300) and BM.JC.E:Value() then
 				CastSpell(2)
@@ -1036,8 +1037,8 @@ end
 function Blitzcrank:KS()
 	if not BM.KS.Enable:Value() then return end
 	for _,unit in pairs(GetEnemyHeroes()) do
-		if GetAPHP(unit) < Dmg[0](unit) and SReady[0] and ValidTarget(unit, self.Spell[0].range) and BM.KS.Q:Value() then
-			CastGenericSkillShot(myHero,unit,self.Spell[0],0,BM.p)
+		if GetAPHP(unit) < Dmg[0](unit) and SReady[0] and ValidTarget(unit, Spell[0].range) and BM.KS.Q:Value() then
+			CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
 		end
 		if GetADHP(unit) < Dmg[2](unit) and SReady[2] and ValidTarget(unit, 300) and BM.KS.E:Value() then
 			CastSpell(2)
@@ -1137,7 +1138,7 @@ end
 
 function Soraka:Tick()
 	if myHero.dead then return end
-	self.Spell[0].delay = BM.p.aE:Value()
+	Spell[0].delay = BM.p.aE:Value()
 		
 	GetReady()
 		
@@ -1162,34 +1163,34 @@ function Soraka:Tick()
 end
 
 function Soraka:Combo(target)
-	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() then
-		self.Spell[0].delay = .25 + (GetDistance(myHero,target) / self.Spell[0].range)*.75
-		CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
+	if SReady[0] and ValidTarget(target, Spell[0].range) and BM.C.Q:Value() then
+		Spell[0].delay = .25 + (GetDistance(myHero,target) / Spell[0].range)*.75
+		CastGenericSkillShot(myHero,target,Spell[0],0,BM.p)
 	end
-	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() then
-		CastGenericSkillShot(myHero,target,self.Spell[2],2,BM.p)
+	if SReady[2] and ValidTarget(target, Spell[2].range) and BM.C.E:Value() then
+		CastGenericSkillShot(myHero,target,Spell[2],2,BM.p)
 	end
 end
 
 function Soraka:Harass(target)
-	if SReady[0] and ValidTarget(target, self.Spell[0].range*1.1) and BM.H.Q:Value() then
-		self.Spell[0].delay = .25 + (GetDistance(myHero,target) / self.Spell[0].range)*.55
-		CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
+	if SReady[0] and ValidTarget(target, Spell[0].range*1.1) and BM.H.Q:Value() then
+		Spell[0].delay = .25 + (GetDistance(myHero,target) / Spell[0].range)*.55
+		CastGenericSkillShot(myHero,target,Spell[0],0,BM.p)
 	end
-	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.H.E:Value() then
-		CastGenericSkillShot(myHero,target,self.Spell[2],2,BM.p)
+	if SReady[2] and ValidTarget(target, Spell[2].range) and BM.H.E:Value() then
+		CastGenericSkillShot(myHero,target,Spell[2],2,BM.p)
 	end
 end
 
 function Soraka:KS()
 	if not BM.KS.Enable:Value() then return end
 	for _,unit in pairs(GetEnemyHeroes()) do
-		if GetAPHP(unit) < Dmg[0](unit) and SReady[0] and ValidTarget(unit, self.Spell[0].range) and BM.KS.Q:Value() then
-			self.Spell[0].delay = .25 + (GetDistance(myHero,unit) / self.Spell[0].range)*.55
-			CastGenericSkillShot(myHero,unit,self.Spell[0],0,BM.p)
+		if GetAPHP(unit) < Dmg[0](unit) and SReady[0] and ValidTarget(unit, Spell[0].range) and BM.KS.Q:Value() then
+			Spell[0].delay = .25 + (GetDistance(myHero,unit) / Spell[0].range)*.55
+			CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
 		end
-		if GetAPHP(unit) < Dmg[2](unit) and SReady[2] and ValidTarget(unit, self.Spell[2].range) and BM.KS.E:Value() then
-			CastGenericSkillShot(myHero,unit,self.Spell[2],2,BM.p)
+		if GetAPHP(unit) < Dmg[2](unit) and SReady[2] and ValidTarget(unit, Spell[2].range) and BM.KS.E:Value() then
+			CastGenericSkillShot(myHero,unit,Spell[2],2,BM.p)
 		end
 	end
 end
@@ -1197,12 +1198,12 @@ end
 function Soraka:LaneClear()
 	for _,minion in pairs(minionManager.objects) do
 		if GetTeam(minion) == MINION_ENEMY then
-			if SReady[0] and ValidTarget(minion, self.Spell[0].range*1.1) and BM.LC.Q:Value() then
-				self.Spell[0].delay = .25 + (GetDistance(myHero,minion) / self.Spell[0].range)*.55
-				CastGenericSkillShot(myHero,minion,self.Spell[0],0,BM.p)
+			if SReady[0] and ValidTarget(minion, Spell[0].range*1.1) and BM.LC.Q:Value() then
+				Spell[0].delay = .25 + (GetDistance(myHero,minion) / Spell[0].range)*.55
+				CastGenericSkillShot(myHero,minion,Spell[0],0,BM.p)
 			end
-			if SReady[2] and ValidTarget(minion, self.Spell[2].range) and BM.LC.E:Value() then
-				CastGenericSkillShot(myHero,minion,self.Spell[2],2,BM.p)
+			if SReady[2] and ValidTarget(minion, Spell[2].range) and BM.LC.E:Value() then
+				CastGenericSkillShot(myHero,minion,Spell[2],2,BM.p)
 			end
 		end
 	end
@@ -1211,12 +1212,12 @@ end
 function Soraka:JungleClear()
 	for _,mob in pairs(minionManager.objects) do
 		if GetTeam(mob) == MINION_JUNGLE then
-			if SReady[0] and ValidTarget(mob, self.Spell[0].range*1.1) and BM.JC.Q:Value() then
-				self.Spell[0].delay = .25 + (GetDistance(myHero,mob) / self.Spell[0].range)*.55
-				CastGenericSkillShot(myHero,mob,self.Spell[0],0,BM.p)
+			if SReady[0] and ValidTarget(mob, Spell[0].range*1.1) and BM.JC.Q:Value() then
+				Spell[0].delay = .25 + (GetDistance(myHero,mob) / Spell[0].range)*.55
+				CastGenericSkillShot(myHero,mob,Spell[0],0,BM.p)
 			end
-			if SReady[2] and ValidTarget(mob, self.Spell[2].range) and BM.JC.E:Value() then
-				CastGenericSkillShot(myHero,mob,self.Spell[2],2,BM.p)
+			if SReady[2] and ValidTarget(mob, Spell[2].range) and BM.JC.E:Value() then
+				CastGenericSkillShot(myHero,mob,Spell[2],2,BM.p)
 			end
 		end
 	end
@@ -1324,8 +1325,8 @@ end
 				
 
 function Sivir:Combo(target)
-	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() then
-		CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
+	if SReady[0] and ValidTarget(target, Spell[0].range) and BM.C.Q:Value() then
+		CastGenericSkillShot(myHero,target,Spell[0],0,BM.p)
 	end
 	if SReady[3] and ValidTarget(target, 800) and BM.C.R:Value() and EnemiesAround(myHero,800) >= BM.C.RE:Value() and GetPercentHP(myHero) < BM.C.RHP:Value() and GetPercentHP(target) < BM.C.REHP:Value() then
 		CastSpell(3)
@@ -1335,8 +1336,8 @@ end
 function Sivir:LaneClear()
 	for _,minion in pairs(minionManager.objects) do
 		if GetTeam(minion) == MINION_ENEMY then
-			if SReady[0] and ValidTarget(minion, self.Spell[0].range) and BM.LC.Q:Value() then
-				CastGenericSkillShot(myHero,minion,self.Spell[0],0,BM.p)
+			if SReady[0] and ValidTarget(minion, Spell[0].range) and BM.LC.Q:Value() then
+				CastGenericSkillShot(myHero,minion,Spell[0],0,BM.p)
 			end
 		end
 	end
@@ -1345,8 +1346,8 @@ end
 function Sivir:JungleClear()
 	for _,mob in pairs(minionManager.objects) do
 		if GetTeam(mob) == MINION_JUNGLE then
-			if SReady[0] and ValidTarget(mob, self.Spell[0].range) and BM.JC.Q:Value() then
-				CastGenericSkillShot(myHero,mob,self.Spell[0],0,BM.p)
+			if SReady[0] and ValidTarget(mob, Spell[0].range) and BM.JC.Q:Value() then
+				CastGenericSkillShot(myHero,mob,Spell[0],0,BM.p)
 			end
 		end
 	end
@@ -1354,8 +1355,8 @@ end
 
 function Sivir:KS()
 	for _,target in pairs(GetEnemyHeroes()) do
-		if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.KS.Q:Value() and GetAPHP(target) < Dmg[0](target) then
-			CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
+		if SReady[0] and ValidTarget(target, Spell[0].range) and BM.KS.Q:Value() and GetAPHP(target) < Dmg[0](target) then
+			CastGenericSkillShot(myHero,target,Spell[0],0,BM.p)
 		end
 	end
 end
@@ -1431,10 +1432,10 @@ end
 function Nocturne:KS()
 	self.marker = false
 	for _,target in pairs(GetEnemyHeroes()) do
-		if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.KS.Q:Value() and GetADHP(target) < Dmg[0](target) then
-			CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
+		if SReady[0] and ValidTarget(target, Spell[0].range) and BM.KS.Q:Value() and GetADHP(target) < Dmg[0](target) then
+			CastGenericSkillShot(myHero,target,Spell[0],0,BM.p)
 		end
-		if SReady[3] and ValidTarget(target, self.Spell[3].range()) and GetADHP(target) < Dmg[0](target) + Dmg[3](target) + Dmg[2](target) + myHero.totalDamage*2 then
+		if SReady[3] and ValidTarget(target, Spell[3].range()) and GetADHP(target) < Dmg[0](target) + Dmg[3](target) + Dmg[2](target) + myHero.totalDamage*2 then
 			self.marker = target
 			if BM.C.RM:Value() == 3 or (BM.C.RM:Value() == 2 and BM.C.RK:Value()) then
 				CastSpell(3)
@@ -1445,21 +1446,21 @@ function Nocturne:KS()
 end
 
 function Nocturne:Combo(target)
-	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() then
-		CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
+	if SReady[0] and ValidTarget(target, Spell[0].range) and BM.C.Q:Value() then
+		CastGenericSkillShot(myHero,target,Spell[0],0,BM.p)
 	end
-	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() then
+	if SReady[2] and ValidTarget(target, Spell[2].range) and BM.C.E:Value() then
 		CastTargetSpell(target,2)
 	end
 end
 
 function Nocturne:LaneClear()
 	for _,minion in pairs(minionManager.objects) do
-		if SReady[0] and ValidTarget(minion, self.Spell[0].range) then
+		if SReady[0] and ValidTarget(minion, Spell[0].range) then
 			if GetTeam(minion) == MINION_ENEMY and BM.LC.Q:Value() then
-				CastGenericSkillShot(myHero,minion,self.Spell[0],0,BM.p)
+				CastGenericSkillShot(myHero,minion,Spell[0],0,BM.p)
 			elseif GetTeam(minion) == 300 and BM.JC.Q:Value() then
-				CastGenericSkillShot(myHero,minion,self.Spell[0],0,BM.p)
+				CastGenericSkillShot(myHero,minion,Spell[0],0,BM.p)
 			end
 		end
 	end
@@ -1581,11 +1582,11 @@ function Aatrox:Toggle(target)
 end
 
 function Aatrox:Combo(target)
-	if SReady[0] and ValidTarget(target, self.Spell[0].range*1.1) and BM.C.Q:Value() then
-		CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
+	if SReady[0] and ValidTarget(target, Spell[0].range*1.1) and BM.C.Q:Value() then
+		CastGenericSkillShot(myHero,target,Spell[0],0,BM.p)
 	end
-	if SReady[2] and ValidTarget(target, self.Spell[2].range*1.1) and BM.C.E:Value() then
-		CastGenericSkillShot(myHero,target,self.Spell[2],2,BM.p)
+	if SReady[2] and ValidTarget(target, Spell[2].range*1.1) and BM.C.E:Value() then
+		CastGenericSkillShot(myHero,target,Spell[2],2,BM.p)
 	end
 	if SReady[3] and ValidTarget(target, 550) and BM.C.R:Value() and EnemiesAround(myHero,550) >= BM.C.RE:Value() then
 		CastSpell(3)
@@ -1593,9 +1594,9 @@ function Aatrox:Combo(target)
 end
 
 function Aatrox:Harass(target)
-	if SReady[2] and ValidTarget(target, self.Spell[2].range*1.1) and BM.H.E:Value() then
-		local Pred = GetPrediction(target, self.Spell[2])
-		if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[2].range then
+	if SReady[2] and ValidTarget(target, Spell[2].range*1.1) and BM.H.E:Value() then
+		local Pred = GetPrediction(target, Spell[2])
+		if Pred.hitChance >= BM.p.hE:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < Spell[2].range then
 			CastSkillShot(2,Pred.castPos)
 		end
 	end
@@ -1604,11 +1605,11 @@ end
 function Aatrox:LaneClear()
 	for _,minion in pairs(minionManager.objects) do
 		if GetTeam(minion) == MINION_ENEMY then
-			if SReady[0] and ValidTarget(minion, self.Spell[0].range*1.1) and BM.LC.Q:Value() then
-				CastGenericSkillShot(myHero,minion,self.Spell[0],0,BM.p)
+			if SReady[0] and ValidTarget(minion, Spell[0].range*1.1) and BM.LC.Q:Value() then
+				CastGenericSkillShot(myHero,minion,Spell[0],0,BM.p)
 			end
-			if SReady[2] and ValidTarget(minion, self.Spell[2].range*1.1) and BM.LC.E:Value() then
-				CastGenericSkillShot(myHero,minion,self.Spell[2],2,BM.p)
+			if SReady[2] and ValidTarget(minion, Spell[2].range*1.1) and BM.LC.E:Value() then
+				CastGenericSkillShot(myHero,minion,Spell[2],2,BM.p)
 			end
 		end
 	end		
@@ -1617,8 +1618,8 @@ end
 function Aatrox:JungleClear()
 	for _,mob in pairs(minionManager.objects) do
 		if GetTeam(mob) == MINION_JUNGLE then
-			if SReady[0] and ValidTarget(mob, self.Spell[0].range) and BM.JC.Q:Value() then
-				CastGenericSkillShot(myHero,minion,self.Spell[0],0,BM.p)
+			if SReady[0] and ValidTarget(mob, Spell[0].range) and BM.JC.Q:Value() then
+				CastGenericSkillShot(myHero,minion,Spell[0],0,BM.p)
 			end
 			if SReady[1] and BM.C.W:Value() and ValidTarget(mob,750) then
 				if GetPercentHP(myHero) < BM.C.WT:Value()+1 and self.W == "dmg" then
@@ -1627,8 +1628,8 @@ function Aatrox:JungleClear()
 					CastSpell(1)
 				end
 			end
-			if SReady[2] and ValidTarget(mob, self.Spell[2].range) and BM.JC.E:Value() then
-				CastGenericSkillShot(myHero,minion,self.Spell[2],2,BM.p)
+			if SReady[2] and ValidTarget(mob, Spell[2].range) and BM.JC.E:Value() then
+				CastGenericSkillShot(myHero,minion,Spell[2],2,BM.p)
 			end
 		end
 	end		
@@ -1637,11 +1638,11 @@ end
 function Aatrox:KS()
 	if not BM.KS.Enable:Value() then return end
 	for _,unit in pairs(GetEnemyHeroes()) do
-		if GetADHP(unit) < Dmg[0](unit) and SReady[0] and ValidTarget(unit, self.Spell[0].range*1.1) and BM.KS.Q:Value() then
-			CastGenericSkillShot(myHero,unit,self.Spell[0],0,BM.p)
+		if GetADHP(unit) < Dmg[0](unit) and SReady[0] and ValidTarget(unit, Spell[0].range*1.1) and BM.KS.Q:Value() then
+			CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
 		end
-		if GetAPHP(unit) < Dmg[2](unit) and SReady[2] and ValidTarget(unit, self.Spell[2].range*1.1) and BM.KS.E:Value() then
-			CastGenericSkillShot(myHero,unit,self.Spell[2],2,BM.p)
+		if GetAPHP(unit) < Dmg[2](unit) and SReady[2] and ValidTarget(unit, Spell[2].range*1.1) and BM.KS.E:Value() then
+			CastGenericSkillShot(myHero,unit,Spell[2],2,BM.p)
 		end
 	end
 end
@@ -1701,7 +1702,7 @@ function KogMaw:__init()
 	[3] = function (unit) return CalcDamage(myHero,unit,0,(30 + 40*GetCastLevel(myHero,3) + (myHero.totalDamage-myHero.damage) * .65 + .25 * myHero.ap)*(GetPercentHP(unit)>50 and 1 or (GetPercentHP(unit)<50 and 2 or 3))) end,
 	}
 	
-	self.Spell = {
+	Spell = {
 	[0] = { range = 1175, delay = .25, width = 75 , speed = 1650, type = "line",col=true},
 	[1] = { range = 560 + 30 * myHero.level},
 	[2] = { range = 1360, delay = .25, width = 120, speed = 1400, type = "line",col=false},
@@ -1769,17 +1770,17 @@ function KogMaw:Combo(unit)
 		MoveToXYZ(unit.pos)
 		return
 	end
-	if SReady[3] and ValidTarget(unit,self.Spell[3].range) and BM.C.R:Value() and (not SReady[1] or unit.distance > self.Spell[1].range) and self.soonHP[unit.networkID].h and self.soonHP[unit.networkID].h < self.Dmg[3](unit) then
-		CastGenericSkillShot(myHero,target,self.Spell[3],3,BM.p)
+	if SReady[3] and ValidTarget(unit,Spell[3].range) and BM.C.R:Value() and (not SReady[1] or unit.distance > Spell[1].range) and self.soonHP[unit.networkID].h and self.soonHP[unit.networkID].h < self.Dmg[3](unit) then
+		CastGenericSkillShot(myHero,target,Spell[3],3,BM.p)
 	end
 	if SReady[1] and ValidTarget(unit,560 + 30 * myHero.level) and BM.C.W:Value() then
 		CastSpell(1)
 	end
-	if SReady[2] and ValidTarget(unit,self.Spell[2].range) and BM.C.E:Value() then
-		CastGenericSkillShot(myHero,target,self.Spell[2],2,BM.p)
+	if SReady[2] and ValidTarget(unit,Spell[2].range) and BM.C.E:Value() then
+		CastGenericSkillShot(myHero,target,Spell[2],2,BM.p)
 	end
-	if SReady[0] and ValidTarget(unit,self.Spell[0].range) and BM.C.Q:Value() then
-		CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
+	if SReady[0] and ValidTarget(unit,Spell[0].range) and BM.C.Q:Value() then
+		CastGenericSkillShot(myHero,target,Spell[0],0,BM.p)
 	end
 end
 
@@ -1787,11 +1788,11 @@ function KogMaw:Harass(unit)
 	if SReady[1] and ValidTarget(unit,560 + 30 * myHero.level) and BM.H.W:Value() then
 		CastSpell(1)
 	end
-	if SReady[2] and ValidTarget(unit,self.Spell[2].range) and BM.H.E:Value() then
-		CastGenericSkillShot(myHero,target,self.Spell[2],2,BM.p)
+	if SReady[2] and ValidTarget(unit,Spell[2].range) and BM.H.E:Value() then
+		CastGenericSkillShot(myHero,target,Spell[2],2,BM.p)
 	end
-	if SReady[0] and ValidTarget(unit,self.Spell[0].range) and BM.H.Q:Value() then
-		CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
+	if SReady[0] and ValidTarget(unit,Spell[0].range) and BM.H.Q:Value() then
+		CastGenericSkillShot(myHero,target,Spell[0],0,BM.p)
 	end
 end
 
@@ -1800,11 +1801,11 @@ function KogMaw:LaneClear()
 		if SReady[1] and ValidTarget(unit,560 + 30 * myHero.level) and ((IsLaneCreep(unit) and BM.L.W:Value()) or (not IsLaneCreep(unit) and BM.J.W:Value())) then
 			CastSpell(1)
 		end
-		if SReady[2] and ValidTarget(unit,self.Spell[2].range) and ((IsLaneCreep(unit) and BM.L.E:Value()) or (not IsLaneCreep(unit) and BM.J.E:Value())) then
-			CastGenericSkillShot(myHero,target,self.Spell[2],2,BM.p)
+		if SReady[2] and ValidTarget(unit,Spell[2].range) and ((IsLaneCreep(unit) and BM.L.E:Value()) or (not IsLaneCreep(unit) and BM.J.E:Value())) then
+			CastGenericSkillShot(myHero,target,Spell[2],2,BM.p)
 		end
-		if SReady[0] and ValidTarget(unit,self.Spell[0].range) and ((IsLaneCreep(unit) and BM.L.Q:Value()) or (not IsLaneCreep(unit) and BM.J.Q:Value())) then
-			CastGenericSkillShot(myHero,target,self.Spell[0],0,BM.p)
+		if SReady[0] and ValidTarget(unit,Spell[0].range) and ((IsLaneCreep(unit) and BM.L.Q:Value()) or (not IsLaneCreep(unit) and BM.J.Q:Value())) then
+			CastGenericSkillShot(myHero,target,Spell[0],0,BM.p)
 		end
 	end
 end
@@ -1864,7 +1865,7 @@ function Velkoz:__init()
 	[3] = function (unit) return self:RDmg(unit) end,
 	}
 	
-	self.Spell = {
+	Spell = {
 	[0] = { range = 1000, delay =.25, width = 75, speed = 1150},
 	[-1]= { range = 1300, delay =.25, width = 75, speed = 813},
 	[1] = { delay = .1, speed = 1700, width = 100, range = 1050,type = "line",col=false},
@@ -1928,11 +1929,11 @@ end
 function Velkoz:Combo(unit)
 	if Mode == "Combo" and not self.ult then
 		if SReady[1] and ValidTarget(unit,1050) and BM.C.W:Value() then
-			CastGenericSkillShot(myHero,unit,self.Spell[1],1,BM.p)
+			CastGenericSkillShot(myHero,unit,Spell[1],1,BM.p)
 		end
 			
 		if SReady[2] and ValidTarget(unit,850) and BM.C.E:Value() then
-			CastGenericSkillShot(myHero,unit,self.Spell[2],2,BM.p)
+			CastGenericSkillShot(myHero,unit,Spell[2],2,BM.p)
 		end
 		if SReady[3] and ValidTarget(unit,1500) and unit.distance > 350 and unit.health + unit.shieldAD + unit.shieldAP < self:RDmg(unit) and BM.C.R:Value() then
 			--SetCursorPos(unit.pos2D.x,unit.pos2D.y)
@@ -1946,13 +1947,13 @@ end
 function Velkoz:Split()
 	local i = GetCurrentTarget()
 	if self.QBall then
-		local iPredN2 = GetPrediction(i,self.Spell[0],self.QBall.pos).castPos
+		local iPredN2 = GetPrediction(i,Spell[0],self.QBall.pos).castPos
 		self.QBall:Draw(100)
 		if GetCastName(myHero,0) ~= "VelkozQ" and GetDistance(self.QBall,iPredN2) < 1500 and GetDistance(self.QBall,iPredN2) > 50 and math.abs(Vector(self.QBall.pos-GetObjectSpellStartPos(self.QBall)):normalized()*Vector(self.QBall.pos-iPredN2):normalized()) < .1 then
 			CastSpell(0)
 		end
 	elseif not self.ult then
-		local iPred = GetPrediction(i,self.Spell[-1]).castPos
+		local iPred = GetPrediction(i,Spell[-1]).castPos
 		local iPred2D = WorldToScreen(0,iPred)
 		local lowest = 9999999
 		local lowestV = nil
@@ -2044,7 +2045,7 @@ class 'Jinx'
 function Jinx:__init()
 
 
-	self.Spell = {
+	Spell = {
 	[1] = { delay = 0.6, speed = 3000, width = 85, range = 1500,type = "line",col=true},
 	[2] = { delay = 1, speed = 887, width = 120, range = 900,type = "circular",col=false},
 	[3] = { delay = 0.6, speed = 1700, width = 140, range = math.huge,type = "line",col=false}
@@ -2170,12 +2171,12 @@ function Jinx:Combo(target)
 		end		
 	end
 	
-	if SReady[1] and ValidTarget(target, self.Spell[1].range) and BM.C.W:Value() and GetDistance(myHero,target)>100 then
-		CastGenericSkillShot(myHero,unit,self.Spell[1],1,BM.p)
+	if SReady[1] and ValidTarget(target, Spell[1].range) and BM.C.W:Value() and GetDistance(myHero,target)>100 then
+		CastGenericSkillShot(myHero,unit,Spell[1],1,BM.p)
 	end
 	
-	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() then
-		CastGenericSkillShot(myHero,unit,self.Spell[2],2,BM.p)
+	if SReady[2] and ValidTarget(target, Spell[2].range) and BM.C.E:Value() then
+		CastGenericSkillShot(myHero,unit,Spell[2],2,BM.p)
 	end	
 end
 
@@ -2204,12 +2205,12 @@ function Jinx:Harass(target)
 		end		
 	end
 	
-	if SReady[1] and ValidTarget(target, self.Spell[1].range) and BM.H.W:Value() and GetDistance(myHero,target)>100 then
-		CastGenericSkillShot(myHero,unit,self.Spell[1],1,BM.p)
+	if SReady[1] and ValidTarget(target, Spell[1].range) and BM.H.W:Value() and GetDistance(myHero,target)>100 then
+		CastGenericSkillShot(myHero,unit,Spell[1],1,BM.p)
 	end
 	
-	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.H.E:Value() then
-		CastGenericSkillShot(myHero,unit,self.Spell[2],2,BM.p)
+	if SReady[2] and ValidTarget(target, Spell[2].range) and BM.H.E:Value() then
+		CastGenericSkillShot(myHero,unit,Spell[2],2,BM.p)
 	end	
 end
 
@@ -2230,8 +2231,8 @@ function Jinx:LaneClear()
 				end	
 			end
 			
-			if SReady[1] and ValidTarget(minion, self.Spell[1].range) and BM.LC.W:Value() then
-				CastGenericSkillShot(myHero,unit,self.Spell[1],1,BM.p)
+			if SReady[1] and ValidTarget(minion, Spell[1].range) and BM.LC.W:Value() then
+				CastGenericSkillShot(myHero,unit,Spell[1],1,BM.p)
 			end
 		end
 	end
@@ -2254,8 +2255,8 @@ function Jinx:JungleClear()
 				end	
 			end
 			
-			if SReady[1] and ValidTarget(mob, self.Spell[1].range) and BM.LC.W:Value() then
-				CastGenericSkillShot(myHero,unit,self.Spell[1],1,BM.p)
+			if SReady[1] and ValidTarget(mob, Spell[1].range) and BM.LC.W:Value() then
+				CastGenericSkillShot(myHero,unit,Spell[1],1,BM.p)
 			end
 		end
 	end
@@ -2274,14 +2275,14 @@ end
 function Jinx:KS()
 	if not BM.KS.Enable:Value() then return end
 	for _,unit in pairs(GetEnemyHeroes()) do
-		if GetADHP(unit) < Dmg[1](unit) and SReady[1] and ValidTarget(unit, self.Spell[1].range) and BM.KS.W:Value() then
-			CastGenericSkillShot(myHero,unit,self.Spell[1],1,BM.p)
+		if GetADHP(unit) < Dmg[1](unit) and SReady[1] and ValidTarget(unit, Spell[1].range) and BM.KS.W:Value() then
+			CastGenericSkillShot(myHero,unit,Spell[1],1,BM.p)
 		end
-		if GetAPHP(unit) < Dmg[2](unit) and SReady[2] and ValidTarget(unit, self.Spell[2].range) and BM.KS.E:Value() then
-			CastGenericSkillShot(myHero,unit,self.Spell[2],2,BM.p)
+		if GetAPHP(unit) < Dmg[2](unit) and SReady[2] and ValidTarget(unit, Spell[2].range) and BM.KS.E:Value() then
+			CastGenericSkillShot(myHero,unit,Spell[2],2,BM.p)
 		end
 		if GetADHP(unit) < Dmg[3](unit) and SReady[3] and ValidTarget(unit, BM.KS.mDTT:Value()) and BM.KS.R:Value() and GetDistance(unit) >= BM.KS.DTT:Value() then
-			CastGenericSkillShot(myHero,unit,self.Spell[3],3,BM.p)
+			CastGenericSkillShot(myHero,unit,Spell[3],3,BM.p)
 		end
 	end
 end
@@ -2415,9 +2416,9 @@ end
 
 function Kalista:AAReset(unit, spell)
 	local ta = spell.target
-	if unit == myHero and ta ~= nil and spell.name:lower():find("attack") and SReady[0] and ValidTarget(ta, self.Spell[0].range) then
+	if unit == myHero and ta ~= nil and spell.name:lower():find("attack") and SReady[0] and ValidTarget(ta, Spell[0].range) then
 		if ((Mode == "Combo" and BM.C.Q:Value()) or (Mode == "Harass" and BM.H.Q:Value()) and GetObjectType(ta) == Obj_AI_Hero) or (Mode == "LaneClear" and ((BM.JC.Q:Value() and (GetObjectType(ta)==Obj_AI_Camp or GetObjectType(ta)==Obj_AI_Minion)) or (BM.LC.Q:Value() and GetObjectType(ta)==Obj_AI_Minion))) then
-			CastGenericSkillShot(myHero,unit,self.Spell[0],0,BM.p)
+			CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
 		end
 	end
 end
@@ -2432,8 +2433,8 @@ end
 
 function Kalista:KS()
 	for _,target in pairs(GetEnemyHeroes()) do
-		if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.KS.Q:Value() and GetADHP(target) < Dmg[0](target) then
-			CastGenericSkillShot(myHero,unit,self.Spell[0],0,BM.p)
+		if SReady[0] and ValidTarget(target, Spell[0].range) and BM.KS.Q:Value() and GetADHP(target) < Dmg[0](target) then
+			CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
 		end
 		if SReady[2] and ValidTarget(target, 1000) and BM.AE.UseC:Value() and (GetADHP(target) + BM.AE.OK:Value()) < Dmg[2](target) and self.eTrack[GetNetworkID(target)] > 0 then
 			DelayAction(function()
@@ -2441,7 +2442,7 @@ function Kalista:KS()
 			end, BM.AE.D:Value()*.01)
 		end
 		if SReady[2] and ValidTarget(target, 1100) and BM.AE.UseL:Value() and self.eTrack[GetNetworkID(target)] then
-			local Pred = GetPrediction(target,self.Spell[-1])
+			local Pred = GetPrediction(target,Spell[-1])
 			if GetDistance(Pred.castPos,GetOrigin(myHero))>999 then
 				CastSpell(2)
 			end
@@ -2612,15 +2613,15 @@ end
 
 
 function Nasus:Combo(unit)
-	if BM.c.Q:Value() and SReady[0] and ValidTarget(unit, self.Spell[0].range) then
+	if BM.c.Q:Value() and SReady[0] and ValidTarget(unit, Spell[0].range) then
 		CastSpell(0)
 		AttackUnit(unit)
 	end
-	if SReady[1] and BM.c.W:Value() and ValidTarget(unit, self.Spell[1].range) and GetPercentHP(unit) < BM.c.WHP:Value() then
+	if SReady[1] and BM.c.W:Value() and ValidTarget(unit, Spell[1].range) and GetPercentHP(unit) < BM.c.WHP:Value() then
 		CastTargetSpell(unit,1)
 	end		
-	if SReady[2] and BM.c.E:Value() and ValidTarget(unit, self.Spell[2].range) then
-		CastGenericSkillShot(myHero,unit,self.Spell[2],2,BM.p)
+	if SReady[2] and BM.c.E:Value() and ValidTarget(unit, Spell[2].range) then
+		CastGenericSkillShot(myHero,unit,Spell[2],2,BM.p)
 	end				
 end
 
@@ -2628,7 +2629,7 @@ function Nasus:Farm()
 	local mod = BM.f.QM:Value()
 	if (SReady[0] or CanUseSpell(myHero,0) == 8) and ((mod == 2 and Mode == "LaneClear") or (mod == 3 and Mode == "LastHit") or (mod == 1 and Mode ~= "Combo")) then
 		for _, creep in pairs(minionManager.objects) do
-			if Nasus:ValidCreep(creep, self.Spell[0].range) and GetCurrentHP(creep)<self.qDmg*2 and ((GetHealthPrediction(creep, GetWindUp(myHero))<CalcDamage(myHero, creep, self.qDmg, 0) and BM.c.QP:Value()) or (GetCurrentHP(creep)<CalcDamage(myHero, creep, self.qDmg, 0) and not BM.c.QP:Value())) then
+			if Nasus:ValidCreep(creep, Spell[0].range) and GetCurrentHP(creep)<self.qDmg*2 and ((GetHealthPrediction(creep, GetWindUp(myHero))<CalcDamage(myHero, creep, self.qDmg, 0) and BM.c.QP:Value()) or (GetCurrentHP(creep)<CalcDamage(myHero, creep, self.qDmg, 0) and not BM.c.QP:Value())) then
 				CastSpell(0)
 				AttackUnit(creep)
 				break
@@ -2642,12 +2643,12 @@ function Nasus:KS()
 		CastSpell(3)
 	end
 	for i,unit in pairs(GetEnemyHeroes()) do
-		if BM.ks.KSQ:Value() and Ready(0) and ValidTarget(unit, self.Spell[0].range) and GetCurrentHP(unit)+GetDmgShield(unit)+GetMagicShield(unit) < CalcDamage(myHero, unit, self.qDmg, 0) then
+		if BM.ks.KSQ:Value() and Ready(0) and ValidTarget(unit, Spell[0].range) and GetCurrentHP(unit)+GetDmgShield(unit)+GetMagicShield(unit) < CalcDamage(myHero, unit, self.qDmg, 0) then
 			CastSpell(0)
 			AttackUnit(unit)
 		end
-		if BM.ks.KSE:Value() and Ready(_E) and ValidTarget(unit,self.Spell[2].range) and GetCurrentHP(unit)+GetDmgShield(unit)+GetMagicShield(unit) <  CalcDamage(myHero, unit, 0, 15+40*GetCastLevel(myHero,_E)+GetBonusAP(myHero)*6) then 
-			CastGenericSkillShot(myHero,unit,self.Spell[2],2,BM.p)
+		if BM.ks.KSE:Value() and Ready(_E) and ValidTarget(unit,Spell[2].range) and GetCurrentHP(unit)+GetDmgShield(unit)+GetMagicShield(unit) <  CalcDamage(myHero, unit, 0, 15+40*GetCastLevel(myHero,_E)+GetBonusAP(myHero)*6) then 
+			CastGenericSkillShot(myHero,unit,Spell[2],2,BM.p)
 		end
 	end
 end
@@ -2682,7 +2683,7 @@ end
 class "Kindred"
 
 function Kindred:__init()
-	self.Spells = {
+	Spells = {
 	[0] = {range = 500, dash = 340, mana = 35},
 	[1] = {range = 800, duration = 8, mana = 40},
 	[2] = {range = 500, mana = 70, mana = 70},
@@ -2701,7 +2702,7 @@ function Kindred:__init()
 	}
 	self.BaseAS = GetBaseAttackSpeed(myHero)
 	self.AAPS = self.BaseAS*GetAttackSpeed(myHero)
-	self.WolfAA = self.Spells[1].duration*self.AAPS
+	self.WolfAA = Spells[1].duration*self.AAPS
 	basePos = Vector(0,0,0)
 	if GetTeam(myHero) == 100 then
 		basePos = Vector(415,182,415)
@@ -2778,7 +2779,7 @@ function Kindred:Tick()
 			end
 		end
 		if BM.Misc.WP:Value() then
-			if self:WallBetween(GetOrigin(myHero), GetMousePos(),  self.Spells[0].dash) and SReady[0] then
+			if self:WallBetween(GetOrigin(myHero), GetMousePos(),  Spells[0].dash) and SReady[0] then
 				CastSkillShot(0, GetMousePos())
 			end
 		end
@@ -2793,47 +2794,47 @@ function Kindred:Tick()
 end
 
 function Kindred:Combo(Unit)
-local AfterQ = GetOrigin(myHero) +(Vector(GetMousePos()) - GetOrigin(myHero)):normalized()*self.Spells[0].dash
+local AfterQ = GetOrigin(myHero) +(Vector(GetMousePos()) - GetOrigin(myHero)):normalized()*Spells[0].dash
 
-	if SReady[2] and SReady[0] and BM.Combo.QE:Value() and GetDistance(Unit) > self.Spells[0].range and GetDistance(AfterQ, Unit) <= 450 then
+	if SReady[2] and SReady[0] and BM.Combo.QE:Value() and GetDistance(Unit) > Spells[0].range and GetDistance(AfterQ, Unit) <= 450 then
 		CastSkillShot(0, GetMousePos())
 			DelayAction(function() CastTargetSpell(Unit, 2) end, 1)
 	end
-	if SReady[0] and BM.Combo.Q:Value() and ValidTarget(Unit, self.Spells[0].range) and BM.QOptions.QC:Value() == false or (GetDistance(Unit) > self.Spells[0].range and GetDistance(AfterQ, Unit) <= 450)  then
+	if SReady[0] and BM.Combo.Q:Value() and ValidTarget(Unit, Spells[0].range) and BM.QOptions.QC:Value() == false or (GetDistance(Unit) > Spells[0].range and GetDistance(AfterQ, Unit) <= 450)  then
     	CastSkillShot(0, GetMousePos()) 
 	end
-	if SReady[1] and BM.Combo.W:Value() and ValidTarget(Unit, self.Spells[1].range) then 
+	if SReady[1] and BM.Combo.W:Value() and ValidTarget(Unit, Spells[1].range) then 
 		CastSpell(1)
 	end
-	if SReady[2] and BM.Combo.E:Value() and ValidTarget(Unit, self.Spells[2].range) then 
+	if SReady[2] and BM.Combo.E:Value() and ValidTarget(Unit, Spells[2].range) then 
 		CastTargetSpell(Unit, 2)
 	end
 end
 
 function Kindred:LaneClear()
-	local QMana = (self.Spells[0].mana*100)/GetMaxMana(myHero)
-	local WMana = (self.Spells[1].mana*100)/GetMaxMana(myHero)
-	local EMana = (self.Spells[2].mana*100)/GetMaxMana(myHero)
+	local QMana = (Spells[0].mana*100)/GetMaxMana(myHero)
+	local WMana = (Spells[1].mana*100)/GetMaxMana(myHero)
+	local EMana = (Spells[2].mana*100)/GetMaxMana(myHero)
 	for _, mob in pairs(minionManager.objects) do	
 		if GetTeam(mob) == MINION_JUNGLE then
-			if BM.QOptions.QJ:Value() == false and SReady[0] and BM.JunglerClear.Q:Value() and ValidTarget(mob, self.Spells[0].range) and GetCurrentHP(mob) >= Dmg[0](mob) --[[and (GetPercentMP(myHero)- QMana) >= BM.JunglerClear.MM:Value()]] then 
+			if BM.QOptions.QJ:Value() == false and SReady[0] and BM.JunglerClear.Q:Value() and ValidTarget(mob, Spells[0].range) and GetCurrentHP(mob) >= Dmg[0](mob) --[[and (GetPercentMP(myHero)- QMana) >= BM.JunglerClear.MM:Value()]] then 
 				CastSkillShot(0, GetMousePos())
 			end
-			if SReady[1] and ValidTarget(mob, self.Spells[1].range) and IsTargetable(mob) and BM.JunglerClear.W:Value() and (GetPercentMP(myHero)- WMana) >= BM.JunglerClear.MM:Value() and self:TotalHp(self.Spells[1].range, myHero) >= Dmg[1](mob) + ((8/self.AAPS)*CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero)+self:PassiveDmg(mob))) then
+			if SReady[1] and ValidTarget(mob, Spells[1].range) and IsTargetable(mob) and BM.JunglerClear.W:Value() and (GetPercentMP(myHero)- WMana) >= BM.JunglerClear.MM:Value() and self:TotalHp(Spells[1].range, myHero) >= Dmg[1](mob) + ((8/self.AAPS)*CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero)+self:PassiveDmg(mob))) then
    				CastSpell(1)
     		end
-    		if SReady[2] and ValidTarget(mob, self.Spells[2].range) and BM.JunglerClear.E:Value() and (GetPercentMP(myHero)- EMana) >= BM.JunglerClear.MM:Value() and GetCurrentHP(mob) >= Dmg[2](mob) + (CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero))*3) then 
+    		if SReady[2] and ValidTarget(mob, Spells[2].range) and BM.JunglerClear.E:Value() and (GetPercentMP(myHero)- EMana) >= BM.JunglerClear.MM:Value() and GetCurrentHP(mob) >= Dmg[2](mob) + (CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero))*3) then 
    				CastTargetSpell(mob, 2)
    			end
   	 	end
 		if GetTeam(mob) == MINION_ENEMY then
-			if BM.QOptions.QL:Value() == false and SReady[0] and BM.LaneClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= BM.LaneClear.MM:Value() and ValidTarget(mob, self.Spells[0].range) and GetCurrentHP(mob) >= Dmg[0](mob) then 
+			if BM.QOptions.QL:Value() == false and SReady[0] and BM.LaneClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= BM.LaneClear.MM:Value() and ValidTarget(mob, Spells[0].range) and GetCurrentHP(mob) >= Dmg[0](mob) then 
 				CastSkillShot(0, GetMousePos())
 			end
-			if SReady[1] and ValidTarget(mob, self.Spells[1].range) and BM.LaneClear.W:Value() and (GetPercentMP(myHero)- WMana) >= BM.LaneClear.MM:Value() and self:TotalHp(self.Spells[1].range, myHero) >= Dmg[1](mob) + ((8/self.AAPS)*CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero)+self:PassiveDmg(mob))) then 
+			if SReady[1] and ValidTarget(mob, Spells[1].range) and BM.LaneClear.W:Value() and (GetPercentMP(myHero)- WMana) >= BM.LaneClear.MM:Value() and self:TotalHp(Spells[1].range, myHero) >= Dmg[1](mob) + ((8/self.AAPS)*CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero)+self:PassiveDmg(mob))) then 
 				CastSpell(1)
 			end
-			if SReady[2] and ValidTarget(mob, self.Spells[2].range) and BM.LaneClear.E:Value() and (GetPercentMP(myHero)- EMana) >= BM.LaneClear.MM:Value() and GetCurrentHP(mob) >= Dmg[2](mob) + (CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero))*3) then 
+			if SReady[2] and ValidTarget(mob, Spells[2].range) and BM.LaneClear.E:Value() and (GetPercentMP(myHero)- EMana) >= BM.LaneClear.MM:Value() and GetCurrentHP(mob) >= Dmg[2](mob) + (CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero))*3) then 
 				CastTargetSpell(mob, 2)
 			end
 		end
@@ -2843,7 +2844,7 @@ end
 function Kindred:AutoR()
 	if BM.ROptions.R:Value() and not self.Recalling and not IsDead(myHero) and SReady[3] then
 		for i, allies in pairs(GetAllyHeroes()) do
-			if GetPercentHP(allies) <= 20 and BM.ROptions["Pleb"..GetObjectName(allies)] and not IsDead(allies) and GetDistance(allies) <= self.Spells[3].range2 and EnemiesAround(allies, 1500) >= BM.ROptions.EA:Value() then
+			if GetPercentHP(allies) <= 20 and BM.ROptions["Pleb"..GetObjectName(allies)] and not IsDead(allies) and GetDistance(allies) <= Spells[3].range2 and EnemiesAround(allies, 1500) >= BM.ROptions.EA:Value() then
 				CastTargetSpell(myHero, 3)
 			end
 		end
@@ -2854,7 +2855,7 @@ function Kindred:AutoR()
 end
 
 function Kindred:OnProcComplete(unit, spell)
-	local QMana = (self.Spells[0].mana*100)/GetMaxMana(myHero)
+	local QMana = (Spells[0].mana*100)/GetMaxMana(myHero)
 	if unit == myHero then
 		if spell.name:lower():find("attack") then
 			if Mode == "LaneClear" then 
@@ -3272,22 +3273,22 @@ function Vladimir:Tick()
 end
 
 function Vladimir:Combo(target)
-	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() then
+	if SReady[0] and ValidTarget(target, Spell[0].range) and BM.C.Q:Value() then
 		CastTargetSpell(target,0)
 	end
-	if SReady[2] or self.ECharge and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() then
+	if SReady[2] or self.ECharge and ValidTarget(target, Spell[2].range) and BM.C.E:Value() then
 		CastSkillShot(2,myHero.pos)
 	end
-	if SReady[3] and ValidTarget(target, self.Spell[3].range) and BM.C.R:Value() and EnemiesAround(GetOrigin(target), self.Spell[3].radius) >= BM.C.REA:Value() then
-		CastGenericSkillShot(myHero,unit,self.Spell[3],3,BM.p)
+	if SReady[3] and ValidTarget(target, Spell[3].range) and BM.C.R:Value() and EnemiesAround(GetOrigin(target), Spell[3].radius) >= BM.C.REA:Value() then
+		CastGenericSkillShot(myHero,unit,Spell[3],3,BM.p)
 	end
 end
 
 function Vladimir:Harass(target)
-	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.H.Q:Value() then
+	if SReady[0] and ValidTarget(target, Spell[0].range) and BM.H.Q:Value() then
 		CastTargetSpell(target,0)
 	end
-	if (SReady[2] or (self.ECharge and GetGameTimer() - self.ECharge < 1)) and ValidTarget(target, self.Spell[2].range) and BM.H.E:Value() then
+	if (SReady[2] or (self.ECharge and GetGameTimer() - self.ECharge < 1)) and ValidTarget(target, Spell[2].range) and BM.H.E:Value() then
 		CastSkillShot(2,myHero.pos)
 	end
 end
@@ -3295,10 +3296,10 @@ end
 function Vladimir:LaneClear()
 	for _,minion in pairs(minionManager.objects) do
 		if GetTeam(minion) == MINION_ENEMY then
-			if SReady[0] and ValidTarget(minion, self.Spell[0].range) and BM.LC.Q:Value() then
+			if SReady[0] and ValidTarget(minion, Spell[0].range) and BM.LC.Q:Value() then
 				CastTargetSpell(minion,0)
 			end
-			if (SReady[2] or (self.ECharge and GetGameTimer() - self.ECharge < 1)) and ValidTarget(minion, self.Spell[2].range) and BM.LC.E:Value() then
+			if (SReady[2] or (self.ECharge and GetGameTimer() - self.ECharge < 1)) and ValidTarget(minion, Spell[2].range) and BM.LC.E:Value() then
 				CastSkillShot(2,myHero.pos)
 			end
 		end
@@ -3308,10 +3309,10 @@ end
 function Vladimir:JungleClear()
 	for _,mob in pairs(minionManager.objects) do
 		if GetTeam(mob) == MINION_JUNGLE then
-			if SReady[0] and ValidTarget(mob, self.Spell[0].range) and BM.JC.Q:Value() then
+			if SReady[0] and ValidTarget(mob, Spell[0].range) and BM.JC.Q:Value() then
 				CastTargetSpell(mob,0)
 			end
-			if (SReady[2] or (self.ECharge and GetGameTimer() - self.ECharge < 1)) and ValidTarget(mob, self.Spell[2].range) and BM.JC.E:Value() then
+			if (SReady[2] or (self.ECharge and GetGameTimer() - self.ECharge < 1)) and ValidTarget(mob, Spell[2].range) and BM.JC.E:Value() then
 				CastSkillShot(2,myHero.pos)
 			end
 		end
@@ -3320,15 +3321,15 @@ end
 
 function Vladimir:KS()
 	for _,target in pairs(GetEnemyHeroes()) do
-		if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.KS.Q:Value() and GetAPHP(target) < Dmg[0](target) then
+		if SReady[0] and ValidTarget(target, Spell[0].range) and BM.KS.Q:Value() and GetAPHP(target) < Dmg[0](target) then
 			CastTargetSpell(target,0)
 		end
-		if (SReady[2] or (self.ECharge and GetGameTimer() - self.ECharge < 1)) and ValidTarget(target, self.Spell[2].range) and BM.KS.E:Value() and GetAPHP(target) < Dmg[2](target) then
+		if (SReady[2] or (self.ECharge and GetGameTimer() - self.ECharge < 1)) and ValidTarget(target, Spell[2].range) and BM.KS.E:Value() and GetAPHP(target) < Dmg[2](target) then
 			CastSkillShot(2,myHero.pos)
 		end
-		if SReady[3] and ValidTarget(target, self.Spell[3].range) and BM.KS.R:Value() and GetAPHP(target) < Dmg[3](target) then
-			local Pred = GetCircularAOEPrediction(target, self.Spell[3])
-			if Pred.hitChance >= BM.p.hR:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < self.Spell[3].range then
+		if SReady[3] and ValidTarget(target, Spell[3].range) and BM.KS.R:Value() and GetAPHP(target) < Dmg[3](target) then
+			local Pred = GetCircularAOEPrediction(target, Spell[3])
+			if Pred.hitChance >= BM.p.hR:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < Spell[3].range then
 				CastSkillShot(3,Pred.castPos)
 			end
 		end
@@ -3485,43 +3486,43 @@ function Orianna:D()
 			end
 		end
 		if BM.Dr.Q:Value() and SReady[0] then
-			DrawCircle(myHero.pos,self.Spell[0].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+			DrawCircle(myHero.pos,Spell[0].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
 		end
 		if BM.Dr.W:Value() and SReady[1] then
-			DrawCircle(self.Ball.pos,self.Spell[1].radius,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+			DrawCircle(self.Ball.pos,Spell[1].radius,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
 		end
 		if BM.Dr.E:Value() and SReady[2] then
-			DrawCircle(myHero.pos,self.Spell[2].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+			DrawCircle(myHero.pos,Spell[2].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
 		end
 		if BM.Dr.R:Value() and SReady[3] then
-			DrawCircle(self.Ball.pos,self.Spell[3].radius,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+			DrawCircle(self.Ball.pos,Spell[3].radius,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
 		end
 	end
 end
 
 function Orianna:Combo(target)
-	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() then
-		CastGenericSkillShot(myHero,unit,self.Spell[0],0,BM.p)
+	if SReady[0] and ValidTarget(target, Spell[0].range) and BM.C.Q:Value() then
+		CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
 	end
-	if SReady[1] and BM.C.W:Value() and EnemiesAround(self.Ball.pos, self.Spell[1].radius) >= BM.C.Wm:Value() then
+	if SReady[1] and BM.C.W:Value() and EnemiesAround(self.Ball.pos, Spell[1].radius) >= BM.C.Wm:Value() then
 		CastSpell(1)
 	end
-	if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() then
+	if SReady[2] and ValidTarget(target, Spell[2].range) and BM.C.E:Value() then
 		local VP = VectorPointProjectionOnLineSegment(Vector(myHero), Vector(target), Vector(self.Ball))
-		if GetDistance(VP, target) < self.Spell[2].radius then
+		if GetDistance(VP, target) < Spell[2].radius then
 			CastSpell(2)
 		end
 	end
-	if SReady[3] and BM.C.R:Value() and EnemiesAround(self.Ball.pos, self.Spell[3].radius) >= BM.C.Rm:Value() then
+	if SReady[3] and BM.C.R:Value() and EnemiesAround(self.Ball.pos, Spell[3].radius) >= BM.C.Rm:Value() then
 		CastSpell(3)
 	end
 end
 
 function Orianna:Harass(target)
-	if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.H.Q:Value() then
-		CastGenericSkillShot(myHero,unit,self.Spell[0],0,BM.p)
+	if SReady[0] and ValidTarget(target, Spell[0].range) and BM.H.Q:Value() then
+		CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
 	end
-	if SReady[1] and BM.H.W:Value() and EnemiesAround(self.Ball.pos, self.Spell[1].radius) >= BM.H.Wm:Value() then
+	if SReady[1] and BM.H.W:Value() and EnemiesAround(self.Ball.pos, Spell[1].radius) >= BM.H.Wm:Value() then
 		CastSpell(1)
 	end
 end
@@ -3529,10 +3530,10 @@ end
 function Orianna:LaneClear()
 	for _,minion in pairs(minionManager.objects) do
 		if minion.team == MINION_ENEMY then
-			if SReady[0] and ValidTarget(minion, self.Spell[0].range) and BM.LC.Q:Value() then
-				CastGenericSkillShot(myHero,unit,self.Spell[0],0,BM.p)
+			if SReady[0] and ValidTarget(minion, Spell[0].range) and BM.LC.Q:Value() then
+				CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
 			end
-			if SReady[1] and BM.LC.W:Value() and EnemyMinionsAround(self.Ball.pos, self.Spell[1].radius) >= BM.LC.Wm:Value() then
+			if SReady[1] and BM.LC.W:Value() and EnemyMinionsAround(self.Ball.pos, Spell[1].radius) >= BM.LC.Wm:Value() then
 				CastSpell(1)
 			end		
 		end
@@ -3542,15 +3543,15 @@ end
 function Orianna:JungleClear()
 	for _,minion in pairs(minionManager.objects) do
 		if minion.team == MINION_JUNGLE then
-			if SReady[0] and ValidTarget(minion, self.Spell[0].range) and BM.JC.Q:Value() then
-				CastGenericSkillShot(myHero,unit,self.Spell[0],0,BM.p)
+			if SReady[0] and ValidTarget(minion, Spell[0].range) and BM.JC.Q:Value() then
+				CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
 			end
-			if SReady[1] and BM.JC.W:Value() and JungleMinionsAround(self.Ball.pos, self.Spell[1].radius) >= BM.JC.Wm:Value() then
+			if SReady[1] and BM.JC.W:Value() and JungleMinionsAround(self.Ball.pos, Spell[1].radius) >= BM.JC.Wm:Value() then
 				CastSpell(1)
 			end	
-			if SReady[2] and ValidTarget(minion, self.Spell[2].range) and BM.JC.E:Value() then
+			if SReady[2] and ValidTarget(minion, Spell[2].range) and BM.JC.E:Value() then
 				local VP = VectorPointProjectionOnLineSegment(Vector(myHero), Vector(minion), Vector(self.Ball))
-				if GetDistance(VP, minion) < self.Spell[2].radius then
+				if GetDistance(VP, minion) < Spell[2].radius then
 					CastSpell(2)
 				end
 			end			
@@ -3560,19 +3561,19 @@ end
 
 function Orianna:KS()
 	for _,target in pairs(GetEnemyHeroes()) do
-		if SReady[0] and ValidTarget(target, self.Spell[0].range) and BM.C.Q:Value() and GetAPHP(target) < Dmg[0](target) then
-			CastGenericSkillShot(myHero,unit,self.Spell[0],0,BM.p)
+		if SReady[0] and ValidTarget(target, Spell[0].range) and BM.C.Q:Value() and GetAPHP(target) < Dmg[0](target) then
+			CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
 		end
-		if SReady[1] and BM.C.W:Value() and EnemiesAround(self.Ball.pos, self.Spell[1].radius) >= BM.C.Wm:Value() and GetAPHP(target) < Dmg[1](target) then
+		if SReady[1] and BM.C.W:Value() and EnemiesAround(self.Ball.pos, Spell[1].radius) >= BM.C.Wm:Value() and GetAPHP(target) < Dmg[1](target) then
 			CastSpell(1)
 		end
-		if SReady[2] and ValidTarget(target, self.Spell[2].range) and BM.C.E:Value() and GetAPHP(target) < Dmg[2](target) then
+		if SReady[2] and ValidTarget(target, Spell[2].range) and BM.C.E:Value() and GetAPHP(target) < Dmg[2](target) then
 			local VP = VectorPointProjectionOnLineSegment(Vector(myHero), Vector(target), Vector(self.Ball))
-			if GetDistance(VP, target) < self.Spell[2].radius then
+			if GetDistance(VP, target) < Spell[2].radius then
 				CastSpell(2)
 			end
 		end
-		if SReady[3] and BM.C.R:Value() and EnemiesAround(self.Ball.pos, self.Spell[3].radius) >= BM.C.Rm:Value() and GetAPHP(target) < Dmg[3](target) then
+		if SReady[3] and BM.C.R:Value() and EnemiesAround(self.Ball.pos, Spell[3].radius) >= BM.C.Rm:Value() and GetAPHP(target) < Dmg[3](target) then
 			CastSpell(3)
 		end
 	end
@@ -3688,14 +3689,14 @@ end
 
 function Veigar:Combo(u)	
 	if u then
-		if BM.C.Q:Value() and SReady[0] and ValidTarget(u, self.Spell[0].range+10) then
-			local QPred = GetPrediction(u,self.Spell[0])
+		if BM.C.Q:Value() and SReady[0] and ValidTarget(u, Spell[0].range+10) then
+			local QPred = GetPrediction(u,Spell[0])
 			if QPred.hitChance >= (BM.p.hQ:Value()/100) then				
 				CastSkillShot(0,QPred.castPos)
 			end
 		end		
-		if BM.C.W:Value() and SReady[1] and ValidTarget(u, self.Spell[1].range) then
-			local WPred = GetCircularAOEPrediction(u, self.Spell[1])
+		if BM.C.W:Value() and SReady[1] and ValidTarget(u, Spell[1].range) then
+			local WPred = GetCircularAOEPrediction(u, Spell[1])
 			if WPred.hitChance >= (BM.p.hW:Value()/100) then				
 				CastSkillShot(1,WPred.castPos)
 			end
@@ -3708,14 +3709,14 @@ end
 
 function Veigar:Harass(u)	
 	if u then
-		if BM.H.Q:Value() and SReady[0] and ValidTarget(u, self.Spell[0].range+10) then
-			local QPred = GetPrediction(u,self.Spell[0])
+		if BM.H.Q:Value() and SReady[0] and ValidTarget(u, Spell[0].range+10) then
+			local QPred = GetPrediction(u,Spell[0])
 			if QPred.hitChance >= (BM.p.hQ:Value()/100) and (not QPred:mCollision() or #QPred:mCollision() < 2) then				
 				CastSkillShot(0,QPred.castPos)
 			end
 		end		
-		if BM.H.W:Value() and SReady[1] and ValidTarget(u, self.Spell[1].range) then
-			local WPred = GetCircularAOEPrediction(u, self.Spell[1])
+		if BM.H.W:Value() and SReady[1] and ValidTarget(u, Spell[1].range) then
+			local WPred = GetCircularAOEPrediction(u, Spell[1])
 			if WPred.hitChance >= (BM.p.hW:Value()/100) then				
 				CastSkillShot(1,WPred.castPos)
 			end
@@ -3728,8 +3729,8 @@ end
 
 function Veigar:LaneClear()	
 	for _,i in pairs(minionManager.objects) do
-		if i.team == MINION_ENEMY and BM.LC.W:Value() and SReady[1] and ValidTarget(i, self.Spell[1].range) then
-			local WPred = GetCircularAOEPrediction(i, self.Spell[1])
+		if i.team == MINION_ENEMY and BM.LC.W:Value() and SReady[1] and ValidTarget(i, Spell[1].range) then
+			local WPred = GetCircularAOEPrediction(i, Spell[1])
 			if WPred.hitChance >= (BM.p.hW:Value()/100) then				
 				CastSkillShot(1,WPred.castPos)
 			end
@@ -3739,8 +3740,8 @@ end
 
 function Veigar:JungleClear()
 	for _,i in pairs(minionManager.objects) do
-		if i.team == MINION_JUNGLE and BM.JC.W:Value() and SReady[1] and ValidTarget(i, self.Spell[1].range) then
-			local WPred = GetCircularAOEPrediction(i, self.Spell[1])
+		if i.team == MINION_JUNGLE and BM.JC.W:Value() and SReady[1] and ValidTarget(i, Spell[1].range) then
+			local WPred = GetCircularAOEPrediction(i, Spell[1])
 			if WPred.hitChance >= (BM.p.hW:Value()/100) then				
 				CastSkillShot(1,WPred.castPos)
 			end
@@ -3750,27 +3751,27 @@ end
 
 function Veigar:KS()
 	for _,i in pairs(GetEnemyHeroes()) do
-		if BM.KS.Q:Value() and SReady[0] and ValidTarget(i, self.Spell[0].range) and GetAPHP(i) < Dmg[0](i) then
-			local QPred = GetPrediction(i,self.Spell[0])
+		if BM.KS.Q:Value() and SReady[0] and ValidTarget(i, Spell[0].range) and GetAPHP(i) < Dmg[0](i) then
+			local QPred = GetPrediction(i,Spell[0])
 			if QPred.hitChance >= (BM.p.hQ:Value()/100) and (not QPred:mCollision() or #QPred:mCollision() < 2) then				
 				CastSkillShot(0,QPred.castPos)
 			end
 		end
-		if BM.KS.W:Value() and SReady[1] and ValidTarget(i, self.Spell[1].range) and GetAPHP(i) < Dmg[1](i) then
-			local WPred = GetCircularAOEPrediction(i, self.Spell[1])
+		if BM.KS.W:Value() and SReady[1] and ValidTarget(i, Spell[1].range) and GetAPHP(i) < Dmg[1](i) then
+			local WPred = GetCircularAOEPrediction(i, Spell[1])
 			if WPred.hitChance >= (BM.p.hW:Value()/100) then				
 				CastSkillShot(1,WPred.castPos)
 			end
 		end	
-		if BM.KS.R:Value() and SReady[3] and ValidTarget(i, self.Spell[3].range) and GetAPHP(i) < Dmg[3](i) then 
+		if BM.KS.R:Value() and SReady[3] and ValidTarget(i, Spell[3].range) and GetAPHP(i) < Dmg[3](i) then 
 			CastTargetSpell(i,3)
 		end	
 	end
 end
 
 function Veigar:AutoW(u)
-	if u and BM.AW:Value() and SReady[1] and ValidTarget(u,self.Spell[1].range) and self.CC then
-	local WPred = GetCircularAOEPrediction(u, self.Spell[1])
+	if u and BM.AW:Value() and SReady[1] and ValidTarget(u,Spell[1].range) and self.CC then
+	local WPred = GetCircularAOEPrediction(u, Spell[1])
 		if WPred.hitChance >= (BM.p.hW:Value()/100) then			
 			CastSkillShot(1,WPred.castPos)
 		end
@@ -3779,8 +3780,8 @@ end
 
 function Veigar:castE(u)
 	if u and SReady[2] and ValidTarget(u, 725) then
-		local EPred = GetCircularAOEPrediction(u, self.Spell[2])
-		local EMove = GetPrediction(u, self.Spell[-1])
+		local EPred = GetCircularAOEPrediction(u, Spell[2])
+		local EMove = GetPrediction(u, Spell[-1])
 		if GetDistance(EMove.castPos , myHero.pos) < GetDistance(u.pos,myHero.pos) then
 			EPred.castPos = Vector(EPred.castPos)+((Vector(EPred.castPos)-myHero.pos):normalized()*325)
 		else
@@ -3793,8 +3794,8 @@ end
 function Veigar:FarmQ()
 	if BM.f.AQ:Value() and SReady[0] and Mode ~= "Combo" then
 		for _,i in pairs(minionManager.objects) do
-			if i.team ~= MINION_ALLY and ValidTarget(i,self.Spell[0].range) and GetAPHP(i) < Dmg[0](i) then
-				local QPred = GetPrediction(i,self.Spell[0])			
+			if i.team ~= MINION_ALLY and ValidTarget(i,Spell[0].range) and GetAPHP(i) < Dmg[0](i) then
+				local QPred = GetPrediction(i,Spell[0])			
 				if not QPred:mCollision() or #QPred:mCollision() < 2 then
 					CastSkillShot(0,QPred.castPos)
 				end
@@ -3955,13 +3956,13 @@ function Ahri:D()
 			end
 		end
 		if BM.Dr.Q:Value() and SReady[0] then
-			DrawCircle(myHero.pos,self.Spell[0].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+			DrawCircle(myHero.pos,Spell[0].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
 		end
 		if BM.Dr.E:Value() and SReady[2] then
-			DrawCircle(myHero.pos,self.Spell[2].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+			DrawCircle(myHero.pos,Spell[2].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
 		end
 		if BM.Dr.R:Value() and SReady[3] then
-			DrawCircle(myHero.pos,self.Spell[3].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+			DrawCircle(myHero.pos,Spell[3].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
 		end
 	end
 end
@@ -3994,14 +3995,14 @@ end
 
 function Ahri:Combo(u)	
 	if u then
-		if BM.C.Q:Value() and SReady[0] and ValidTarget(u, self.Spell[0].range) then
-			CastGenericSkillShot(myHero,u,self.Spell[0],0,BM.p)
+		if BM.C.Q:Value() and SReady[0] and ValidTarget(u, Spell[0].range) then
+			CastGenericSkillShot(myHero,u,Spell[0],0,BM.p)
 		end		
 		if BM.C.W:Value() and SReady[1] and ValidTarget(u, myHero.range+myHero.boundingRadius) then
 			CastSpell(1)
 		end	
-		if BM.C.E:Value() and SReady[2] and ValidTarget(u, self.Spell[2].range) then
-			CastGenericSkillShot(myHero,u,self.Spell[2],2,BM.p)
+		if BM.C.E:Value() and SReady[2] and ValidTarget(u, Spell[2].range) then
+			CastGenericSkillShot(myHero,u,Spell[2],2,BM.p)
 		end	
 		if BM.C.R.E:Value() and SReady[3] and ValidTarget(u, 1000) and GetPercentHP(myHero) <= BM.C.R.MHP:Value() and GetPercentHP(u) <= BM.C.R.EHP:Value() and EnemyHeroesAround(myHero.pos,1000) >= BM.C.R.EAR:Value() and AllyHeroesAround(myHero.pos,1000) >= BM.C.R.AAR:Value() then
 			if BM.C.R.RM:Value() == 1 then
@@ -4016,14 +4017,14 @@ end
 
 function Ahri:Harass(u)	
 	if u then
-		if BM.C.Q:Value() and SReady[0] and ValidTarget(u, self.Spell[0].range) then
-			CastGenericSkillShot(myHero,u,self.Spell[0],0,BM.p)
+		if BM.C.Q:Value() and SReady[0] and ValidTarget(u, Spell[0].range) then
+			CastGenericSkillShot(myHero,u,Spell[0],0,BM.p)
 		end		
 		if BM.C.W:Value() and SReady[1] and ValidTarget(u, myHero.range+myHero.boundingRadius) then
 			CastSpell(1)
 		end	
-		if BM.C.E:Value() and SReady[2] and ValidTarget(u, self.Spell[2].range) then
-			CastGenericSkillShot(myHero,u,self.Spell[2],2,BM.p)
+		if BM.C.E:Value() and SReady[2] and ValidTarget(u, Spell[2].range) then
+			CastGenericSkillShot(myHero,u,Spell[2],2,BM.p)
 		end	
 	end
 end
@@ -4031,14 +4032,14 @@ end
 function Ahri:LaneClear()	
 	for _,i in pairs(minionManager.objects) do
 		if i.team == MINION_ENEMY then
-			if BM.JC.Q:Value() and SReady[0] and ValidTarget(i, self.Spell[0].range) then
-				CastGenericSkillShot(myHero,i,self.Spell[0],0,BM.p)
+			if BM.JC.Q:Value() and SReady[0] and ValidTarget(i, Spell[0].range) then
+				CastGenericSkillShot(myHero,i,Spell[0],0,BM.p)
 			end		
 			if BM.JC.W:Value() and SReady[1] and ValidTarget(i, myHero.range+myHero.boundingRadius) then
 				CastSpell(1)
 			end	
-			if BM.JC.E:Value() and SReady[2] and ValidTarget(i, self.Spell[2].range) then
-				CastGenericSkillShot(myHero,i,self.Spell[2],2,BM.p)
+			if BM.JC.E:Value() and SReady[2] and ValidTarget(i, Spell[2].range) then
+				CastGenericSkillShot(myHero,i,Spell[2],2,BM.p)
 			end	
 		end
 	end
@@ -4047,14 +4048,14 @@ end
 function Ahri:JungleClear()
 	for _,i in pairs(minionManager.objects) do
 		if i.team == MINION_JUNGLE then
-			if BM.JC.Q:Value() and SReady[0] and ValidTarget(i, self.Spell[0].range) then
-				CastGenericSkillShot(myHero,i,self.Spell[0],0,BM.p)
+			if BM.JC.Q:Value() and SReady[0] and ValidTarget(i, Spell[0].range) then
+				CastGenericSkillShot(myHero,i,Spell[0],0,BM.p)
 			end		
 			if BM.JC.W:Value() and SReady[1] and ValidTarget(i, myHero.range+myHero.boundingRadius) then			
 				CastSpell(1)
 			end	
-			if BM.JC.E:Value() and SReady[2] and ValidTarget(i, self.Spell[2].range) then
-				CastGenericSkillShot(myHero,i,self.Spell[2],2,BM.p)
+			if BM.JC.E:Value() and SReady[2] and ValidTarget(i, Spell[2].range) then
+				CastGenericSkillShot(myHero,i,Spell[2],2,BM.p)
 			end	
 		end
 	end
@@ -4062,14 +4063,14 @@ end
 
 function Ahri:KS()
 	for _,i in pairs(GetEnemyHeroes()) do
-		if BM.KS.Q:Value() and SReady[0] and ValidTarget(i, self.Spell[0].range) and GetAPHP(i) < Dmg[0](i) then
-			CastGenericSkillShot(myHero,i,self.Spell[0],0,BM.p)
+		if BM.KS.Q:Value() and SReady[0] and ValidTarget(i, Spell[0].range) and GetAPHP(i) < Dmg[0](i) then
+			CastGenericSkillShot(myHero,i,Spell[0],0,BM.p)
 		end
 		if BM.KS.W:Value() and SReady[1] and ValidTarget(i, myHero.range+myHero.boundingRadius) and GetAPHP(i) < Dmg[1](i) then
 			CastSpell(1)
 		end	
-		if BM.KS.E:Value() and SReady[2] and ValidTarget(i, self.Spell[2].range) and GetAPHP(i) < Dmg[2](i) then
-			CastGenericSkillShot(myHero,i,self.Spell[2],2,BM.p)
+		if BM.KS.E:Value() and SReady[2] and ValidTarget(i, Spell[2].range) and GetAPHP(i) < Dmg[2](i) then
+			CastGenericSkillShot(myHero,i,Spell[2],2,BM.p)
 		end	
 		if BM.KS.R.E:Value() and SReady[3] and ValidTarget(i, 1000) and GetAPHP(i) < Dmg[3](i) then
 			if BM.KS.R.RM:Value() == 1 then
@@ -4084,8 +4085,8 @@ end
 
 function Ahri:AutoQ()
 	for _,i in pairs(GetEnemyHeroes()) do
-		if i and BM.AQ:Value() and SReady[0] and ValidTarget(i,self.Spell[0].range) and self.CC then
-			CastGenericSkillShot(myHero,i,self.Spell[0],0,BM.p)
+		if i and BM.AQ:Value() and SReady[0] and ValidTarget(i,Spell[0].range) and self.CC then
+			CastGenericSkillShot(myHero,i,Spell[0],0,BM.p)
 		end
 	end
 end
@@ -4583,7 +4584,7 @@ end
 
 function HitMe:MinionCollision(_,i)
 	if i.spell.type == "Line" and i.spell.mcollision and i.p and SLS.SB.EC:Value() and not i.hcoll and not i.wcoll then
-		i.spell.range2 = self.Spells[_].range
+		i.spell.range2 = Spells[_].range
 		for m,p in pairs(minionManager.objects) do
 			if p and p.alive and p.team == MINION_ALLY and GetDistance(p.pos,i.p.startPos) < i.spell.range2 then
 				local vP = VectorPointProjectionOnLineSegment(Vector(self.opos),i.p.endPos,Vector(p))
@@ -4600,7 +4601,7 @@ end
 
 function HitMe:HeroCollsion(_,i)
 	if i.spell.type == "Line" and i.spell.mcollision and i.p and SLS.SB.EC:Value() and not i.mcoll and not i.wcoll then
-		i.spell.range2 = self.Spells[_].range
+		i.spell.range2 = Spells[_].range
 		for m,p in pairs(heroes) do
 			if p and p.alive and p.team == MINION_ALLY and GetDistance(p.pos,i.p.startPos) < i.spell.range2 then
 				local vP = VectorPointProjectionOnLineSegment(Vector(self.opos),i.p.endPos,Vector(p))
@@ -4617,7 +4618,7 @@ end
 
 function HitMe:WallCollision(_,i)
 	if i.spell.type == "Line" and i.spell.mcollision and i.p and SLS.SB.EC:Value() and not i.mcoll and not i.hcoll then
-		i.spell.range2 = self.Spells[_].range
+		i.spell.range2 = Spells[_].range
 		for m,p in pairs(self.YasuoWall) do
 			if p.obj and p.obj.valid and p.obj.spellOwner.team == MINION_ALLY and GetDistance(p.obj.pos,i.p.startPos) < i.spell.range2 then
 				local vP = VectorPointProjectionOnLineSegment(Vector(self.opos),i.p.endPos,Vector(p.obj))
@@ -4758,7 +4759,7 @@ end
 
 function Humanizer:SpellCast(spell)
 	if SLU.Hum.enable1:Value() then
-		if os.clock() - self.lastspell < self:Spells() then
+		if os.clock() - self.lastspell < Spells() then
 		  BlockCast()
 		  self.bCount1 = self.bCount1 + 1
 		else
@@ -6331,10 +6332,10 @@ function SLEvade:__init()
 	EMenu:Boolean("D","DEBUG",false)
 	
 	DelayAction(function()
-		for _,i in pairs(self.Spells) do
+		for _,i in pairs(Spells) do
 			for l,k in pairs(GetEnemyHeroes()) do
 			-- k = myHero
-				if not self.Spells[_] then return end
+				if not Spells[_] then return end
 				if i.charName == k.charName and self.supportedtypes[i.type].supported then
 					if i.displayname == "" then i.displayname = _ end
 					if i.danger == 0 then i.danger = 1 end
@@ -6385,7 +6386,7 @@ function SLEvade:__init()
 	Callback.Add("WndMsg", function(s1,s2) self:WndMsg(s1,s2) end)
 	Callback.Add("IssueOrder", function(order) self:BlockMov(order) end)
 
-self.Spells = {
+Spells = {
 	["AatroxQ"]={charName="Aatrox",slot=0,type="Circle",delay=0.6,range=650,radius=250,speed=2000,addHitbox=true,danger=3,dangerous=true,proj="nil",killTime=0.225,displayname="Dark Flight",mcollision=false},
 	["AatroxE"]={charName="Aatrox",slot=2,type="Line",delay=0.25,range=1075,radius=35,speed=1250,addHitbox=true,danger=3,dangerous=false,proj="AatroxEConeMissile",killTime=0,displayname="Blade of Torment",mcollision=false},
 	["AhriOrbofDeception"]={charName="Ahri",slot=0,type="Line",delay=0.25,range=1000,radius=100,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="AhriOrbMissile",killTime=0,displayname="Orb of Deception",mcollision=false},
@@ -6702,7 +6703,7 @@ self.EvadeSpells = {
 	-- },
 }
 DelayAction(function()
-	for _,i in pairs(self.Spells) do
+	for _,i in pairs(Spells) do
 		for kk,k in pairs(GetEnemyHeroes()) do
 			if i.displayname == "" then i.displayname = _ end
 			if i.charName == k.charName then
@@ -6815,7 +6816,7 @@ end
 
 function SLEvade:MinionCollision(_,i)
 	if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EMC:Value() and (i.debug or EMenu.Spells[_]["Coll".._]:Value()) and not i.hcoll and not i.wcoll then
-		if i.debug then i.spell.range2 = 1200 else i.spell.range2 = self.Spells[_].range end
+		if i.debug then i.spell.range2 = 1200 else i.spell.range2 = Spells[_].range end
 		for m,p in pairs(minionManager.objects) do
 			if p and p.alive and p.team == MINION_ALLY and GetDistance(p.pos,i.p.startPos) < i.spell.range2 then
 				local vP = VectorPointProjectionOnLineSegment(Vector(self.opos),i.p.endPos,Vector(p.pos))
@@ -6832,7 +6833,7 @@ end
 
 function SLEvade:HeroCollsion(_,i)
 	if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EMC:Value() and (i.debug or EMenu.Spells[_]["Coll".._]:Value()) and not i.mcoll and not i.wcoll then
-		if i.debug then i.spell.range2 = 1200 else i.spell.range2 = self.Spells[_].range end
+		if i.debug then i.spell.range2 = 1200 else i.spell.range2 = Spells[_].range end
 		for m,p in pairs(heroes) do
 			if p and p.alive and p.team == MINION_ALLY and GetDistance(p.pos,i.p.startPos) < i.spell.range2 then
 				local vP = VectorPointProjectionOnLineSegment(Vector(self.opos),i.p.endPos,Vector(p.pos))
@@ -6849,7 +6850,7 @@ end
 
 function SLEvade:WallCollision(_,i)
 	if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EMC:Value() and (i.debug or EMenu.Spells[_]["Coll".._]:Value()) and not i.mcoll and not i.hcoll then
-		if i.debug then i.spell.range2 = 1200 else i.spell.range2 = self.Spells[_].range end
+		if i.debug then i.spell.range2 = 1200 else i.spell.range2 = Spells[_].range end
 		for m,p in pairs(self.YasuoWall) do
 			if p.obj and p.obj.valid and p.obj.spellOwner.team == MINION_ALLY and GetDistance(p.obj.pos,i.p.startPos) < i.spell.range2 then
 				local vP = VectorPointProjectionOnLineSegment(Vector(self.opos),i.p.endPos,Vector(p.obj.pos))
@@ -7648,8 +7649,8 @@ function SLEvade:CreateObject(obj)
 		if EMenu.Draws.DevOpt:Value() then
 			print(obj.spellName)
 		end
-		for _,l in pairs(self.Spells) do
-			if not self.obj[obj.spellName] and self.Spells[obj.spellName] and EMenu.Spells[obj.spellName] and EMenu.d:Value() <= EMenu.Spells[obj.spellName]["d"..obj.spellName]:Value() and (l.proj == obj.spellName or _ == obj.spellName or obj.spellName:lower():find(_:lower()) or obj.spellName:lower():find(l.proj:lower())) then
+		for _,l in pairs(Spells) do
+			if not self.obj[obj.spellName] and Spells[obj.spellName] and EMenu.Spells[obj.spellName] and EMenu.d:Value() <= EMenu.Spells[obj.spellName]["d"..obj.spellName]:Value() and (l.proj == obj.spellName or _ == obj.spellName or obj.spellName:lower():find(_:lower()) or obj.spellName:lower():find(l.proj:lower())) then
 				if not self.obj[obj.spellName] then self.obj[obj.spellName] = {} end
 				self.obj[obj.spellName].o = obj
 				self.obj[obj.spellName].caster = obj.spellOwner
@@ -7672,8 +7673,8 @@ function SLEvade:Detection(unit,spellProc)
 		if EMenu.Draws.DevOpt:Value() then
 			print(spellProc.name)
 		end
-		for _,l in pairs(self.Spells) do
-			if not self.obj[spellProc.name] and self.Spells[spellProc.name] and EMenu.Spells[spellProc.name] and EMenu.d:Value() <= EMenu.Spells[spellProc.name]["d"..spellProc.name]:Value() and _ == spellProc.name then
+		for _,l in pairs(Spells) do
+			if not self.obj[spellProc.name] and Spells[spellProc.name] and EMenu.Spells[spellProc.name] and EMenu.d:Value() <= EMenu.Spells[spellProc.name]["d"..spellProc.name]:Value() and _ == spellProc.name then
 				if not self.obj[spellProc.name] then self.obj[spellProc.name] = {} end
 				self.obj[spellProc.name].p = spellProc
 				self.obj[spellProc.name].spell = l
@@ -7697,7 +7698,7 @@ function SLEvade:Detection(unit,spellProc)
 end
 
 function SLEvade:DeleteObject(obj)
-	if obj and obj.isSpell and self.obj[obj.spellName] and self.Spells[obj.spellName].type ~= "Circle" then
+	if obj and obj.isSpell and self.obj[obj.spellName] and Spells[obj.spellName].type ~= "Circle" then
 			self.obj[obj.spellName] = nil
 	end	
 	if (obj.spellName == "YasuoWMovingWallR" or obj.spellName == "YasuoWMovingWallL" or obj.spellName == "YasuoWMovingWallMisVis") and obj and obj.isSpell and obj.spellOwner.isHero and obj.spellOwner.team == myHero.team then
