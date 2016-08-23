@@ -522,6 +522,7 @@ Callback.Add("Load", function()
 		Recommend()
 	end
 	SLOrb()
+	TS()
 end)   
  
 class 'Init'
@@ -5590,11 +5591,12 @@ end
 class 'SLWalker'
 
 function SLWalker:__init()
-	self.aarange = myHero.range+myHero.boundingRadius*2
+	self.aarange = 0
 	self.attacksEnabled = true
 	self.movementEnabled = true
 	self.forcePos = nil
 	self.forceTarget = nil
+	self.rangebuffer = {[myHero.charName]={r=0,b="KogMawBioArcaneBarrage"}}
 	self.str = {[0]="Q",[1]="W",[2]="E",[3]="R"}
 	self.LastAttack = 0
 	self.windUpTime = 0
@@ -5673,7 +5675,7 @@ function SLWalker:__init()
 		return ADDmg, APDmg + (GotBuff(source, "kaylerighteousfurybuff") > 0 and 5*GetCastLevel(source, _E)+5+.15*GetBonusAP(source) or 0) + (GotBuff(source, "judicatorrighteousfury") > 0 and 5*GetCastLevel(source, _E)+5+.15*GetBonusAP(source) or 0), TRUEDmg
     end,
 	["KogMaw"] = function(source, target, ADDmg, APDmg, TRUEDmg)
-		return ADDmg*.55 + GotBuff(source, "KogMawBioArcaneBarrage") > 0 , 4 * GetCastLevel(source,_W) + (.02 + APDmg*.00075)*target.maxHealth, TRUEDmg
+		return ADDmg*.55, (GotBuff(source, "KogMawBioArcaneBarrage") > 0 and (4 * GetCastLevel(source,_W) + (.02 + APDmg*.00075)*target.maxHealth) or 0), TRUEDmg
 	end,
     ["Leona"] = function(source, target, ADDmg, APDmg, TRUEDmg)
 		return ADDmg, APDmg + (GotBuff(source, "leonashieldofdaybreak") > 0 and 30*GetCastLevel(source, _Q)+10+.3*GetBonusAP(source) or 0), TRUEDmg
@@ -5785,6 +5787,8 @@ function SLWalker:__init()
 	self.c = {}
 
 	Callback.Add("ProcessSpellAttack", function(unit,spellProc) self:PrAtt(unit,spellProc) end)
+	Callback.Add("UpdateBuff", function(u,b) self:UB(u,b) end)
+	Callback.Add("RemoveBuff", function(u,b) self:RB(u,b) end)
 	Callback.Add("ProcessSpell", function(unit,spellProc) self:PrSp(unit,spellProc) end)
 	Callback.Add("Tick", function(unit,spellProc) self:T(unit,spellProc) end)
 	Callback.Add("Draw", function(unit,spellProc) self:D(unit,spellProc) end)
@@ -5793,6 +5797,22 @@ function SLWalker:__init()
 	Callback.Add("DeleteObj", function(obj) self:DeleteO(obj) end)
 	Callback.Add("Animation", function(u,a) self:An(u,a) end)
 	Callback.Add("ProcessSpellComplete", function(u,s) self:PrSpC(u,s) end)
+end
+
+function SLWalker:UB(u,b)
+	if b and u then
+		if b.Name == "KogMawBioArcaneBarrage" and u.isMe then
+			self.rangebuffer[myHero.charName].r = 110+20*GetCastLevel(myHero,1)-myHero.boundingRadius*2
+		end
+	end
+end
+
+function SLWalker:RB(u,b)
+	if b and u then
+		if b.Name == self.rangebuffer[myHero.charName].b and u.isMe then
+			self.rangebuffer[myHero.charName].r = 0
+		end
+	end
 end
 
 function SLWalker:An(u,a)
@@ -5805,6 +5825,7 @@ end
 
 function SLWalker:T()
 if not SLW then return end
+self.aarange = myHero.range+myHero.boundingRadius*2+(self.rangebuffer[myHero.charName].r or 0)
 self.ts.range = self.aarange
 self:Orb()
 	for t,turret in pairs(turrets) do
@@ -6108,7 +6129,7 @@ function SLWalker:LaneClear()
 			if OMenu.FS.AS:Value() then
 				if turret.distance > self.aarange then
 					if o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
-						if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"}))*2 then
+						if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"}))*2.5 then
 							return nil
 						else
 							return GetLowestUnit(self.aarange)
@@ -6119,7 +6140,7 @@ function SLWalker:LaneClear()
 				end
 			else
 				if o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
-					if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"}))*1.2 then
+					if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"}))*2.5 then
 						return nil
 					else
 						return GetLowestUnit(self.aarange)
@@ -6134,7 +6155,7 @@ function SLWalker:LastHit()
 	for _,o in pairs(minionManager.objects) do
 		if o.team ~= MINION_ALLY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
 			if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
-				 return GetLowestUnit(self.aarange)
+				 return o
 			end
 		end
 	end
@@ -6216,7 +6237,7 @@ function SLWalker:GetTime()
 end
 
 function SLWalker:CreateO(obj)
-	if obj and obj.isSpell and obj.spellName:lower():find("attack") and not self.sa[obj.spellOwner.charName] then	
+	if obj and obj.isSpell and obj.spellName:lower():find("attack") and not self.sa[obj.spellOwner.charName] and obj.distance < self.aarange+500 then	
 		if not self.sa[obj.spellOwner.charName] then self.sa[obj.spellOwner.charName] = {} end
 		self.sa[obj.spellOwner.charName].o = obj
 		self.sa[obj.spellOwner.charName].owner = obj.spellOwner.charName
