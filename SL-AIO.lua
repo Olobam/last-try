@@ -2937,8 +2937,8 @@ function Khazix:__init()
 
 	Spell = {
 	[0] = { range = 325, evolved = false},
-	[1] = { delay = .25, speed = 1700, width = 70, range = 1025},
-	[2] = { delay = .25, speed = 1500, width = 0, range = 750},
+	[1] = { delay = 0.25, speed = 1700, width = 70, range = 1025,type = "line",col=true},
+	[2] = { delay = 0.25, speed = 1500, width = 0, range = 750,type="circular",col=true},
 	}
 	
 	Dmg = {
@@ -2994,8 +2994,7 @@ function Khazix:__init()
 	BM:Menu("J", "Jump Settings")	
 		BM.J:Boolean("S","Save Jump", true)
 
-	BM:Menu("P", "HitChance")
-		BM.P:Slider("W", "W HitChance", 20, 1, 100)
+	BM:Menu("p", "HitChance")
 
 	for i, k in pairs(GetEnemyHeroes()) do
 		if self.Dashes[k.charName] then
@@ -3015,6 +3014,11 @@ function Khazix:__init()
 	Callback.Add("CreateObj", function(o) self:CreateObj(o) end)
 	Callback.Add("DeleteObj", function(o) self:DeleteObj(o) end)
 	Callback.Add("Animation", function(u,a) self:Animation(u,a) end)
+	
+	for i = 1,2 do
+		PredMenu(BM.p, i)	
+	end
+	
 end
 
 function Khazix:Tick()
@@ -3085,9 +3089,9 @@ function Khazix:LaneClear()
 		if SReady[0] and ValidTarget(creep,Spell[0].range) and BM.L.Q:Value() then
 			CastTargetSpell(creep,0)
 		elseif SReady[1] and ValidTarget(creep,Spell[1].range) and BM.L.W:Value() then
-			CastSkillShot(1,GetPrediction(creep,Spell[1]).castPos)
+			CastGenericSkillShot(myHero,creep,Spell[1],1,BM.p)
 		elseif SReady[2] and ValidTarget(creep,Spell[2].range) and BM.L.E:Value() then
-			CastSkillShot(2,GetPrediction(creep,Spell[2]).castPos)
+			CastGenericSkillShot(myHero,creep,Spell[2],2,BM.p)
 		end
 	end
 end
@@ -3099,14 +3103,12 @@ function Khazix:UseQ(Unit)
 end
 
 function Khazix:UseW(Unit)
-	local W = GetPrediction(Unit, Spell[1])
-	if ValidTarget(Unit, Spell[1].range) and SReady[1] and W.hitChance >= (BM.P.W:Value()*.01) and not W:mCollision(1) then
-		CastSkillShot(1, W.castPos)
+	if ValidTarget(Unit, Spell[1].range) and SReady[1] then
+		CastGenericSkillShot(myHero,Unit,Spell[1],1,BM.p)
 	end
 end
 
 function Khazix:UseE(Unit)
-	local E = GetPrediction(Unit, Spell[2])
 	if ValidTarget(Unit, Spell[2].range) and SReady[2] and BM.C.E:Value() then
 		CastSkillShot(2, GetOrigin(Unit))
 	end
@@ -3119,7 +3121,7 @@ function Khazix:UseR(Unit)
 end
 
 function Khazix:Proc(unit, spellProc)
-	if self.Dashes[unit.charName] and Mode == "Combo" and SReady[2] and spellProc.name == GetCastName(unit, self.Dashes[unit.charName].Spellslot) and unit == GetCurrentTarget() and GetDistance(spellProc.endPos) > myHero.boundingRadius +Spell[0].range + unit.boundingRadius and GetDistance(spellProc.endPos) < Spell[2].range and BM.J[unit.networkID]:Value() and GetDistace(spellProc.startPos) < GetDistace(spellProc.endPos) then
+	if self.Dashes[unit.charName] and Mode == "Combo" and SReady[2] and spellProc.name == GetCastName(unit, self.Dashes[unit.charName].Spellslot) and unit == GetCurrentTarget() and GetDistance(spellProc.endPos) > myHero.boundingRadius +Spell[0].range + unit.boundingRadius and GetDistance(spellProc.endPos) < Spell[2].range and BM.J[unit.networkID]:Value() and GetDistance(spellProc.startPos) < GetDistance(spellProc.endPos) then
 		CastSkillShot(2, spellProc.endPos)
 	end
 end
