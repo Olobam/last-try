@@ -4759,7 +4759,7 @@ end
 
 function Humanizer:SpellCast(spell)
 	if SLU.Hum.enable1:Value() then
-		if os.clock() - self.lastspell < Spells() then
+		if os.clock() - self.lastspell < self:Spells() then
 		  BlockCast()
 		  self.bCount1 = self.bCount1 + 1
 		else
