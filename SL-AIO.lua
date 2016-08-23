@@ -696,7 +696,7 @@ class 'Vayne'
 
 function Vayne:__init()
 
-	Vayne.Spell = {
+	Spell = {
 	[0] = { range = 300 },
 	[1] = { range = 0 },
 	[2] = { delay = 0.25, speed = 2000, width = 1, range = 550 },
@@ -861,7 +861,7 @@ end
 
 function Vayne:JungleClear()
  for _,mob in pairs(minionManager.objects) do
-	if SReady[2] and ValidTarget(mob, Spell[2].range) and BM.JC.E:Value() and GetTeam(mob) == MINION_JUNGLE then
+	if SReady[2] and ValidTarget(mob,Spell[2].range) and BM.JC.E:Value() and GetTeam(mob) == MINION_JUNGLE then
 		self:CastE(mob)
 	end
  end
@@ -869,7 +869,7 @@ end
 
 function Vayne:LaneClear()
  for _,minion in pairs(minionManager.objects) do
-	if SReady[2] and ValidTarget(minion, Spell[2].range) and BM.LC.E:Value() and GetTeam(minion) == MINION_ENEMY then
+	if SReady[2]  and ValidTarget(minion,Spell[2].range) and BM.LC.E:Value() and GetTeam(minion) == MINION_ENEMY then
 		self:CastE(minion)
 	end
  end
@@ -2681,7 +2681,7 @@ end
 class "Kindred"
 
 function Kindred:__init()
-	Spells = {
+	Spell = {
 	[0] = {range = 500, dash = 340, mana = 35},
 	[1] = {range = 800, duration = 8, mana = 40},
 	[2] = {range = 500, mana = 70, mana = 70},
@@ -2700,7 +2700,7 @@ function Kindred:__init()
 	}
 	self.BaseAS = GetBaseAttackSpeed(myHero)
 	self.AAPS = self.BaseAS*GetAttackSpeed(myHero)
-	self.WolfAA = Spells[1].duration*self.AAPS
+	self.WolfAA = Spell[1].duration*self.AAPS
 	basePos = Vector(0,0,0)
 	if GetTeam(myHero) == 100 then
 		basePos = Vector(415,182,415)
@@ -2777,7 +2777,7 @@ function Kindred:Tick()
 			end
 		end
 		if BM.Misc.WP:Value() then
-			if self:WallBetween(GetOrigin(myHero), GetMousePos(),  Spells[0].dash) and SReady[0] then
+			if self:WallBetween(GetOrigin(myHero), GetMousePos(),  Spell[0].dash) and SReady[0] then
 				CastSkillShot(0, GetMousePos())
 			end
 		end
@@ -2792,47 +2792,47 @@ function Kindred:Tick()
 end
 
 function Kindred:Combo(Unit)
-local AfterQ = GetOrigin(myHero) +(Vector(GetMousePos()) - GetOrigin(myHero)):normalized()*Spells[0].dash
+local AfterQ = GetOrigin(myHero) +(Vector(GetMousePos()) - GetOrigin(myHero)):normalized()*Spell[0].dash
 
-	if SReady[2] and SReady[0] and BM.Combo.QE:Value() and GetDistance(Unit) > Spells[0].range and GetDistance(AfterQ, Unit) <= 450 then
+	if SReady[2] and SReady[0] and BM.Combo.QE:Value() and GetDistance(Unit) > Spell[0].range and GetDistance(AfterQ, Unit) <= 450 then
 		CastSkillShot(0, GetMousePos())
 			DelayAction(function() CastTargetSpell(Unit, 2) end, 1)
 	end
-	if SReady[0] and BM.Combo.Q:Value() and ValidTarget(Unit, Spells[0].range) and BM.QOptions.QC:Value() == false or (GetDistance(Unit) > Spells[0].range and GetDistance(AfterQ, Unit) <= 450)  then
+	if SReady[0] and BM.Combo.Q:Value() and ValidTarget(Unit, Spell[0].range) and BM.QOptions.QC:Value() == false or (GetDistance(Unit) > Spell[0].range and GetDistance(AfterQ, Unit) <= 450)  then
     	CastSkillShot(0, GetMousePos()) 
 	end
-	if SReady[1] and BM.Combo.W:Value() and ValidTarget(Unit, Spells[1].range) then 
+	if SReady[1] and BM.Combo.W:Value() and ValidTarget(Unit, Spell[1].range) then 
 		CastSpell(1)
 	end
-	if SReady[2] and BM.Combo.E:Value() and ValidTarget(Unit, Spells[2].range) then 
+	if SReady[2] and BM.Combo.E:Value() and ValidTarget(Unit, Spell[2].range) then 
 		CastTargetSpell(Unit, 2)
 	end
 end
 
 function Kindred:LaneClear()
-	local QMana = (Spells[0].mana*100)/GetMaxMana(myHero)
-	local WMana = (Spells[1].mana*100)/GetMaxMana(myHero)
-	local EMana = (Spells[2].mana*100)/GetMaxMana(myHero)
+	local QMana = (Spell[0].mana*100)/GetMaxMana(myHero)
+	local WMana = (Spell[1].mana*100)/GetMaxMana(myHero)
+	local EMana = (Spell[2].mana*100)/GetMaxMana(myHero)
 	for _, mob in pairs(minionManager.objects) do	
 		if GetTeam(mob) == MINION_JUNGLE then
-			if BM.QOptions.QJ:Value() == false and SReady[0] and BM.JunglerClear.Q:Value() and ValidTarget(mob, Spells[0].range) and GetCurrentHP(mob) >= Dmg[0](mob) --[[and (GetPercentMP(myHero)- QMana) >= BM.JunglerClear.MM:Value()]] then 
+			if BM.QOptions.QJ:Value() == false and SReady[0] and BM.JunglerClear.Q:Value() and ValidTarget(mob, Spell[0].range) and GetCurrentHP(mob) >= Dmg[0](mob) --[[and (GetPercentMP(myHero)- QMana) >= BM.JunglerClear.MM:Value()]] then 
 				CastSkillShot(0, GetMousePos())
 			end
-			if SReady[1] and ValidTarget(mob, Spells[1].range) and IsTargetable(mob) and BM.JunglerClear.W:Value() and (GetPercentMP(myHero)- WMana) >= BM.JunglerClear.MM:Value() and self:TotalHp(Spells[1].range, myHero) >= Dmg[1](mob) + ((8/self.AAPS)*CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero)+self:PassiveDmg(mob))) then
+			if SReady[1] and ValidTarget(mob, Spell[1].range) and IsTargetable(mob) and BM.JunglerClear.W:Value() and (GetPercentMP(myHero)- WMana) >= BM.JunglerClear.MM:Value() and self:TotalHp(Spell[1].range, myHero) >= Dmg[1](mob) + ((8/self.AAPS)*CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero)+self:PassiveDmg(mob))) then
    				CastSpell(1)
     		end
-    		if SReady[2] and ValidTarget(mob, Spells[2].range) and BM.JunglerClear.E:Value() and (GetPercentMP(myHero)- EMana) >= BM.JunglerClear.MM:Value() and GetCurrentHP(mob) >= Dmg[2](mob) + (CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero))*3) then 
+    		if SReady[2] and ValidTarget(mob, Spell[2].range) and BM.JunglerClear.E:Value() and (GetPercentMP(myHero)- EMana) >= BM.JunglerClear.MM:Value() and GetCurrentHP(mob) >= Dmg[2](mob) + (CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero))*3) then 
    				CastTargetSpell(mob, 2)
    			end
   	 	end
 		if GetTeam(mob) == MINION_ENEMY then
-			if BM.QOptions.QL:Value() == false and SReady[0] and BM.LaneClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= BM.LaneClear.MM:Value() and ValidTarget(mob, Spells[0].range) and GetCurrentHP(mob) >= Dmg[0](mob) then 
+			if BM.QOptions.QL:Value() == false and SReady[0] and BM.LaneClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= BM.LaneClear.MM:Value() and ValidTarget(mob, Spell[0].range) and GetCurrentHP(mob) >= Dmg[0](mob) then 
 				CastSkillShot(0, GetMousePos())
 			end
-			if SReady[1] and ValidTarget(mob, Spells[1].range) and BM.LaneClear.W:Value() and (GetPercentMP(myHero)- WMana) >= BM.LaneClear.MM:Value() and self:TotalHp(Spells[1].range, myHero) >= Dmg[1](mob) + ((8/self.AAPS)*CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero)+self:PassiveDmg(mob))) then 
+			if SReady[1] and ValidTarget(mob, Spell[1].range) and BM.LaneClear.W:Value() and (GetPercentMP(myHero)- WMana) >= BM.LaneClear.MM:Value() and self:TotalHp(Spell[1].range, myHero) >= Dmg[1](mob) + ((8/self.AAPS)*CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero)+self:PassiveDmg(mob))) then 
 				CastSpell(1)
 			end
-			if SReady[2] and ValidTarget(mob, Spells[2].range) and BM.LaneClear.E:Value() and (GetPercentMP(myHero)- EMana) >= BM.LaneClear.MM:Value() and GetCurrentHP(mob) >= Dmg[2](mob) + (CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero))*3) then 
+			if SReady[2] and ValidTarget(mob, Spell[2].range) and BM.LaneClear.E:Value() and (GetPercentMP(myHero)- EMana) >= BM.LaneClear.MM:Value() and GetCurrentHP(mob) >= Dmg[2](mob) + (CalcDamage(myHero, mob, GetBaseDamage(myHero) + GetBonusDmg(myHero))*3) then 
 				CastTargetSpell(mob, 2)
 			end
 		end
@@ -2842,7 +2842,7 @@ end
 function Kindred:AutoR()
 	if BM.ROptions.R:Value() and not self.Recalling and not IsDead(myHero) and SReady[3] then
 		for i, allies in pairs(GetAllyHeroes()) do
-			if GetPercentHP(allies) <= 20 and BM.ROptions["Pleb"..GetObjectName(allies)] and not IsDead(allies) and GetDistance(allies) <= Spells[3].range2 and EnemiesAround(allies, 1500) >= BM.ROptions.EA:Value() then
+			if GetPercentHP(allies) <= 20 and BM.ROptions["Pleb"..GetObjectName(allies)] and not IsDead(allies) and GetDistance(allies) <= Spell[3].range2 and EnemiesAround(allies, 1500) >= BM.ROptions.EA:Value() then
 				CastTargetSpell(myHero, 3)
 			end
 		end
@@ -2853,7 +2853,7 @@ function Kindred:AutoR()
 end
 
 function Kindred:OnProcComplete(unit, spell)
-	local QMana = (Spells[0].mana*100)/GetMaxMana(myHero)
+	local QMana = (Spell[0].mana*100)/GetMaxMana(myHero)
 	if unit == myHero then
 		if spell.name:lower():find("attack") then
 			if Mode == "LaneClear" then 
