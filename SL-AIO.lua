@@ -5054,7 +5054,7 @@ function Awareness:Tk()
 	end
 	for _, i in pairs(self.spells) do
 		for k,p in pairs(self.R) do
-			if self.spells[myHero.charName] and i.u and i.s then
+			if self.spells[myHero.charName] and p.u then
 				if p.at-(GetDistance(p.u.pos,spawn.pos)/i.s+i.d)-GetGameTimer()+GetLatency()*.001 < 0 and IsReady(i.sp) and SLU.A.RT.ER:Value() and SLU.A.RT.E:Value() and SLU.A.RT.U[p.u.charName]:Value() then
 					if p.u.health < self.spells[myHero.charName].dmg(p.u) and not self:Coll() then
 						CastSkillShot(i.sp,spawn.pos)
@@ -5595,7 +5595,7 @@ function SLWalker:__init()
 	self.movementEnabled = true
 	self.forcePos = nil
 	self.forceTarget = nil
-	self.rangebuffer = {[myHero.charName]={r=0,b="KogMawBioArcaneBarrage"}}
+	self.rangebuffer = {["KogMaw"]={r=0,b="KogMawBioArcaneBarrage"}}
 	self.str = {[0]="Q",[1]="W",[2]="E",[3]="R"}
 	self.LastAttack = 0
 	self.windUpTime = 0
@@ -5799,15 +5799,15 @@ function SLWalker:__init()
 end
 
 function SLWalker:UB(u,b)
-	if b and u then
-		if b.Name == "KogMawBioArcaneBarrage" and u.isMe then
+	if b and u and self.rangebuffer[myHero.charName] then
+		if b.Name == self.rangebuffer[myHero.charName].b and u.isMe then
 			self.rangebuffer[myHero.charName].r = 110+20*GetCastLevel(myHero,1)-myHero.boundingRadius*2
 		end
 	end
 end
 
 function SLWalker:RB(u,b)
-	if b and u then
+	if b and u and self.rangebuffer[myHero.charName] then
 		if b.Name == self.rangebuffer[myHero.charName].b and u.isMe then
 			self.rangebuffer[myHero.charName].r = 0
 		end
