@@ -522,7 +522,6 @@ Callback.Add("Load", function()
 		Recommend()
 	end
 	SLOrb()
-	TS()
 end)   
  
 class 'Init'
