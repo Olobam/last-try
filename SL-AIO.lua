@@ -2100,6 +2100,7 @@ function Jinx:__init()
 	BM:Menu("p", "Prediction")
 	
 	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("ProcessSpellComplete", function(u,s) self:ProcessSpellComplete(u,s) end)
 	Callback.Add("UpdateBuff", function(unit,buff) self:UpdateBuff(unit,buff) end)
 	Callback.Add("RemoveBuff", function(unit,buff) self:RemoveBuff(unit,buff) end)
 
@@ -2134,83 +2135,80 @@ function Jinx:Tick()
 		
 	if Mode == "Combo" then
 		self:Combo(target)
+	elseif Mode == "Harass" then
+		self:Harass(target)
 	elseif Mode == "LaneClear" then
 		self:LaneClear()
 		self:JungleClear()
 	elseif Mode == "LastHit" then
 		self:LastHit()
-	elseif Mode == "Harass" then
-		self:Harass(target)
 	else
 		return
 	end
 end
 
-function Jinx:Combo(target)
-	
-	if BM.C.Q.QL:Value() == 1 and BM.C.Q.enable:Value() then
-	
-		if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
-			CastSpell(0)
-		elseif SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and EnemiesAround(target, 150) > 2 and GetPercentMP(myHero) > 10 then
-			CastSpell(0)
-		elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
-			CastSpell(0)
-		elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
-			CastSpell(0)
+function Jinx:ProcessSpellComplete(u,s)
+	if s and s.name:lower():find("attack") and u.isMe then
+		local target = s.target
+		if Mode == "Combo" and target then
+			if BM.C.Q.QL:Value() == 1 and BM.C.Q.enable:Value() then
+				if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
+					CastSpell(0)
+				elseif SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and EnemiesAround(target, 150) > 2 and GetPercentMP(myHero) > 10 then
+					CastSpell(0)
+				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
+					CastSpell(0)
+				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
+					CastSpell(0)
+				end
+			elseif BM.C.Q.QL:Value() == 2 and BM.C.Q.enable:Value() then
+				if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
+					CastSpell(0)
+				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
+					CastSpell(0)
+				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
+					CastSpell(0)
+				end		
+			end	
+		elseif Mode == "Harass" and target then
+			if BM.H.Q.QL:Value() == 1 and BM.H.Q.enable:Value() then
+				if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
+					CastSpell(0)
+				elseif SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and EnemiesAround(target, 150) > 2 and GetPercentMP(myHero) > 10 then
+					CastSpell(0)
+				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
+					CastSpell(0)
+				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
+					CastSpell(0)
+				end		
+			elseif BM.C.Q.QL:Value() == 2 and BM.H.Q.enable:Value() then	
+				if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
+					CastSpell(0)
+				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
+					CastSpell(0)
+				elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
+					CastSpell(0)
+				end		
+			end		
 		end
-		
-	elseif BM.C.Q.QL:Value() == 2 and BM.C.Q.enable:Value() then
-	
-		if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
-			CastSpell(0)
-		elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
-			CastSpell(0)
-		elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
-			CastSpell(0)
-		end		
 	end
-	
+end
+
+function Jinx:Combo(target)
 	if SReady[1] and ValidTarget(target, Spell[1].range) and BM.C.W:Value() and GetDistance(myHero,target)>100 then
-		CastGenericSkillShot(myHero,unit,Spell[1],1,BM.p)
-	end
-	
+		CastGenericSkillShot(myHero,target,Spell[1],1,BM.p)
+	end	
 	if SReady[2] and ValidTarget(target, Spell[2].range) and BM.C.E:Value() then
-		CastGenericSkillShot(myHero,unit,Spell[2],2,BM.p)
+		CastGenericSkillShot(myHero,target,Spell[2],2,BM.p)
 	end	
 end
 
 function Jinx:Harass(target)
-	
-	if BM.H.Q.QL:Value() == 1 and BM.H.Q.enable:Value() then
-	
-		if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
-			CastSpell(0)
-		elseif SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and EnemiesAround(target, 150) > 2 and GetPercentMP(myHero) > 10 then
-			CastSpell(0)
-		elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
-			CastSpell(0)
-		elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
-			CastSpell(0)
-		end
-		
-	elseif BM.C.Q.QL:Value() == 2 and BM.H.Q.enable:Value() then
-	
-		if SReady[0] and ValidTarget(target, self.RocketRange) and minigun and GetDistance(target) > 550 and GetPercentMP(myHero) > 10 then
-			CastSpell(0)
-		elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetDistance(target) < 550 and GetPercentMP(myHero) > 10 then
-			CastSpell(0)
-		elseif SReady[0] and ValidTarget(target, self.RocketRange) and not minigun and GetPercentMP(myHero) < 10 then
-			CastSpell(0)
-		end		
-	end
-	
 	if SReady[1] and ValidTarget(target, Spell[1].range) and BM.H.W:Value() and GetDistance(myHero,target)>100 then
-		CastGenericSkillShot(myHero,unit,Spell[1],1,BM.p)
-	end
-	
+		CastGenericSkillShot(myHero,target,Spell[1],1,BM.p)
+	end	
 	if SReady[2] and ValidTarget(target, Spell[2].range) and BM.H.E:Value() then
-		CastGenericSkillShot(myHero,unit,Spell[2],2,BM.p)
+		CastGenericSkillShot(myHero,target,Spell[2],2,BM.p)
 	end	
 end
 
@@ -4795,7 +4793,7 @@ function Awareness:__init()
 	["Ashe"] = {d = 0.25, s = 1450,w=120,sp=3,c=true,dmg=function(unit) return 75+175*GetCastLevel(myHero,3)*myHero.ap end,},
 	["Draven"] = {d = 0.4,s = 2000,w=120,sp=3,c=false,dmg=function(unit) return 75+100*GetCastLevel(myHero,3)+1.1*myHero.totalDamage end,},
 	["Ezreal"] = {d = 1, s = 2000,w=140,sp=3,c=false,dmg=function(unit) return 200+150*GetCastLevel(myHero,3)+0.9*myHero.ap+myHero.totalDamage end,}, 
-	["Jinx"] = {d = 0.6, s = 1650,w=130,sp=3,c=true,dmg=function(unit) return 150+100*GetCastLevel(myHero,3)+20+5*GetCastLevel(myHero,3)*.001*(unit.maxHealth - unit.health)+myHero.totalDamage end,}
+	["Jinx"] = {d = 0.6, s = 1650,w=130,sp=3,c=true,dmg=function(unit) return math.min(math.max((150 + GetCastLevel(myHero,3)*GetBonusDmg(myHero)+(unit.maxHealth-unit.health)*(.20+GetCastLevel(myHero,3)*.5))*.1,(150 + GetCastLevel(myHero,3)*GetBonusDmg(myHero)+(unit.maxHealth-unit.health)*(.20+GetCastLevel(myHero,3)*.5))*GetDistance(GetOrigin(myHero),GetOrigin(unit))/1650),(150 + GetCastLevel(myHero,3)*GetBonusDmg(myHero)+(unit.maxHealth-unit.health)*(.20+GetCastLevel(myHero,3)*.5))) end,}
 	}
 	self.E = {}
 	self.offy = 60
@@ -5056,9 +5054,9 @@ function Awareness:Tk()
 	end
 	for _, i in pairs(self.spells) do
 		for k,p in pairs(self.R) do
-			if self.spells[myHero.charName] then
+			if self.spells[myHero.charName] and i.u and i.s then
 				if p.at-(GetDistance(p.u.pos,spawn.pos)/i.s+i.d)-GetGameTimer()+GetLatency()*.001 < 0 and IsReady(i.sp) and SLU.A.RT.ER:Value() and SLU.A.RT.E:Value() and SLU.A.RT.U[p.u.charName]:Value() then
-					if p.u.health < self.spells[myHero.charName].dmg(i.u) and not self:Coll() then
+					if p.u.health < self.spells[myHero.charName].dmg(p.u) and not self:Coll() then
 						CastSkillShot(i.sp,spawn.pos)
 					end	
 				end
@@ -5078,6 +5076,7 @@ function Awareness:Coll()
 	end
 	return false
 end
+
 class 'Reallifeinfo'
 
 function Reallifeinfo:__init()
@@ -6030,7 +6029,7 @@ function SLWalker:PrSp(unit,spellProc)
 end
 
 function SLWalker:PrSpC(u,s)
-	if self.projectilespeeds[u.charName] and u.team == myHero.team and s.name:lower():find("attack") then
+	if self.projectilespeeds[u.charName] and u.team == myHero.team and s.name:lower():find("attack") and not u.isMe then
 		for i = 1, #self.AA do
 			if self.AA[i].a == u then
 				table.remove(self.AA, i)
@@ -6109,7 +6108,7 @@ function SLWalker:LaneClear()
 			if OMenu.FS.AS:Value() then
 				if turret.distance > self.aarange then
 					if o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
-						if self:PredictHP(o,(2000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)*GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
+						if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"}))*2 then
 							return nil
 						else
 							return GetLowestUnit(self.aarange)
@@ -6120,7 +6119,7 @@ function SLWalker:LaneClear()
 				end
 			else
 				if o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
-					if self:PredictHP(o,(2000/(GetAttackSpeed(myHero)*self.BaseAttackSpeed)*GetDistance(o)/self:aaprojectilespeed())+GetLatency()/2) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
+					if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"}))*1.2 then
 						return nil
 					else
 						return GetLowestUnit(self.aarange)
