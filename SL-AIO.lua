@@ -18,6 +18,7 @@ local SLSChamps = {
 	["KogMaw"] = true,
 	["Ahri"] = true,
 	["Khazix"] = true,
+	["Zed"] = true,
 }
 
 local SLPatchnew = nil
@@ -33,7 +34,9 @@ end
 local AutoUpdater = true
 
 require 'DamageLib'
-require 'IPrediction'
+if SLSChamps[myHero.charName] then
+	require 'IPrediction'
+end
 
 local function PredMenu(m,sp)
 	if not m["CP"] then m:DropDown("CP", "Choose Prediction", 1 ,{"OPred", "GPred", "IPred", "GoSPred"}) end
@@ -897,7 +900,7 @@ class 'Blitzcrank'
 
 function Blitzcrank:__init()
 
-	Blitzcrank.Spell = {
+	Spell = {
 	[0] = { delay = 0.25, speed = 1800, width = 70, range = 900, type = "line",col = true },
 	[1] = { range = 0 },
 	[2] = { range = 0 },
@@ -1065,7 +1068,7 @@ class 'Soraka'
 
 function Soraka:__init()
 
-	Soraka.Spell = {
+	Spell = {
 	[0] = { delay = 0.250, speed = math.huge, width = 235, range = 800, type = "circular",col = false },
 	[1] = { range = 550 },
 	[2] = { delay = 1.75, speed = math.huge, width = 310, range = 900, type = "circular", col = false}
@@ -1246,7 +1249,7 @@ class 'Sivir'
 
 function Sivir:__init()
 	
-	Sivir.Spell = { 
+	Spell = { 
 	[0] = { delay = 0.250, speed = 1350, width = 85, range = 1075, type = "line", col = false},
 	}
 	
@@ -1370,7 +1373,7 @@ end
 class 'Nocturne'
 
 function Nocturne:__init()
-	Nocturne.Spell = {
+	Spell = {
 	[0] = { delay = 0.250, speed = 1400, width = 120, range = 1125, type = "line", col = false },
 	[2] = { range = 425},
 	[3] = { range = function() return 1750 + GetCastLevel(myHero,3)*750 end},
@@ -1492,7 +1495,7 @@ class "Aatrox"
 
 function Aatrox:__init()
 	
-	Aatrox.Spell = { 
+	Spell = { 
 	[0] = { delay = 0.2, range = 650, speed = 1500, width = 113, type = "circular", col = false },
 	[1] = { range = 0 },
 	[2] = { delay = 0.1, range = 1000, speed = 1000, width = 150, type = "line", col = false },
@@ -2307,7 +2310,7 @@ function Kalista:__init()
 	end
 
 	
-	Kalista.Spell = {
+	Spell = {
 	[-1] = { delay = .3, speed = math.huge, width = 1, range = 1500},
 	[0] = { delay = 0.25, speed = 2000, width = 50, range = 1150,type = "line",col=true},
 	[1] = { range = 5000 },
@@ -2535,7 +2538,7 @@ function Nasus:__init()
 	}
 
 
-	Nasus.Spell = {
+	Spell = {
 		[0] = { delay = 0.3, range = 250},
 		[1] = { delay = .2, range = 600 },
 		[2] = { delay = .1, speed = math.huge, range = 650, radius = 395,type = "circular",col=false},
@@ -3182,7 +3185,7 @@ class 'Vladimir'
 
 function Vladimir:__init()
 	
-	Vladimir.Spell = {
+	Spell = {
 	[0] = { range = 600 },
 	[1] = { range = 150 },
 	[2] = { range = 600 },
@@ -3358,7 +3361,7 @@ class 'Orianna'
 
 function Orianna:__init()
 
-	Orianna.Spell = {
+	Spell = {
 	[0] = { range = 815, delay = 0, radius = 80, speed = 1200,type = "line",col=false },
 	[1] = { radius = 255 },
 	[2] = { range = 1095, radius = 80 },
@@ -3593,7 +3596,7 @@ function Veigar:__init()
 	[24] = "Suppression",
 	}
 	
-	Veigar.Spell = {
+	Spell = {
 	[-1] = { delay = 0.1, speed = math.huge, width = 50, range = math.huge},
 	[0] = { delay = 0.1, speed = 2000, width = 100, range = 950},
 	[1] = { delay = 0.1, speed = math.huge, range = 900 , radius = 225},
@@ -3818,7 +3821,7 @@ function Ahri:__init()
 	[24] = "Suppression",
 	}
 
-	Ahri.Spell = {
+	Spell = {
 	[0] = { delay = 0.25, speed = 1700, width = 100, range = 1000,type = "line",col=false},
 	[2] = { delay = 0.25, speed = 1600, width = 60 , range = 1000,type = "line",col=true},
 	[3] = { range = 450},
@@ -4097,6 +4100,437 @@ function Ahri:CleanObj(_,i)
 	end
 end
 
+class 'Zed'
+
+function Zed:__init()
+	
+	self.CCType = { 
+	[5] = "Stun", 
+	[8] = "Taunt", 
+	[11] = "Snare", 
+	[21] = "Fear", 
+	[22] = "Charm", 
+	[24] = "Suppression",
+	}
+
+	Spell = {
+	[0] = { delay = 0.25, speed = 2000, width = 60, range = 900,type = "line",col=false},
+	[1] = {range = 700},
+	[2] = { range = 284},
+	[3] = { range = 625},
+	}
+	Dmg = {
+	[0] = function(u) return CalcDamage(myHero, u, 35+40*GetCastLevel(myHero,0)+(myHero.totalDamage+5*GetCastLevel(myHero,1)),0) end,
+	[2] = function(u) return CalcDamage(myHero, u,30+30*GetCastLevel(myHero,2) + 0.8 * (myHero.totalDamage+5*GetCastLevel(myHero,1)),0) end,
+	[3] = function(u) return CalcDamage(myHero, u, 30+30*GetCastLevel(myHero,2) + 0.8 * (myHero.totalDamage+5*GetCastLevel(myHero,1))+35+40*GetCastLevel(myHero,0)+(myHero.totalDamage+5*GetCastLevel(myHero,1))+((0.15*GetCastLevel(myHero,3) + 0.05) * (math.sqrt(math.pow((100/(100+GetArmor(u))),2))) * (u.health-u.maxHealth)/100) + (myHero.totalDamage+5*GetCastLevel(myHero,1)), 0) end,
+	}
+	self.duration = {5,7.5}
+	
+	BM:SubMenu("C", "Combo")
+	BM.C:Boolean("Q", "Use Q", true)
+	BM.C:Boolean("W", "Use W", true)
+	BM.C:Boolean("W2", "Use W2", true)
+	BM.C:Slider("W2D", "W2 Delay", 30, 0, 100, 5)
+	BM.C:Boolean("E", "Use E", true)
+	BM.C:Menu("R", "R")
+	BM.C.R:Boolean("E", "Enable R", true)
+	BM.C.R:Boolean("E2", "Enable R2", true)
+	BM.C.R:Boolean("UOIK", "Use Only if killable", true)
+	BM.C.R:Slider("EAR", "EnemiesAround > x", 1, 1, 5, 1)
+	BM.C.R:Slider("AAR", "AlliesAround > x", 0, 0, 5, 1)
+	BM.C.R:Slider("MHP", "My Hero HP < x", 100, 0, 100, 5)
+	BM.C.R:Slider("EHP", "Enemy HP < x", 75, 0, 100, 5)
+	
+	
+	BM:SubMenu("H", "Harass")
+	BM.H:Boolean("Q", "Use Q", true)
+	BM.H:Boolean("W", "Use W", true)
+	BM.H:Boolean("E", "Use E", true)	
+
+	BM:SubMenu("LC", "LaneClear")
+	BM.LC:Boolean("Q", "Use Q", true)
+	BM.LC:Boolean("W", "Use W", true)
+	BM.LC:Boolean("E", "Use E", true)	
+	
+	BM:SubMenu("JC", "JungleClear")
+	BM.JC:Boolean("Q", "Use Q", true)
+	BM.JC:Boolean("W", "Use W", true)
+	BM.JC:Boolean("E", "Use E", true)	
+
+	BM:SubMenu("p", "Prediction")
+
+	BM:SubMenu("KS", "Killsteal")
+	BM.KS:Boolean("Q", "Use Q", true)
+	BM.KS:Boolean("E", "Use E", true)
+	
+	BM:Boolean("AQ", "Auto Q on immobile", true)
+	
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("UpdateBuff", function(u,b) self:UpdateBuff(u,b) end)
+	Callback.Add("RemoveBuff", function(u,b) self:RemoveBuff(u,b) end)
+	Callback.Add("ProcessSpell", function(u,s) self:ProcessSpell(u,s) end)
+	
+	self.CC = false
+	self.W = {}
+	self.R = {} 
+	self.WPos = false
+	self.W2Pos = false
+	self.RPos = false
+	self.R2Pos = false
+	
+	for i = 0,0 do
+		PredMenu(BM.p,i)
+	end
+end
+
+function Zed:CleanTable()
+	for _,i in pairs(self.W) do
+		DelayAction(function() table.remove(self.W,_) self.WPos = false self.W2Pos = false end,self.duration[1])
+	end
+	for _,i in pairs(self.R) do
+		DelayAction(function() table.remove(self.R,_) self.RPos = false self.R2Pos = false end,self.duration[2])
+	end
+end
+
+function Zed:UpdateBuff(u,b)
+	if u and u.team == MINION_ENEMY and b and u.isHero then
+		if self.CCType[b.Type] then
+			self.CC = true
+		end
+	end
+end
+
+function Zed:RemoveBuff(u,b)
+	if u and u.team == MINION_ENEMY and b and u.isHero then
+		if self.CCType[b.Type] then
+			self.CC = false
+		end
+	end
+end
+
+function Zed:ProcessSpell(u,s)
+	if u and u.isMe and s then
+		if s.name:lower():find("zedw") then
+			table.insert(self.W, {pos=Vector(s.endPos)}) 
+		elseif s.name:lower():find("zedw2") then
+			table.insert(self.W, {pos=Vector(s.startPos)}) 
+		end  
+		if s.name:lower():find("zedr") then
+			table.insert(self.R, {pos=Vector(s.startPos)}) 
+		elseif s.name:lower():find("zedr2") then
+			table.insert(self.R,{pos=myHero.pos}) 
+		end
+	end
+end
+
+function Zed:Tick()
+	self:CleanTable()
+	
+	if myHero.dead then return end
+	
+	GetReady()
+	
+	self:KS()
+	
+	local target = GetCurrentTarget()
+	
+	self:AutoQ()
+
+    if Mode == "Combo" then
+		self:Combo(target)
+	elseif Mode == "LaneClear" then
+		self:LaneClear()
+		self:JungleClear()
+	elseif Mode == "Harass" then
+		self:Harass(target)
+	else
+		return
+	end
+end
+
+function Zed:Combo(target)
+	if target and not target.dead then
+		for _,i in pairs(self.W) do
+			if i.pos then
+				if SReady[0] and BM.LC.Q:Value() and GetDistance(i.pos,target) < Spell[0].range then
+					CastGenericSkillShot(i.pos,target,Spell[0],0,BM.p)
+				end
+				if SReady[2] and BM.LC.E:Value() and GetDistance(i.pos,target) < Spell[2].range then
+					CastSpell(2)
+				end
+				self.WPos = true
+			else
+				self.WPos = false
+			end
+		end
+		for _,i in pairs(self.R) do
+			if i.pos then
+				if SReady[0] and BM.LC.Q:Value() and GetDistance(i.pos,target) < Spell[0].range then
+					CastGenericSkillShot(i.pos,target,Spell[0],0,BM.p)
+				end
+				if SReady[2] and BM.LC.E:Value() and GetDistance(i.pos,target) < Spell[2].range then
+					CastSpell(2)
+				end
+				self.RPos = true
+			else
+				self.RPos = false
+			end
+		end
+		if not self.WPos and not self.RPos then
+			if SReady[0] and BM.JC.Q:Value() and target.distance < Spell[0].range then
+				CastGenericSkillShot(myHero,target,Spell[0],0,BM.p)
+			end
+			if SReady[2] and BM.JC.E:Value() and target.distance < Spell[2].range then
+				CastSpell(2)
+			end
+		end
+		if GotBuff(myHero,"ZedWHandler") == 0 and not self.WPos and SReady[1] and target.distance < Spell[1].range then
+			local pos = Vector(target) - (Vector(target) - Vector(myHero)):perpendicular():normalized() * target.distance*.5
+			CastSkillShot(1,pos)
+			self.WPos = true
+			self.W2Pos = false
+		end
+		if GotBuff(myHero,"ZedWHandler") == 1 and not self.W2Pos and SReady[1] and target.distance < Spell[1].range+500 then
+			DelayAction(function()
+			CastSpell(1)
+			self.WPos = false
+			self.W2Pos = true
+			end,BM.C.W2D:Value()*.001)
+		end
+		if GotBuff(target,"zedrtargetmark") == 0 and BM.C.R.E:Value() and SReady[3] and ValidTarget(target, Spell[3].range) and GetPercentHP(myHero) <= BM.C.R.MHP:Value() and GetPercentHP(target) <= BM.C.R.EHP:Value() and EnemyHeroesAround(myHero.pos,1000) >= BM.C.R.EAR:Value() and AllyHeroesAround(myHero.pos,1000) >= BM.C.R.AAR:Value() then
+			if BM.C.R.UOIK:Value() and Dmg[3](target)> target.health then
+				CastTargetSpell(target,3)
+				self.RPos = true
+				self.R2Pos = false
+			elseif not BM.C.R.UOIK:Value()  then
+				CastTargetSpell(target,3)
+				self.RPos = true
+				self.R2Pos = false
+			end
+		end
+		if BM.C.R.E2:Value() and SReady[3] and target.health < 100 and GotBuff(target,"zedrtargetmark") == 1 then
+			CastSpell(3)
+			self.RPos = false
+			self.R2Pos = true
+		end
+	end
+end
+
+function Zed:Harass(target)
+	if target and not target.dead then
+		for _,i in pairs(self.W) do
+			if i.pos then
+				if SReady[0] and BM.LC.Q:Value() and GetDistance(i.pos,target) < Spell[0].range then
+					CastGenericSkillShot(i.pos,target,Spell[0],0,BM.p)
+				end
+				if SReady[2] and BM.LC.E:Value() and GetDistance(i.pos,target) < Spell[2].range then
+					CastSpell(2)
+				end
+				self.WPos = true
+			else
+				self.WPos = false
+			end
+		end
+		for _,i in pairs(self.R) do
+			if i.pos then
+				if SReady[0] and BM.LC.Q:Value() and GetDistance(i.pos,target) < Spell[0].range then
+					CastGenericSkillShot(i.pos,target,Spell[0],0,BM.p)
+				end
+				if SReady[2] and BM.LC.E:Value() and GetDistance(i.pos,target) < Spell[2].range then
+					CastSpell(2)
+				end
+				self.RPos = true
+			else
+				self.RPos = false
+			end
+		end
+		if not self.WPos and not self.RPos then
+			if SReady[0] and BM.JC.Q:Value() and target.distance < Spell[0].range then
+				CastGenericSkillShot(myHero,target,Spell[0],0,BM.p)
+			end
+			if SReady[2] and BM.JC.E:Value() and target.distance < Spell[2].range then
+				CastSpell(2)
+			end
+		end
+		if not self.WPos and SReady[1] and target.distance < Spell[1].range then
+			local pos = Vector(target) - (Vector(target) - Vector(myHero)):perpendicular():normalized() * target.distance*.5
+			CastSkillShot(1,pos)
+			self.WPos = true
+		end
+	end
+end
+
+function Zed:LaneClear()
+	for t,target in pairs(minionManager.objects) do
+		if target.team == MINION_ENEMY and not target.dead then
+			for _,i in pairs(self.W) do
+				if i.pos then
+					if SReady[0] and BM.LC.Q:Value() and GetDistance(i.pos,target) < Spell[0].range then
+						CastGenericSkillShot(i.pos,target,Spell[0],0,BM.p)
+					end
+					if SReady[2] and BM.LC.E:Value() and GetDistance(i.pos,target) < Spell[2].range then
+						CastSpell(2)
+					end
+					self.WPos = true
+				else
+					self.WPos = false
+				end
+			end
+			for _,i in pairs(self.R) do
+				if i.pos then
+					if SReady[0] and BM.LC.Q:Value() and GetDistance(i.pos,target) < Spell[0].range then
+						CastGenericSkillShot(i.pos,target,Spell[0],0,BM.p)
+					end
+					if SReady[2] and BM.LC.E:Value() and GetDistance(i.pos,target) < Spell[2].range then
+						CastSpell(2)
+					end
+					self.RPos = true
+				else
+					self.RPos = false
+				end
+			end
+			if not self.WPos and not self.RPos then
+				if SReady[0] and BM.JC.Q:Value() and target.distance < Spell[0].range then
+					CastGenericSkillShot(myHero,target,Spell[0],0,BM.p)
+				end
+				if SReady[2] and BM.JC.E:Value() and target.distance < Spell[2].range then
+					CastSpell(2)
+				end
+			end
+			if not self.WPos and SReady[1] and target.distance < Spell[1].range then
+				local pos = Vector(target) - (Vector(target) - Vector(myHero)):perpendicular():normalized() * target.distance*.5
+				CastSkillShot(1,pos)
+				self.WPos = true
+			end
+		end
+	end
+end
+
+function Zed:JungleClear()
+	for t,target in pairs(minionManager.objects) do
+		if target.team == MINION_JUNGLE and not target.dead then
+			for _,i in pairs(self.W) do
+				if i.pos then
+					if SReady[0] and BM.JC.Q:Value() and GetDistance(i.pos,target) < Spell[0].range then
+						CastGenericSkillShot(i.pos,target,Spell[0],0,BM.p)
+					end
+					if SReady[2] and BM.JC.E:Value() and GetDistance(i.pos,target) < Spell[2].range then
+						CastSpell(2)
+					end
+					self.WPos = true
+				else
+					self.WPos = false
+				end
+			end
+			for _,i in pairs(self.R) do
+				if i.pos then
+					if SReady[0] and BM.JC.Q:Value() and GetDistance(i.pos,target) < Spell[0].range then
+						CastGenericSkillShot(i.pos,target,Spell[0],0,BM.p)
+					end
+					if SReady[2] and BM.JC.E:Value() and GetDistance(i.pos,target) < Spell[2].range then
+						CastSpell(2)
+					end
+					self.RPos = true
+				else
+					self.RPos = false
+				end
+			end
+			if not self.WPos and not self.RPos then
+				if SReady[0] and BM.JC.Q:Value() and target.distance < Spell[0].range then
+					CastGenericSkillShot(myHero,target,Spell[0],0,BM.p)
+				end
+				if SReady[2] and BM.JC.E:Value() and target.distance < Spell[2].range then
+					CastSpell(2)
+				end
+			end
+			if not self.WPos and SReady[1] and target.distance < Spell[1].range then
+				local pos = Vector(target) - (Vector(target) - Vector(myHero)):perpendicular():normalized() * target.distance*.5
+				CastSkillShot(1,pos)
+				self.WPos = true
+			end
+		end
+	end
+end
+
+function Zed:AutoQ()
+	for k,e in pairs(GetEnemyHeroes()) do
+		if self.CC and BM.AQ:Value() then
+			for _,i in pairs(self.W) do
+				if i.pos then
+					if SReady[0] and GetDistance(i.pos,e) < Spell[0].range then
+						CastGenericSkillShot(i.pos,e,Spell[0],0,BM.p)
+					end
+					if SReady[2] and GetDistance(i.pos,e) < Spell[2].range then
+						CastSpell(2)
+					end
+					self.WPos = true
+				else
+					self.WPos = false
+				end
+			end
+			for _,i in pairs(self.R) do
+				if i.pos then
+					if SReady[0] and GetDistance(i.pos,e) < Spell[0].range then
+						CastGenericSkillShot(i.pos,e,Spell[0],0,BM.p)
+					end
+					if SReady[2] and GetDistance(i.pos,e) < Spell[2].range then
+						CastSpell(2)
+					end
+					self.RPos = true
+				else
+					self.RPos = false
+				end
+			end
+			if not self.WPos and not self.RPos then
+				if SReady[0] and e.distance < Spell[0].range then
+					CastGenericSkillShot(myHero,e,Spell[0],0,BM.p)
+				end
+			end
+		end
+	end
+end
+
+function Zed:KS()
+	for k,target in pairs(GetEnemyHeroes()) do
+		if target and not target.dead then
+			for _,i in pairs(self.W) do
+				if i.pos then
+					if SReady[0] and BM.KS.Q:Value() and GetDistance(i.pos,target) < Spell[0].range and Dmg[0](target) > target.health then
+						CastGenericSkillShot(i.pos,target,Spell[0],0,BM.p)
+					end
+					if SReady[2] and BM.KS.E:Value() and GetDistance(i.pos,target) < Spell[2].range and Dmg[2](target) > target.health then
+						CastSpell(2)
+					end
+					self.WPos = true
+				else
+					self.WPos = false
+				end
+			end
+			for _,i in pairs(self.R) do
+				if i.pos then
+					if SReady[0] and BM.KS.Q:Value() and GetDistance(i.pos,target) < Spell[0].range and Dmg[0](target) > target.health then
+						CastGenericSkillShot(i.pos,target,Spell[0],0,BM.p)
+					end
+					if SReady[2] and BM.KS.E:Value() and GetDistance(i.pos,target) < Spell[2].range and Dmg[2](target) > target.health then
+						CastSpell(2)
+					end
+					self.RPos = true
+				else
+					self.RPos = false
+				end
+			end
+			if not self.WPos and not self.RPos then
+				if SReady[0] and BM.KS.Q:Value() and target.distance < Spell[0].range and Dmg[0](target) > target.health then
+					CastGenericSkillShot(myHero,target,Spell[0],0,BM.p)
+				end
+				if SReady[2] and BM.KS.E:Value() and target.distance < Spell[2].range and Dmg[2](target) > target.health then
+					CastSpell(2)
+				end
+			end
+		end
+	end
+end
+
 ---------------------------------------------------------------------------------------------
 -------------------------------------UTILITY-------------------------------------------------
 ---------------------------------------------------------------------------------------------
@@ -4215,7 +4649,7 @@ function Drawings:__init()
 	SLS[ChampName].Dr:DropDown("DQM", "Draw Quality", 3, {"High", "Medium", "Low"})
 	SLS[ChampName].Dr:Slider("DWi", "Circle width", 1, 1, 5, 1)
 	for i=0,3 do
-		if _G[ChampName].Spell and _G[ChampName].Spell[i] and _G[ChampName].Spell[i].range and _G[ChampName].Spell[i].range > 200 then
+		if Spell and Spell[i] and Spell[i].range and Spell[i].range > 200 then
 			SLS[ChampName].Dr:Boolean("D"..self.SNames[i], "Draw "..self.SNames[i], true)
 		end
 	end
@@ -4224,9 +4658,9 @@ end
 
 function Drawings:Draw()
 	for l=0,3 do
-		if _G[ChampName].Spell and _G[ChampName].Spell[l] and _G[ChampName].Spell[l].range and _G[ChampName].Spell[l].range > 200 then
+		if Spell and Spell[l] and Spell[l].range and Spell[l].range > 200 then
 			if SLS[ChampName].Dr.UD:Value() and SReady[l] and SLS[ChampName].Dr["D"..self.SNames[l]]:Value() then
-				DrawCircle(myHero.pos, _G[ChampName].Spell[l].range, SLS[ChampName].Dr.DWi:Value(), SLS[ChampName].Dr.DQM:Value()*20, SLS[ChampName].Dr.CP:Value())
+				DrawCircle(myHero.pos, Spell[l].range, SLS[ChampName].Dr.DWi:Value(), SLS[ChampName].Dr.DQM:Value()*20, SLS[ChampName].Dr.CP:Value())
 			end
 		end
 	end
@@ -5824,7 +6258,7 @@ end
 
 function SLWalker:T()
 if not SLW then return end
-self.aarange = myHero.range+myHero.boundingRadius*2+(self.rangebuffer[myHero.charName].r or 0)
+self.aarange = myHero.range+myHero.boundingRadius*2+(self.rangebuffer[myHero.charName] and self.rangebuffer[myHero.charName].r or 0)
 self.ts.range = self.aarange
 self:Orb()
 	for t,turret in pairs(turrets) do
