@@ -1872,7 +1872,7 @@ function Velkoz:__init()
 	[0] = { range = 1000, delay =.25, width = 75, speed = 1150},
 	[-1]= { range = 1300, delay =.25, width = 75, speed = 813},
 	[1] = { delay = .1, speed = 1700, width = 100, range = 1050,type = "line",col=false},
-	[2] = { delay = .6, speed = math.huge, range = 850, radius = 200,type = "circular",col=false },
+	[2] = { delay = 0.1, speed = 1700, range = 850, radius = 200 ,type = "circular",col=false },
 	}
 	
 	Callback.Add("Tick", function() self:Tick() end)
