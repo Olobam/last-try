@@ -602,6 +602,7 @@ function Init:__init()
 			require 'OpenPredict'
 		end
 	end
+	SLS:Info("Creators", "Made by : SxcS & Zwei")
 end
 
 class 'Recommend'
@@ -1872,7 +1873,7 @@ function Velkoz:__init()
 	[0] = { range = 1000, delay =.25, width = 75, speed = 1150},
 	[-1]= { range = 1300, delay =.25, width = 75, speed = 813},
 	[1] = { delay = .1, speed = 1700, width = 100, range = 1050,type = "line",col=false},
-	[2] = { delay = 0.1, speed = 1700, range = 850, radius = 200 ,type = "circular",col=false },
+	[2] =  { delay = 0.1, speed = 1700, range = 850, radius = 200 ,type = "circular",col=false },
 	}
 	
 	Callback.Add("Tick", function() self:Tick() end)
@@ -6147,7 +6148,7 @@ function SLWalker:__init()
 		return ADDmg, APDmg + (GotBuff(source, "varusw") > 0 and (4*GetCastLevel(source, _W)+6+.25*GetBonusAP(source)) or 0) , TRUEDmg
     end,
     ["Vayne"] = function(source, target, ADDmg, APDmg, TRUEDmg)
-		return ADDmg + (GotBuff(source, "vaynetumblebonus") > 0 and (.05*GetCastLevel(source, _Q)+.25)*(ADDmg) or 0), 0, TRUEDmg + (GotBuff(target, "VayneSilveredDebuff") > 1 and math.max(20+20*GetCastLevel(source,_W), 4+1.5*GetCastLevel(source,_W) / 100 * target.maxHealth) or 0)
+		return ADDmg + (GotBuff(source, "vaynetumblebonus") > 0 and (.2+.1*GetCastLevel(source,_Q))*(ADDmg) or 0), 0, TRUEDmg + (GotBuff(target, "VayneSilveredDebuff") > 1 and math.max(20+20*GetCastLevel(source,_W), 4+1.5*GetCastLevel(source,_W) / 100 * target.maxHealth) or 0)
     end,
     ["Vi"] = function(source, target, ADDmg, APDmg, TRUEDmg)
 		return ADDmg + (GotBuff(source, "vie") > 0 and 15*GetCastLevel(source, _E)-10+.15*(ADDmg)+.7*GetBonusAP(source) or 0) , APDmg, TRUEDmg
@@ -6175,8 +6176,11 @@ function SLWalker:__init()
 	OMenu:Menu("FS", "Farm Settings")
 	OMenu.FS:Boolean("AJ", "Attack Jungle", true)
 	OMenu.FS:Boolean("AS", "Attack Structures", true)
-	OMenu.FS:Slider("FD", "Farm Delay", 0,-20,20,2)
-	OMenu.FS:DropDown("HPM", "Health Prediction", 1, {"SL","OpenPredict","GoS"})
+	if myHero.charName == "KogMaw" then 
+		OMenu.FS:Boolean("EL", "Enable Kite Limiter", true)
+		OMenu.FS:Slider("DK", "Dont Kite if Attackspeed > x", 3,2,5,0.1)
+	end
+	OMenu.FS:Slider("FD", "Farm Delay", 0,-20,20,1)
 	
 	OMenu:Menu("D", "Drawings")
 	OMenu.D:Boolean("LHM", "Lasthit Marker", false)
@@ -6218,7 +6222,7 @@ function SLWalker:__init()
 	self.da = {}
 	self.pos = nil
 	self.c = {}
-
+	
 	Callback.Add("ProcessSpellAttack", function(unit,spellProc) self:PrAtt(unit,spellProc) end)
 	Callback.Add("UpdateBuff", function(u,b) self:UB(u,b) end)
 	Callback.Add("RemoveBuff", function(u,b) self:RB(u,b) end)
@@ -6258,6 +6262,15 @@ end
 
 function SLWalker:T()
 if not SLW then return end
+if myHero.charName == "KogMaw" and OMenu.FS.EL:Value() and self:Mode() == ("Combo" or "Harass") then
+	 if self:GetTarget() and ValidTarget(self:GetTarget(),self.aarange) then
+		if GetBaseAttackSpeed(myHero)*GetAttackSpeed(myHero) > OMenu.FS.DK:Value() then
+			self.movementEnabled = false
+		else
+			self.movementEnabled = true
+		end
+	end
+end
 self.aarange = myHero.range+myHero.boundingRadius*2+(self.rangebuffer[myHero.charName] and self.rangebuffer[myHero.charName].r or 0)
 self.ts.range = self.aarange
 self:Orb()
@@ -6318,7 +6331,7 @@ if not SLW then return end
 	for _,i in pairs(minionManager.objects) do
 		if OMenu.D.LHM:Value() then
 			if self:Mode() == "LaneClear" or self:Mode() == "LastHit" or self:Mode() == "Harass" then
-				if i.visible and i.distance < self.aarange and i.alive and i.team ~= MINION_ALLY and self:PredictHP(i,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-i.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, i, self:Dmg(myHero,i,{name = "Basic"})) then
+				if i.visible and ValidTarget(i,self.aarange) and i.alive and i.team ~= MINION_ALLY and self:PredictHP(i,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-i.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, i, self:Dmg(myHero,i,{name = "Basic"})) then
 					DrawCircle(i.pos,i.boundingRadius*1.2,1.5,20,ARGB(168,255,255,255))
 				end
 			end
@@ -6337,13 +6350,7 @@ if not SLW then return end
 end
 
 function SLWalker:PredictHP(unit,time)
-	if OMenu.FS.HPM:Value() == 1 then
-		return self:GetPredictedHealth(unit,time,GetLatency()/2000)
-	elseif OMenu.FS.HPM:Value() == 2 then
-		return GetHealthPrediction(unit,time)
-	elseif OMenu.FS.HPM:Value() == 3 then
-		return unit.health - GetDamagePrediction(unit,time)
-	end
+	return self:GetPredictedHealth(unit,time,GetLatency()/2000)
 end
 
 function SLWalker:Dmg(source,unit,spell)
