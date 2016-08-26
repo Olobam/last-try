@@ -5249,7 +5249,9 @@ end
 class 'Awareness'
 
 function Awareness:__init()
-
+	
+    if not DirExists(SPRITE_PATH.."SLAIO\\") then CreateDir(SPRITE_PATH.."SLAIO\\") end
+    if not DirExists(SPRITE_PATH.."SLAIO\\ChampIcons\\") then CreateDir(SPRITE_PATH.."SLAIO\\ChampIcons\\") end
 	self.Wards = {}
 	self.Wards2 = {}
 	self.R = {}
@@ -5257,6 +5259,7 @@ function Awareness:__init()
 	self.monsters = {}
 	self.mobs = {["SRU_Baron"]={s=1200,d=420}, ["SRU_Dragon"]={s=150,d=360}, ["SRU_Red"]={s=105,d=300}, ["SRU_Blue"]={s=105,d=300}, ["SRU_Krug"]={s=50,d=100}, ["SRU_Murkwolf"]={s=105,d=103}, ["SRU_Razorbeak"]={s=105,d=90}, ["SRU_Gromp"]={s=105,d=145}, ["Sru_Crab"]={s=150,d=120}}
 	self.j = nil
+	self.d = {}
 	self.spells = {
 	["Ashe"] = {d = 0.25, s = 1450,w=120,sp=3,c=true,dmg=function(unit) return 75+175*GetCastLevel(myHero,3)*myHero.ap end,},
 	["Draven"] = {d = 0.4,s = 2000,w=120,sp=3,c=false,dmg=function(unit) return 75+100*GetCastLevel(myHero,3)+1.1*myHero.totalDamage end,},
@@ -5322,6 +5325,26 @@ function Awareness:__init()
 	Callback.Add("UpdateBuff", function(u,b) self:UpdBuff(u,b) end)
 	Callback.Add("RemoveBuff", function(u,b) self:RemBuff(u,b) end)
 	Callback.Add("ProcessRecall", function(u,r) self:PrRe(u,r) end)
+	DelayAction(function()
+		self:DownloadSprites()
+	end,1)
+	DelayAction(function()
+		for _,i in pairs(heroes) do
+			  if FileExist(SPRITE_PATH.."SLAIO\\ChampIcons\\"..i.charName..".png") then
+					self.d[i.networkID] = Sprite("SLAIO\\ChampIcons\\"..i.charName..".png", 50, 50, 0, 0)
+			end
+		end
+	end,2)
+end
+
+function Awareness:DownloadSprites()
+	if DirExists(SPRITE_PATH.."SLAIO\\") and DirExists(SPRITE_PATH.."SLAIO\\ChampIcons\\") then
+		for _,i in pairs(heroes) do
+			if not FileExist(SPRITE_PATH.."SLAIO\\ChampIcons\\"..i.charName..".png") then
+				DownloadFileAsync("https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/Sprites/Champions/"..i.charName..".png", SPRITE_PATH.."SLAIO\\ChampIcons\\"..i.charName..".png", function() print(i.charName..".png has been downloaded") end)
+			end
+		end
+	end
 end
 
 function Awareness:PrRe(u,r)
@@ -5460,6 +5483,11 @@ function Awareness:draMin()
 				i.l = GetGameTimer()
 			elseif i.u.alive and i.l and i.ms and i.p2 and i.p and i.l and i.p2.x and i.p2.y and GetGameTimer()-i.l < 20 and (GetGameTimer()-i.l)*i.ms < 4000 then
 				if SLU.A.ME.DC:Value()  then
+					-- for x,p in pairs(self.d) do
+						-- if FileExist(SPRITE_PATH.."SLAIO\\ChampIcons\\"..i.u.charName..".png") and self.d[_] then
+							-- p:Draw(i.p.x,i.p.y,GoS.White)
+						-- end
+					-- end
 					DrawCircleMinimap(i.p2, (GetGameTimer()-i.l)*i.ms, 0, 0, ARGB(1.25*(20-GetGameTimer()-i.l),255,255,255))
 				end
 				if SLU.A.ME.DT:Value() then
