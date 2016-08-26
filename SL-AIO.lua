@@ -28,6 +28,10 @@ local Spell = {}
 local str3 = {[0]="Q",[1]="W",[2]="E",[3]="R"}
 local IPrediction = false
 local OpenPredict = false
+local SLM = {}
+local SLM2 = {}
+local lastcheck = 0
+local lastcheck2 = 0
 if GetGameVersion():sub(3,4) >= "10" then
 		SLPatchnew = GetGameVersion():sub(1,4)
 	else
@@ -275,7 +279,7 @@ end
 local function AllyMinionsAround(pos, range)
 	local c = 0
 	if pos == nil then return 0 end
-	for k,v in pairs(minionManager.objects) do 
+	for k,v in pairs(SLM2) do 
 		if v and v.alive and GetDistanceSqr(pos,v) < range*range and v.team == myHero.team then
 			c = c + 1
 		end
@@ -286,7 +290,7 @@ end
 local function GetLowestUnit(range)
 	if not range then return myHero.range+myHero.boundingRadius*2 end
 	local t, p = nil, math.huge
-	for _,i in pairs(minionManager.objects) do
+	for _,i in pairs(SLM) do
 		if i.alive and i and i.team ~= myHero.team then
 			if ValidTarget(i, range) and i.health < p then
 				t = i
@@ -311,7 +315,7 @@ end
 local function EnemyMinionsAround(pos, range)
 	local c = 0
 	if pos == nil then return 0 end
-	for k,v in pairs(minionManager.objects) do 
+	for k,v in pairs(SLM) do 
 		if v and v.alive and GetDistanceSqr(pos,v) < range*range and v.team == MINION_ENEMY then
 			c = c + 1
 		end
@@ -322,7 +326,7 @@ end
 local function JungleMinionsAround(pos, range)
 	local c = 0
 	if pos == nil then return 0 end
-	for k,v in pairs(minionManager.objects) do 
+	for k,v in pairs(SLM) do 
 		if v and v.alive and GetDistanceSqr(pos,v) < range*range and v.team == MINION_JUNGLE then
 			c = c + 1
 		end
@@ -480,6 +484,25 @@ function Stop(state)
 		BlockF7Dodge(false)
 	end
 end
+
+Callback.Add("Tick", function()
+	if lastcheck + 1000 < GetTickCount() then
+		lastcheck = GetTickCount()
+		for _,i in pairs(minionManager.objects) do
+			if i.distance < 2000 and i.alive and i.team ~= ALLY_MINION then
+				SLM[i.networkID] = i
+			end
+		end
+	end
+	if lastcheck2 + 1000 < GetTickCount() then
+		lastcheck2 = GetTickCount()
+		for _,i in pairs(minionManager.objects) do
+			if i.distance < 2000 and i.alive and i.team == ALLY_MINION then
+				SLM2[i.networkID] = i
+			end
+		end
+	end
+end)
 
 Callback.Add("Load", function()	
 	Update()
@@ -868,7 +891,7 @@ function Vayne:Harass(target)
 end
 
 function Vayne:JungleClear()
- for _,mob in pairs(minionManager.objects) do
+ for _,mob in pairs(SLM) do
 	if SReady[2] and ValidTarget(mob,Spell[2].range) and BM.JC.E:Value() and GetTeam(mob) == MINION_JUNGLE then
 		self:CastE(mob)
 	end
@@ -876,7 +899,7 @@ function Vayne:JungleClear()
 end
 
 function Vayne:LaneClear()
- for _,minion in pairs(minionManager.objects) do
+ for _,minion in pairs(SLM) do
 	if SReady[2]  and ValidTarget(minion,Spell[2].range) and BM.LC.E:Value() and GetTeam(minion) == MINION_ENEMY then
 		self:CastE(minion)
 	end
@@ -1011,7 +1034,7 @@ function Blitzcrank:Harass(target)
 end
 
 function Blitzcrank:LaneClear()
-	for _,minion in pairs(minionManager.objects) do
+	for _,minion in pairs(SLM) do
 		if GetTeam(minion) == MINION_ENEMY then
 			if SReady[0] and ValidTarget(minion, Spell[0].range) and BM.LC.Q:Value() then
 				CastGenericSkillShot(myHero,minion,Spell[0],0,BM.p)
@@ -1027,7 +1050,7 @@ function Blitzcrank:LaneClear()
 end
 
 function Blitzcrank:JungleClear()
-	for _,mob in pairs(minionManager.objects) do
+	for _,mob in pairs(SLM) do
 		if GetTeam(mob) == MINION_ENEMY then
 			if SReady[0] and ValidTarget(mob, Spell[0].range) and BM.JC.Q:Value() then
 				CastGenericSkillShot(myHero,mob,Spell[0],0,BM.p)
@@ -1119,11 +1142,9 @@ function Soraka:__init()
 	
 	BM:Menu("LC", "LaneClear")
 	BM.LC:Boolean("Q", "Use Q", true)
-	BM.LC:Boolean("E", "Use E", true)
 	
 	BM:Menu("JC", "JungleClear")
 	BM.JC:Boolean("Q", "Use Q", true)
-	BM.JC:Boolean("E", "Use E", true)
 	
 	BM:Menu("p", "Prediction")
 	BM.p:Slider("aE", "Adjust E Delay", 1.5, .5, 2, .1)
@@ -1204,7 +1225,7 @@ function Soraka:KS()
 end
 
 function Soraka:LaneClear()
-	for _,minion in pairs(minionManager.objects) do
+	for _,minion in pairs(SLM) do
 		if GetTeam(minion) == MINION_ENEMY then
 			if SReady[0] and ValidTarget(minion, Spell[0].range*1.1) and BM.LC.Q:Value() then
 				Spell[0].delay = .25 + (GetDistance(myHero,minion) / Spell[0].range)*.55
@@ -1218,7 +1239,7 @@ function Soraka:LaneClear()
 end
 
 function Soraka:JungleClear()
-	for _,mob in pairs(minionManager.objects) do
+	for _,mob in pairs(SLM) do
 		if GetTeam(mob) == MINION_JUNGLE then
 			if SReady[0] and ValidTarget(mob, Spell[0].range*1.1) and BM.JC.Q:Value() then
 				Spell[0].delay = .25 + (GetDistance(myHero,mob) / Spell[0].range)*.55
@@ -1342,7 +1363,7 @@ function Sivir:Combo(target)
 end
 
 function Sivir:LaneClear()
-	for _,minion in pairs(minionManager.objects) do
+	for _,minion in pairs(SLM) do
 		if GetTeam(minion) == MINION_ENEMY then
 			if SReady[0] and ValidTarget(minion, Spell[0].range) and BM.LC.Q:Value() then
 				CastGenericSkillShot(myHero,minion,Spell[0],0,BM.p)
@@ -1352,7 +1373,7 @@ function Sivir:LaneClear()
 end
 
 function Sivir:JungleClear()
-	for _,mob in pairs(minionManager.objects) do
+	for _,mob in pairs(SLM) do
 		if GetTeam(mob) == MINION_JUNGLE then
 			if SReady[0] and ValidTarget(mob, Spell[0].range) and BM.JC.Q:Value() then
 				CastGenericSkillShot(myHero,mob,Spell[0],0,BM.p)
@@ -1463,7 +1484,7 @@ function Nocturne:Combo(target)
 end
 
 function Nocturne:LaneClear()
-	for _,minion in pairs(minionManager.objects) do
+	for _,minion in pairs(SLM) do
 		if SReady[0] and ValidTarget(minion, Spell[0].range) then
 			if GetTeam(minion) == MINION_ENEMY and BM.LC.Q:Value() then
 				CastGenericSkillShot(myHero,minion,Spell[0],0,BM.p)
@@ -1611,7 +1632,7 @@ function Aatrox:Harass(target)
 end
 
 function Aatrox:LaneClear()
-	for _,minion in pairs(minionManager.objects) do
+	for _,minion in pairs(SLM) do
 		if GetTeam(minion) == MINION_ENEMY then
 			if SReady[0] and ValidTarget(minion, Spell[0].range*1.1) and BM.LC.Q:Value() then
 				CastGenericSkillShot(myHero,minion,Spell[0],0,BM.p)
@@ -1624,7 +1645,7 @@ function Aatrox:LaneClear()
 end
 
 function Aatrox:JungleClear()
-	for _,mob in pairs(minionManager.objects) do
+	for _,mob in pairs(SLM) do
 		if GetTeam(mob) == MINION_JUNGLE then
 			if SReady[0] and ValidTarget(mob, Spell[0].range) and BM.JC.Q:Value() then
 				CastGenericSkillShot(myHero,minion,Spell[0],0,BM.p)
@@ -1805,7 +1826,7 @@ function KogMaw:Harass(unit)
 end
 
 function KogMaw:LaneClear()
-	for _,unit in pairs(minionManager.objects) do
+	for _,unit in pairs(SLM) do
 		if SReady[1] and ValidTarget(unit,560 + 30 * myHero.level) and ((IsLaneCreep(unit) and BM.L.W:Value()) or (not IsLaneCreep(unit) and BM.J.W:Value())) then
 			CastSpell(1)
 		end
@@ -1863,7 +1884,6 @@ function Velkoz:__init()
 	self.Deconstructed = {}
 	self.QBall = nil
 	self.ult = not GotBuff(myHero,"VelkozR") == 0
-	self.CreepManagerTick = GetTickCount()
 	
 	self.Dmg = {
 	[-1] = function (unit) return 25 + myHero.level*8 + GetBonusAP(myHero) * .5 end,
@@ -1914,11 +1934,6 @@ end--]]
 
 function Velkoz:Tick()
 	GetReady()
-	if self.CreepManagerTick + 500 < GetTickCount() then
-		for _,i in pairs(minionManager.objects) do
-			self.cTable[i.networkID] = (i.distance < 2000 and i.valid and i.team ~= MINION_ALLY and i.alive) and i or nil
-		end
-	end
 	local unit = GetCurrentTarget()
 	if Mode == "Combo" then
 		self:Combo(unit)
@@ -2233,7 +2248,7 @@ function Jinx:Harass(target)
 end
 
 function Jinx:LaneClear()
-	for _,minion in pairs(minionManager.objects) do
+	for _,minion in pairs(SLM) do
 		if GetTeam(minion) == MINION_ENEMY then
 			
 			if BM.LC.Q.QL:Value() == 1 and BM.LC.Q.enable:Value() then	
@@ -2257,7 +2272,7 @@ function Jinx:LaneClear()
 end
 
 function Jinx:JungleClear()
-	for _,mob in pairs(minionManager.objects) do
+	for _,mob in pairs(SLM) do
 		if GetTeam(mob) == MINION_JUNGLE then
 			
 			if BM.JC.Q.QL:Value() == 1 and BM.JC.Q.enable:Value() then	
@@ -2281,7 +2296,7 @@ function Jinx:JungleClear()
 end
 
 function Jinx:LastHit()
-	for _,minion in pairs(minionManager.objects) do
+	for _,minion in pairs(SLM) do
 		if GetTeam(minion) == MINION_ENEMY then
 			if BM.LH.UMinig:Value() and ValidTarget(minion, self.RocketRange) and not minigun and SReady[0] then
 				CastSpell(0)
@@ -2468,7 +2483,7 @@ function Kalista:KS()
 	end
 	
 	if not BM.AE.MobOpt.UseMode:Value() or Mode == "LaneClear" then
-		for _,mob in pairs(minionManager.objects) do
+		for _,mob in pairs(SLM) do
 			if GetTeam(mob) == MINION_JUNGLE then
 				if SReady[2] and ValidTarget(mob, 750) and Dmg[2](mob) > GetCurrentHP(mob) then
 					if BM.AE.MobOpt.UseE:Value() and self.EpicJgl[GetObjectName(mob)] then
@@ -2481,7 +2496,7 @@ function Kalista:KS()
 		end
 		
 		self.km = 0
-		for _,minion in pairs(minionManager.objects) do
+		for _,minion in pairs(SLM) do
 			if GetTeam(minion) == MINION_ENEMY then
 				if Dmg[2](minion) > GetCurrentHP(minion) and ValidTarget(minion, 1000) and BM.AE.MobOpt.UseM:Value() then
 					self.km = self.km + 1
@@ -2620,7 +2635,7 @@ end
 
 function Nasus:Draw()
 	if myHero.dead or not BM.f.dQ:Value() then return end
-	for _, creep in pairs(minionManager.objects) do
+	for _, creep in pairs(SLM) do
 		--if Nasus:ValidCreep(creep,1000) then DrawText(math.floor(CalcDamage(myHero,creep,self.qDmg,0)),10,WorldToScreen(0,GetOrigin(creep)).x,WorldToScreen(0,GetOrigin(creep)).y,GoS.White) end
 		if Nasus:ValidCreep(creep,1000) and GetCurrentHP(creep)<CalcDamage(myHero,creep,self.qDmg,0) then
 			DrawCircle(GetOrigin(creep),50,0,3,GoS.Red)
@@ -2646,7 +2661,7 @@ end
 function Nasus:Farm()
 	local mod = BM.f.QM:Value()
 	if (SReady[0] or CanUseSpell(myHero,0) == 8) and ((mod == 2 and Mode == "LaneClear") or (mod == 3 and Mode == "LastHit") or (mod == 1 and Mode ~= "Combo")) then
-		for _, creep in pairs(minionManager.objects) do
+		for _, creep in pairs(SLM) do
 			if Nasus:ValidCreep(creep, Spell[0].range) and GetCurrentHP(creep)<self.qDmg*2 and ((GetHealthPrediction(creep, GetWindUp(myHero))<CalcDamage(myHero, creep, self.qDmg, 0) and BM.c.QP:Value()) or (GetCurrentHP(creep)<CalcDamage(myHero, creep, self.qDmg, 0) and not BM.c.QP:Value())) then
 				CastSpell(0)
 				AttackUnit(creep)
@@ -2833,7 +2848,7 @@ function Kindred:LaneClear()
 	local QMana = (Spell[0].mana*100)/GetMaxMana(myHero)
 	local WMana = (Spell[1].mana*100)/GetMaxMana(myHero)
 	local EMana = (Spell[2].mana*100)/GetMaxMana(myHero)
-	for _, mob in pairs(minionManager.objects) do	
+	for _, mob in pairs(SLM) do	
 		if GetTeam(mob) == MINION_JUNGLE then
 			if BM.QOptions.QJ:Value() == false and SReady[0] and BM.JunglerClear.Q:Value() and ValidTarget(mob, Spell[0].range) and GetCurrentHP(mob) >= Dmg[0](mob) --[[and (GetPercentMP(myHero)- QMana) >= BM.JunglerClear.MM:Value()]] then 
 				CastSkillShot(0, GetMousePos())
@@ -2877,7 +2892,7 @@ function Kindred:OnProcComplete(unit, spell)
 	if unit == myHero then
 		if spell.name:lower():find("attack") then
 			if Mode == "LaneClear" then 
-				for _, mob in pairs(minionManager.objects) do	
+				for _, mob in pairs(SLM) do	
 					if BM.QOptions.QL:Value() and ValidTarget(mob, 500) and GetTeam(mob) == MINION_ENEMY and BM.LaneClear.Q:Value() and (GetPercentMP(myHero)- QMana) >= BM.LaneClear.MM:Value() and SReady[0] then
 						CastSkillShot(0, GetMousePos())
 					end
@@ -2931,7 +2946,7 @@ end
 
 function Kindred:TotalHp(range, pos)
 	local hp = 0
-	for _, mob in pairs(minionManager.objects) do
+	for _, mob in pairs(SLM) do
 		if not IsDead(mob) and IsTargetable(mob) and (GetTeam(mob) == MINION_JUNGLE or GetTeam(mob) == MINION_ENEMY) and GetDistance(mob, pos) <= range then
 			hp = hp + GetCurrentHP(mob)
 		end
@@ -3095,7 +3110,7 @@ function Khazix:Harass(unit)
 end
 
 function Khazix:LastHit()
-	for _,creep in pairs(minionManager.objects) do
+	for _,creep in pairs(SLM) do
 		if SReady[0] and ValidTarget(creep,Spell[0].range) and BM.H.Q:Value() and Dmg[0](creep) > creep.health then
 			CastTargetSpell(creep,0)
 		end
@@ -3103,7 +3118,7 @@ function Khazix:LastHit()
 end
 
 function Khazix:LaneClear()
-	for _,creep in pairs(minionManager.objects) do
+	for _,creep in pairs(SLM) do
 		if SReady[0] and ValidTarget(creep,Spell[0].range) and BM.L.Q:Value() then
 			CastTargetSpell(creep,0)
 		elseif SReady[1] and ValidTarget(creep,Spell[1].range) and BM.L.W:Value() then
@@ -3314,7 +3329,7 @@ function Vladimir:Harass(target)
 end
 
 function Vladimir:LaneClear()
-	for _,minion in pairs(minionManager.objects) do
+	for _,minion in pairs(SLM) do
 		if GetTeam(minion) == MINION_ENEMY then
 			if SReady[0] and ValidTarget(minion, Spell[0].range) and BM.LC.Q:Value() then
 				CastTargetSpell(minion,0)
@@ -3327,7 +3342,7 @@ function Vladimir:LaneClear()
 end
 
 function Vladimir:JungleClear()
-	for _,mob in pairs(minionManager.objects) do
+	for _,mob in pairs(SLM) do
 		if GetTeam(mob) == MINION_JUNGLE then
 			if SReady[0] and ValidTarget(mob, Spell[0].range) and BM.JC.Q:Value() then
 				CastTargetSpell(mob,0)
@@ -3548,7 +3563,7 @@ function Orianna:Harass(target)
 end
 
 function Orianna:LaneClear()
-	for _,minion in pairs(minionManager.objects) do
+	for _,minion in pairs(SLM) do
 		if minion.team == MINION_ENEMY then
 			if SReady[0] and ValidTarget(minion, Spell[0].range) and BM.LC.Q:Value() then
 				CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
@@ -3561,7 +3576,7 @@ function Orianna:LaneClear()
 end
 
 function Orianna:JungleClear()
-	for _,minion in pairs(minionManager.objects) do
+	for _,minion in pairs(SLM) do
 		if minion.team == MINION_JUNGLE then
 			if SReady[0] and ValidTarget(minion, Spell[0].range) and BM.JC.Q:Value() then
 				CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
@@ -3748,7 +3763,7 @@ function Veigar:Harass(u)
 end
 
 function Veigar:LaneClear()	
-	for _,i in pairs(minionManager.objects) do
+	for _,i in pairs(SLM) do
 		if i.team == MINION_ENEMY and BM.LC.W:Value() and SReady[1] and ValidTarget(i, Spell[1].range) then
 			local WPred = GetCircularAOEPrediction(i, Spell[1])
 			if WPred.hitChance >= (BM.p.hW:Value()/100) then				
@@ -3759,7 +3774,7 @@ function Veigar:LaneClear()
 end
 
 function Veigar:JungleClear()
-	for _,i in pairs(minionManager.objects) do
+	for _,i in pairs(SLM) do
 		if i.team == MINION_JUNGLE and BM.JC.W:Value() and SReady[1] and ValidTarget(i, Spell[1].range) then
 			local WPred = GetCircularAOEPrediction(i, Spell[1])
 			if WPred.hitChance >= (BM.p.hW:Value()/100) then				
@@ -3813,7 +3828,7 @@ end
 
 function Veigar:FarmQ()
 	if BM.f.AQ:Value() and SReady[0] and Mode ~= "Combo" then
-		for _,i in pairs(minionManager.objects) do
+		for _,i in pairs(SLM) do
 			if i.team ~= MINION_ALLY and ValidTarget(i,Spell[0].range) and GetAPHP(i) < Dmg[0](i) then
 				local QPred = GetPrediction(i,Spell[0])			
 				if not QPred:mCollision() or #QPred:mCollision() < 2 then
@@ -4050,7 +4065,7 @@ function Ahri:Harass(u)
 end
 
 function Ahri:LaneClear()	
-	for _,i in pairs(minionManager.objects) do
+	for _,i in pairs(SLM) do
 		if i.team == MINION_ENEMY then
 			if BM.JC.Q:Value() and SReady[0] and ValidTarget(i, Spell[0].range) then
 				CastGenericSkillShot(myHero,i,Spell[0],0,BM.p)
@@ -4066,7 +4081,7 @@ function Ahri:LaneClear()
 end
 
 function Ahri:JungleClear()
-	for _,i in pairs(minionManager.objects) do
+	for _,i in pairs(SLM) do
 		if i.team == MINION_JUNGLE then
 			if BM.JC.Q:Value() and SReady[0] and ValidTarget(i, Spell[0].range) then
 				CastGenericSkillShot(myHero,i,Spell[0],0,BM.p)
@@ -4378,7 +4393,7 @@ function Zed:Harass(target)
 end
 
 function Zed:LaneClear()
-	for t,target in pairs(minionManager.objects) do
+	for t,target in pairs(SLM) do
 		if target.team == MINION_ENEMY and not target.dead then
 			for _,i in pairs(self.W) do
 				if i.pos then
@@ -4424,7 +4439,7 @@ function Zed:LaneClear()
 end
 
 function Zed:JungleClear()
-	for t,target in pairs(minionManager.objects) do
+	for t,target in pairs(SLM) do
 		if target.team == MINION_JUNGLE and not target.dead then
 			for _,i in pairs(self.W) do
 				if i.pos then
@@ -4661,7 +4676,7 @@ function Drawings:__init()
 	if not SLSChamps[ChampName] then return end
 	self.SNames={[0]="Q",[1]="W",[2]="E",[3]="R"}
 	SLS[ChampName]:SubMenu("Dr", "Drawings")
-	SLS[ChampName].Dr:Boolean("UD", "Use Drawings", false)
+	SLS[ChampName].Dr:Boolean("UD", "Use Drawings", true)
 	SLS[ChampName].Dr:ColorPick("CP", "Circle color", {255,102,102,102})
 	SLS[ChampName].Dr:DropDown("DQM", "Draw Quality", 3, {"High", "Medium", "Low"})
 	SLS[ChampName].Dr:Slider("DWi", "Circle width", 1, 1, 5, 1)
@@ -5035,8 +5050,8 @@ end
 
 function HitMe:MinionCollision(_,i)
 	if i.spell.type == "Line" and i.spell.mcollision and i.p and SLS.SB.EC:Value() and not i.hcoll and not i.wcoll then
-		for m,p in pairs(minionManager.objects) do
-			if p and p.alive and p.team == MINION_ALLY and GetDistance(p.pos,i.p.startPos) < i.range then
+		for m,p in pairs(SLM2) do
+			if p and p.alive and GetDistance(p.pos,i.p.startPos) < i.range then
 				i.vP = VectorPointProjectionOnLineSegment(Vector(self.opos),i.p.endPos,Vector(p.pos))
 				if i.vP and GetDistance(i.vP,p.pos) < (i.spell.radius+p.boundingRadius) then
 					i.spell.range = GetDistance(i.p.startPos,self.vP)
@@ -5488,7 +5503,7 @@ function Awareness:Tk()
 			self.j = nil
 		end
 	end
-	for _,i in pairs(minionManager.objects) do
+	for _,i in pairs(SLM) do
 		for k,p in pairs(self.mobs) do
 			if i.team == MINION_JUNGLE and k == i.charName and SLU.A.JT.ET[k]:Value() and SLU.A.JT.E:Value() then
 				if not self.monsters[i.networkID] then self.monsters[i.networkID] = {} end
@@ -6345,10 +6360,10 @@ if not SLW then return end
 	if OMenu.D.DHR:Value() then
 		DrawCircle(myHero.pos,myHero.boundingRadius,2,20,ARGB(255,0,150,150))
 	end
-	for _,i in pairs(minionManager.objects) do
+	for _,i in pairs(SLM) do
 		if OMenu.D.LHM:Value() then
 			if self:Mode() == "LaneClear" or self:Mode() == "LastHit" or self:Mode() == "Harass" then
-				if i.visible and ValidTarget(i,self.aarange) and i.alive and i.team ~= MINION_ALLY and self:PredictHP(i,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-i.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, i, self:Dmg(myHero,i,{name = "Basic"})) then
+				if i.visible and ValidTarget(i,self.aarange) and i.alive and self:PredictHP(i,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-i.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, i, self:Dmg(myHero,i,{name = "Basic"})) then
 					DrawCircle(i.pos,i.boundingRadius*1.2,1.5,20,ARGB(168,255,255,255))
 				end
 			end
@@ -6569,7 +6584,7 @@ function SLWalker:Mode()
 end
 
 function SLWalker:JungleClear()
-	for _,o in pairs(minionManager.objects) do
+	for _,o in pairs(SLM) do
 		if OMenu.FS.AJ:Value() and o.team == MINION_JUNGLE and ValidTarget(o,self.aarange) and self:CanOrb(o) then
 			if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
 				return nil
@@ -6581,7 +6596,7 @@ function SLWalker:JungleClear()
 end
 
 function SLWalker:LaneClear()
-	for _,o in pairs(minionManager.objects) do
+	for _,o in pairs(SLM) do
 		for t,turret in pairs(turrets) do
 			if OMenu.FS.AS:Value() then
 				if turret.distance > self.aarange then
@@ -6609,8 +6624,8 @@ function SLWalker:LaneClear()
 end
 
 function SLWalker:LastHit()
-	for _,o in pairs(minionManager.objects) do
-		if o.team ~= MINION_ALLY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
+	for _,o in pairs(SLM) do
+		if ValidTarget(o,self.aarange) and self:CanOrb(o) then
 			if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
 				 return o
 			end
@@ -6631,7 +6646,7 @@ function SLWalker:Combo()
 end
 
 function SLWalker:Harass()
-	for _,o in pairs(minionManager.objects) do
+	for _,o in pairs(SLM) do
 		if self.ts:GetTarget() and not self.forceTarget then
 			if self:CanOrb(self.ts:GetTarget()) and ValidTarget(self.ts:GetTarget(),self.aarange)then		
 				return self.ts:GetTarget()
@@ -7291,8 +7306,8 @@ end
 
 function SLEvade:MinionCollision(_,i)
 	if i.spell.type == "Line" and i.spell.mcollision and i.p and EMenu.Advanced.EMC:Value() and (i.debug or EMenu.Spells[_]["Coll".._]:Value()) and not i.hcoll and not i.wcoll then
-		for m,p in pairs(minionManager.objects) do
-			if p and p.alive and p.team == MINION_ALLY and GetDistance(p.pos,i.p.startPos) < i.range then
+		for m,p in pairs(SLM2) do
+			if p and p.alive and GetDistance(p.pos,i.p.startPos) < i.range then
 				i.vP = VectorPointProjectionOnLineSegment(Vector(self.opos),i.p.endPos,Vector(p.pos))
 				if i.vP and GetDistance(i.vP,p.pos) < (i.spell.radius+p.boundingRadius) then
 					i.spell.range = GetDistance(i.p.startPos,self.vP)
