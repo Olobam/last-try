@@ -26,6 +26,8 @@ local turrets = {}
 local spawn = nil
 local Spell = {}
 local str3 = {[0]="Q",[1]="W",[2]="E",[3]="R"}
+local IPrediction = false
+local OpenPredict = false
 if GetGameVersion():sub(3,4) >= "10" then
 		SLPatchnew = GetGameVersion():sub(1,4)
 	else
@@ -36,6 +38,7 @@ local AutoUpdater = true
 require 'DamageLib'
 if SLSChamps[myHero.charName] then
 	require 'IPrediction'
+	IPrediction = true
 end
 
 local function PredMenu(m,sp)
@@ -45,6 +48,7 @@ local function PredMenu(m,sp)
 		require 'GPrediction'
 	elseif m.CP:Value() == 1 then
 		require 'OpenPredict'
+		OpenPredict = true
 	end
 end
 
@@ -598,7 +602,7 @@ function Init:__init()
 		end
 	end
 	if myHero.charName == "Vayne" or myHero.charName == "Veigar" then
-		if not _G.OpenPredict then
+		if not OpenPredict then
 			require 'OpenPredict'
 		end
 	end
@@ -1951,41 +1955,53 @@ end
 function Velkoz:Split()
 	local i = GetCurrentTarget()
 	if self.QBall then
-		local iPredN2 = GetPrediction(i,Spell[0],self.QBall.pos).castPos
+		local iPredN2 = nil
+		if BM.p.CP:Value() == 1 and OpenPredict then
+			iPredN2 = GetPrediction(i,Spell[0],self.QBall.pos).castPos
+		else
+			iPredN2 = GetPredictionForPlayer(self.QBall.pos,i,i.ms, Spell[0].speed, Spell[0].delay*1000, Spell[0].range, Spell[0].width, false, true).PredPos
+		end
 		self.QBall:Draw(100)
-		if GetCastName(myHero,0) ~= "VelkozQ" and GetDistance(self.QBall,iPredN2) < 1500 and GetDistance(self.QBall,iPredN2) > 50 and math.abs(Vector(self.QBall.pos-GetObjectSpellStartPos(self.QBall)):normalized()*Vector(self.QBall.pos-iPredN2):normalized()) < .1 then
+		if iPredN2 and GetCastName(myHero,0) ~= "VelkozQ" and GetDistance(self.QBall,iPredN2) < 1500 and GetDistance(self.QBall,iPredN2) > 50 and math.abs(Vector(self.QBall.pos-GetObjectSpellStartPos(self.QBall)):normalized()*Vector(self.QBall.pos-iPredN2):normalized()) < .1 then
 			CastSpell(0)
 		end
 	elseif not self.ult then
-		local iPred = GetPrediction(i,Spell[-1]).castPos
-		local iPred2D = WorldToScreen(0,iPred)
-		local lowest = 9999999
-		local lowestV = nil
-		if not i.valid or myHero.dead then return end
-		local BVec = Vector(iPred) - Vector(myHero.pos)
-		for l = -math.pi*.5, math.pi*.5, math.pi*.05 do
-			local sideVec = Vector(BVec):rotated(0,l,0)
-			local sideVec2 = Vector(sideVec):perpendicular()
-			if not VectorIntersection(myHero.pos , myHero.pos+sideVec , iPred, iPred+sideVec2) then return end
-			local JVector = Vector(VectorIntersection(myHero.pos , myHero.pos+sideVec , iPred, iPred+sideVec2 ).x , myHero.pos.y , VectorIntersection( myHero.pos, myHero.pos + sideVec, iPred, iPred + sideVec2).y)
-			local JVector2D = WorldToScreen(0,JVector)
-			if GetDistance(JVector) < 1050 and GetDistance(iPred,JVector) < 1050 and CountObjectsOnLineSegment(myHero, Vector(JVector), 125, self.cTable) == 0 and CountObjectsOnLineSegment(i, Vector(JVector), 100, self.cTable) == 0 then
-				if BM.A.D:Value() then
-					DrawCircle(JVector,50,1,3,GoS.White)
-					DrawLine(myHero.pos2D.x,myHero.pos2D.y,JVector2D.x,JVector2D.y,1,GoS.White)
-					DrawLine(iPred2D.x,iPred2D.y,JVector2D.x,JVector2D.y,1,GoS.White)
-				end
-				if JVector and GetDistance(iPred,JVector) < lowest then
-					lowestV = JVector
-					lowest = GetDistance(iPred,JVector)
+		local iPred = nil
+		if BM.p.CP:Value() == 1 and OpenPredict then
+			iPred = GetPrediction(i,Spell[-1]).castPos
+		else
+			iPred = GetPredictionForPlayer(myHero.pos,i,i.ms, Spell[-1].speed, Spell[-1].delay*1000, Spell[-1].range, Spell[-1].width, false, true).PredPos
+		end
+		if iPred then
+			local iPred2D = WorldToScreen(0,iPred)
+			local lowest = 9999999
+			local lowestV = nil
+			if not i.valid or myHero.dead then return end
+			local BVec = Vector(iPred) - Vector(myHero.pos)
+			for l = -math.pi*.5, math.pi*.5, math.pi*.05 do
+				local sideVec = Vector(BVec):rotated(0,l,0)
+				local sideVec2 = Vector(sideVec):perpendicular()
+				if not VectorIntersection(myHero.pos , myHero.pos+sideVec , iPred, iPred+sideVec2) then return end
+				local JVector = Vector(VectorIntersection(myHero.pos , myHero.pos+sideVec , iPred, iPred+sideVec2 ).x , myHero.pos.y , VectorIntersection( myHero.pos, myHero.pos + sideVec, iPred, iPred + sideVec2).y)
+				local JVector2D = WorldToScreen(0,JVector)
+				if GetDistance(JVector) < 1050 and GetDistance(iPred,JVector) < 1050 and CountObjectsOnLineSegment(myHero, Vector(JVector), 125, self.cTable) == 0 and CountObjectsOnLineSegment(i, Vector(JVector), 100, self.cTable) == 0 then
+					if BM.A.D:Value() then
+						DrawCircle(JVector,50,1,3,GoS.White)
+						DrawLine(myHero.pos2D.x,myHero.pos2D.y,JVector2D.x,JVector2D.y,1,GoS.White)
+						DrawLine(iPred2D.x,iPred2D.y,JVector2D.x,JVector2D.y,1,GoS.White)
+					end
+					if JVector and GetDistance(iPred,JVector) < lowest then
+						lowestV = JVector
+						lowest = GetDistance(iPred,JVector)
+					end
 				end
 			end
-		end
-		if Mode == "Combo" and lowestV and GetCastName(myHero,0) == "VelkozQ" then
-			if GetDistance(lowestV) > 150 then
-				CastSkillShot(0,lowestV)
-			else
-				CastSkillShot(0,i.pos)
+			if Mode == "Combo" and lowestV and GetCastName(myHero,0) == "VelkozQ" then
+				if GetDistance(lowestV) > 150 then
+					CastSkillShot(0,lowestV)
+				else
+					CastSkillShot(0,i.pos)
+				end
 			end
 		end
 	end
