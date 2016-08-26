@@ -5736,7 +5736,6 @@ function Activator:__init()
 	if Snowball then
 	M.Sum:Menu("SB", "Snowball")
 	M.Sum.SB:Boolean("enable", "Enable Snowball", false)
-	M.Sum.SB:Slider("h", "HitChance", 45, 0, 100, 1)
 	end
 	if Barrier then
 	M.Sum:Menu("Barrier", "Barrier")
@@ -5984,9 +5983,9 @@ end
 
 function Activator:Snowball()
 	for _,unit in pairs(GetEnemyHeroes()) do
-		local Pred = GetPrediction(unit, Snowballd)
-		if IsReady(Snowball) and M.Sum.SB.enable:Value() and Pred and Pred.hitChance >= M.Sum.SB.h:Value()/100 and GetDistance(Pred.castPos,GetOrigin(myHero)) < Snowballd.range and not unit.dead then
-			CastSkillShot(Snowball,Pred.castPos)
+		local Pred = GetPredictionForPlayer(myHero.pos,unit,unit.ms, Snowballd.speed, Snowballd.delay*1000, Snowballd.range, Snowballd.width, true, true)
+		if IsReady(Snowball) and M.Sum.SB.enable:Value() and Pred and Pred.HitChance == 1 and GetDistance(Pred.PredPos,GetOrigin(myHero)) < Snowballd.range and not unit.dead then
+			CastSkillShot(Snowball,Pred.PredPos)
 		end
 	end
 end
@@ -7215,7 +7214,7 @@ function SLEvade:Skillshot()
         s.spell.mcollision = true
         s.spell.dangerous = false
         s.spell.radius = 120
-        s.spell.speed = 250
+        s.spell.speed = 100
         s.spell.delay = 0.25
 		s.spell.range = 1200
         s.p.endPos = Vector(2104,95,3196)--Vector(GetMousePos()) + Vector(Vector(myHero) - GetMousePos()):normalized() * (s.spell.range + myHero.boundingRadius)																			
