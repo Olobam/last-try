@@ -287,6 +287,12 @@ local function AllyMinionsAround(pos, range)
 	return c
 end
 
+local function CircleSegment2(x,y,sRadius,eRadius,sAngle,eAngle,color)
+	for a = sAngle,eAngle do
+		DrawLine(x+sRadius*math.cos(a*math.pi/180),y+sRadius*math.sin(a*math.pi/180),x+eRadius*math.cos(a*math.pi/180),y+eRadius*math.sin(a*math.pi/180),1,color)
+	end
+end
+
 local function GetLowestUnit(range)
 	if not range then return myHero.range+myHero.boundingRadius*2 end
 	local t, p = nil, math.huge
@@ -3035,7 +3041,7 @@ function Khazix:__init()
 		end
 	end
 
-	self.Passive = true
+	self.Passive = GotBuff(myHero,"KhazixPDamage") ~= 0
 	self.IsStealth = false
 	self.Isolated = {}
 	self.Point = nil
@@ -3043,10 +3049,8 @@ function Khazix:__init()
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("UpdateBuff", function(unit, buff) self:OnUpdate(unit, buff) end)
 	Callback.Add("RemoveBuff", function(unit, buff) self:OnRemove(unit, buff) end)
-	Callback.Add("ProcessSpellComplete", function(unit, spell) self:ProcComplete(unit, spell) end)
 	Callback.Add("CreateObj", function(o) self:CreateObj(o) end)
 	Callback.Add("DeleteObj", function(o) self:DeleteObj(o) end)
-	Callback.Add("Animation", function(u,a) self:Animation(u,a) end)
 	
 	for i = 1,2 do
 		PredMenu(BM.p, i)	
@@ -3082,9 +3086,9 @@ end
 
 function Khazix:KS()
 	for _,unit in pairs(GetEnemyHeroes()) do
-		if BM.KS.Q:Value() and ValidTarget(unit, Spell[0].range) and SReady[0] and Dmg[0](unit) < GetADHP(unit) then
+		if BM.KS.Q:Value() and ValidTarget(unit, Spell[0].range) and SReady[0] and Dmg[0](unit) > GetADHP(unit) then
 			CastTargetSpell(unit,0)
-		elseif BM.KS.W:Value() and ValidTarget(unit, Spell[1].range) and SReady[1] and Dmg[1](unit) < GetADHP(unit) then
+		elseif BM.KS.W:Value() and ValidTarget(unit, Spell[1].range) and SReady[1] and Dmg[1](unit) > GetADHP(unit) then
 			self:UseW(unit)
 		end
 	end
@@ -3156,20 +3160,6 @@ end
 function Khazix:Proc(unit, spellProc)
 	if self.Dashes[unit.charName] and Mode == "Combo" and SReady[2] and spellProc.name == GetCastName(unit, self.Dashes[unit.charName].Spellslot) and unit == GetCurrentTarget() and GetDistance(spellProc.endPos) > myHero.boundingRadius +Spell[0].range + unit.boundingRadius and GetDistance(spellProc.endPos) < Spell[2].range and BM.J[unit.networkID]:Value() and GetDistance(spellProc.startPos) < GetDistance(spellProc.endPos) then
 		CastSkillShot(2, spellProc.endPos)
-	end
-end
-
-function Khazix:ProcComplete(unit, spellProc)
---	if unit.isMe and spellProc.name:lower():find("attack") and spellProc.target.valid then
---		self:UseQ(spellProc.target)
---	end
-end
-
-function Khazix:Animation(unit,animation)
-	if unit.isMe and animation:lower():find("evo") and not animation:find("_") then
-		DelayAction(function()
-			CastSpell(13)
-		end,.1)
 	end
 end
 
@@ -5269,18 +5259,25 @@ function Awareness:__init()
 	self.E = {}
 	self.offy = 60
 	SLU:Menu("A", "|SL| Awareness")
+	
+	SLU.A:Menu("HUD", "HUD")
+		SLU.A.HUD:Boolean("E","Draw Enemies",true)
+		SLU.A.HUD:Boolean("R","Draw Ult CD", true)
+	
 	SLU.A:Menu("WT", "Ward Tracker")
-	SLU.A.WT:Boolean("E", "Enabled",true)
-	SLU.A.WT:Boolean("DS", "Draw on Screen", true)
-	SLU.A.WT:Boolean("DM", "Draw on Minimap", true)
-	SLU.A.WT:Boolean("TEW", "Track Enemy Wards", true)
-	SLU.A.WT:Boolean("TAW", "Track Ally Wards", false)
-	SLU.A.WT:DropDown("Cq", "Circle Quality", 3, {"High", "Medium", "Low"})
-	SLU.A.WT:Slider("Cw", "Circle Width", 1.5,0,3,0.5)
+		SLU.A.WT:Boolean("E", "Enabled",true)
+		SLU.A.WT:Boolean("DS", "Draw on Screen", true)
+		SLU.A.WT:Boolean("DM", "Draw on Minimap", true)
+		SLU.A.WT:Boolean("TEW", "Track Enemy Wards", true)
+		SLU.A.WT:Boolean("TAW", "Track Ally Wards", false)
+		SLU.A.WT:DropDown("Cq", "Circle Quality", 3, {"High", "Medium", "Low"})
+		SLU.A.WT:Slider("Cw", "Circle Width", 1.5,0,3,0.5)
+		
 	SLU.A:Menu("ME", "Missing Enemies")
-	SLU.A.ME:Boolean("E", "Enabled", true)
-	SLU.A.ME:Boolean("DT", "Draw Timer", true)
-	SLU.A.ME:Boolean("DC", "Draw Circle", true)
+		SLU.A.ME:Boolean("E", "Enabled", true)
+		SLU.A.ME:Boolean("DT", "Draw Timer", true)
+		SLU.A.ME:Boolean("DC", "Draw Circle", true)
+		
 	SLU.A.ME:Menu("DE", "Enable Draw for :")
 	DelayAction(function() 
 		for _, i in pairs(GetEnemyHeroes()) do
@@ -5314,7 +5311,7 @@ function Awareness:__init()
 	SLU.A:Info("MSTM", "More Soon TM")
 	
 	for _,i in pairs(GetEnemyHeroes()) do 
-		self.E[_] = {u = i, l = 0, p = nil, p2 = nil, ms = 0} 
+		self.E[i.networkID] = {u = i, l = 0, p = nil, p2 = nil, ms = 0, h = GetPercentHP(i), m = GetPercentMP(i)} 
 	end
 	
 	Callback.Add("Tick", function() self:Tk() end)
@@ -5326,23 +5323,28 @@ function Awareness:__init()
 	Callback.Add("RemoveBuff", function(u,b) self:RemBuff(u,b) end)
 	Callback.Add("ProcessRecall", function(u,r) self:PrRe(u,r) end)
 	DelayAction(function()
-		self:DownloadSprites()
+	self:LoadSprites()
 	end,1)
-	DelayAction(function()
-		for _,i in pairs(heroes) do
-			  if FileExist(SPRITE_PATH.."SLAIO\\ChampIcons\\"..i.charName..".png") then
-					self.d[i.networkID] = Sprite("SLAIO\\ChampIcons\\"..i.charName..".png", 50, 50, 0, 0)
-			end
-		end
-	end,2)
 end
 
-function Awareness:DownloadSprites()
-	if DirExists(SPRITE_PATH.."SLAIO\\") and DirExists(SPRITE_PATH.."SLAIO\\ChampIcons\\") then
-		for _,i in pairs(heroes) do
-			if not FileExist(SPRITE_PATH.."SLAIO\\ChampIcons\\"..i.charName..".png") then
-				DownloadFileAsync("https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/Sprites/Champions/"..i.charName..".png", SPRITE_PATH.."SLAIO\\ChampIcons\\"..i.charName..".png", function() print(i.charName..".png has been downloaded") end)
-			end
+function Awareness:LoadSprites()
+	if not FileExist(SPRITE_PATH.."SLAIO\\ChampIcons\\Unknown.png") then
+		DownloadFileAsync("https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/Sprites/RadarHack/miss.png", SPRITE_PATH.."SLAIO\\ChampIcons\\Unknown.png", function() end)
+	end
+	for _,i in pairs(self.E) do
+		if not FileExist(SPRITE_PATH.."SLAIO\\ChampIcons\\"..i.u.charName..".png") then
+			GetWebResultAsync("https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/Sprites/Champions/"..i.u.charName..".png", function (b) 
+				if b ~= "404: Not Found" then 
+					DownloadFileAsync("https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/Sprites/Champions/"..i.u.charName..".png", SPRITE_PATH.."SLAIO\\ChampIcons\\"..i.u.charName..".png", 
+					function() 	
+						self.d[i.u.networkID] = Sprite("SLAIO\\ChampIcons\\"..i.u.charName..".png", 50, 50, 0, 0) 
+					end)
+				else
+					self.d[i.u.networkID] = Sprite("SLAIO\\ChampIcons\\Unknown.png", 50, 50, 0, 0)
+				end
+			end)
+		else
+			self.d[i.u.networkID] = Sprite("SLAIO\\ChampIcons\\"..i.u.charName..".png", 50, 50, 0, 0)
 		end
 	end
 end
@@ -5410,6 +5412,24 @@ function Awareness:DelO(o)
 end
 
 function Awareness:DrawScreen()
+	if SLU.A.HUD.E:Value() then
+		local yOff = 0
+		for _,i in pairs(self.d) do
+			local h = math.floor(GetPercentHP(self.E[_].u))
+			local m = math.floor(GetPercentMP(self.E[_].u))
+			CircleSegment2(WINDOW_W * .9 + 25 ,WINDOW_H * .3 + 25 + yOff,20,34,315,423 ,GoS.Black)
+			if self.E[_].u.alive then 
+			CircleSegment2(WINDOW_W * .9 + 25 ,WINDOW_H * .3 + 25 + yOff,22,27,320,320 + m,GoS.Blue)
+			CircleSegment2(WINDOW_W * .9 + 25 ,WINDOW_H * .3 + 25 + yOff,27,32,320,320 + h,ARGB(255,255-2.55*h,2.55*h,0))
+			end
+			i:Draw(WINDOW_W * .9 ,WINDOW_H * .3 + yOff, 50 ,50)
+			if self.E[_].u.dead then
+				CircleSegment2(WINDOW_W * .9 + 25 ,WINDOW_H * .3 + 25 + yOff,0,20,0,360,ARGB(50,0,0,0))
+			end
+			DrawText(h.."%",30,WINDOW_W * .9 + 75 ,WINDOW_H * .3 + 12.5 + yOff,ARGB(255,255-2.55*h,2.55*h,0))
+			yOff = yOff + 60
+		end
+	end
 	if SLU.A.WT.E:Value() and SLU.A.WT.DS:Value() then
 		for _,i in pairs(self.Wards) do
 			if i.o and i.o.valid then
@@ -5546,7 +5566,7 @@ function Awareness:Tk()
 		end	
 	end
 	for _,i in pairs(self.monsters) do
-			DelayAction(function() self.monsters[_] = nil end,i.d) 
+		DelayAction(function() self.monsters[_] = nil end,i.d) 
 	end
 	for _, i in pairs(self.spells) do
 		for k,p in pairs(self.R) do
@@ -6040,7 +6060,7 @@ function Activator:Barrier()
 end
 
 function Activator:SpellsComplete(unit, spellProc)
-	if unit == myHero and spellProc.name:lower():find("attack") and Mode == "Combo" then
+	if unit == myHero and spellProc.name:lower():find("attack") and (Mode == "Combo" or Mode == "LaneClear") then
 		for i,c in pairs(self.AA) do 
 			if c.State and CanUseSpell(myHero,GetItemSlot(myHero,i)) and M[c.Name].u:Value() and GetPercentHP(spellProc.target) <= M[c.Name].hp:Value() then
 				CastSpell(GetItemSlot(myHero,i))
