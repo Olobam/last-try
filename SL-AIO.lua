@@ -3042,7 +3042,7 @@ function Khazix:__init()
 	end
 
 	self.Passive = GotBuff(myHero,"KhazixPDamage") ~= 0
-	self.IsStealth = false
+	self.IsStealth = GotBuff(myHero,"KhazixR") ~= 0
 	self.Isolated = {}
 	self.Point = nil
 
@@ -3152,7 +3152,7 @@ function Khazix:UseE(Unit)
 end
 
 function Khazix:UseR(Unit)
-	if BM.C.R.R:Value() and ValidTarget(Unit, Spell[2].range) and SReady[3] and not self.Passive and not SReady[2] then
+	if BM.C.R.R:Value() and ValidTarget(Unit, Spell[2].range) and SReady[3] and not self.Passive and not SReady[2] or self.IsStealth then
 		CastSpell(3)
 	end
 end
@@ -3167,7 +3167,7 @@ function Khazix:OnUpdate(unit, buffproc)
 	if unit.isMe and buffproc then
 		if buffproc.Name == "KhazixPDamage" then
 			self.Passive = true
-		elseif buffproc.Name == "Khazixrstealth" then
+		elseif buffproc.Name == "KhazixR" then
 			self.IsStealth = true
 		end
 	end
@@ -3177,7 +3177,7 @@ function Khazix:OnRemove(unit, buffproc)
 	if unit.isMe and buffproc then
 		if buffproc.Name == "KhazixPDamage" then
 			self.Passive = false
-		elseif buffproc.Name == "Khazixrstealth" then
+		elseif buffproc.Name == "KhazixR" then
 			self.IsStealth = false
 		end
 	end
