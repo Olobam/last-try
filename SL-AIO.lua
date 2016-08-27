@@ -6189,7 +6189,7 @@ function SLWalker:__init()
 		return ADDmg, APDmg + (GotBuff(source, "kaylerighteousfurybuff") > 0 and 5*GetCastLevel(source, _E)+5+.15*GetBonusAP(source) or 0) + (GotBuff(source, "judicatorrighteousfury") > 0 and 5*GetCastLevel(source, _E)+5+.15*GetBonusAP(source) or 0), TRUEDmg
     end,
 	["KogMaw"] = function(source, target, ADDmg, APDmg, TRUEDmg)
-		return ADDmg*.55, (GotBuff(source, "KogMawBioArcaneBarrage") > 0 and (4 * GetCastLevel(source,_W) + (.02 + APDmg*.00075)*target.maxHealth) or 0), TRUEDmg
+		return ADDmg, (GotBuff(source, "KogMawBioArcaneBarrage") > 0 and (4 * GetCastLevel(source,_W) + (.02 + APDmg*.00075)*target.maxHealth) or 0), TRUEDmg
 	end,
     ["Leona"] = function(source, target, ADDmg, APDmg, TRUEDmg)
 		return ADDmg, APDmg + (GotBuff(source, "leonashieldofdaybreak") > 0 and 30*GetCastLevel(source, _Q)+10+.3*GetBonusAP(source) or 0), TRUEDmg
