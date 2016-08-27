@@ -5333,15 +5333,19 @@ function Awareness:LoadSprites()
 	end
 	for _,i in pairs(self.E) do
 		if not FileExist(SPRITE_PATH.."SLAIO\\ChampIcons\\"..i.u.charName..".png") then
-			GetWebResultAsync("https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/Sprites/Champions/"..i.u.charName..".png", function (b) 
-				if b ~= "404: Not Found" then 
-					DownloadFileAsync("https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/Sprites/Champions/"..i.u.charName..".png", SPRITE_PATH.."SLAIO\\ChampIcons\\"..i.u.charName..".png", 
-					function() 	
-						self.d[i.u.networkID] = Sprite("SLAIO\\ChampIcons\\"..i.u.charName..".png", 50, 50, 0, 0) 
-					end)
-				else
-					self.d[i.u.networkID] = Sprite("SLAIO\\ChampIcons\\Unknown.png", 50, 50, 0, 0)
-				end
+			GetWebResultAsync("https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/Sprites/Champions/"..i.u.charName..".png", function (b)
+				DelayAction(function()
+					if b ~= "404: Not Found" then 
+						DownloadFileAsync("https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/Sprites/Champions/"..i.u.charName..".png", SPRITE_PATH.."SLAIO\\ChampIcons\\"..i.u.charName..".png", 
+						function() 	
+							DelayAction(function()
+								self.d[i.u.networkID] = Sprite("SLAIO\\ChampIcons\\"..i.u.charName..".png", 50, 50, 0, 0) 
+							end,.1)
+						end)
+					else
+						self.d[i.u.networkID] = Sprite("SLAIO\\ChampIcons\\Unknown.png", 50, 50, 0, 0)
+					end
+				end,.1)
 			end)
 		else
 			self.d[i.u.networkID] = Sprite("SLAIO\\ChampIcons\\"..i.u.charName..".png", 50, 50, 0, 0)
