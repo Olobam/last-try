@@ -7151,7 +7151,7 @@ Spells = {
 	["ZileanQ"]={charName="Zilean",slot=0,type="Circle",delay=0.3,range=900,radius=210,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="ZileanQMissile",killTime=1.5,displayname="",mcollision=false},
 	["ZyraQ"]={charName="Zyra",slot=0,type="Rectangle",delay=0.4,range=800,radius2=400,radius=140,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="ZyraQ",killTime=0.35,displayname="",mcollision=false},
 	["ZyraE"]={charName="Zyra",slot=2,type="Line",delay=0.25,range=1100,radius=70,speed=1300,addHitbox=true,danger=3,dangerous=true,proj="ZyraE",killTime=0,displayname="Grasping Roots",mcollision=false},
-	["ZyraRSplash"]={charName="Zyra",slot=3,type="Circle",delay=0.7,range=700,radius=550,speed=math.huge,addHitbox=true,danger=4,dangerous=false,proj="ZyraRSplash",killTime=1,displayname="Splash",mcollision=false},
+	--["ZyraRSplash"]={charName="Zyra",slot=3,type="Circle",delay=0.7,range=700,radius=550,speed=math.huge,addHitbox=true,danger=4,dangerous=false,proj="ZyraRSplash",killTime=1,displayname="Splash",mcollision=false},--bugged spell
 }
 
 self.EvadeSpells = {
@@ -7434,7 +7434,7 @@ end
 
 function SLEvade:sCircPos(_,i)
 	if i.p then
-		return math.floor((i.spell.radius/(i.spell.killTime+i.spell.delay+GetDistance(i.caster,i.p.endPos)/i.spell.speed))*(os.clock()-i.startTime))
+		return math.floor((i.spell.radius/(i.spell.killTime+i.spell.delay+i.dist/i.spell.speed))*(os.clock()-i.startTime))
 	end
 end
 
@@ -8216,6 +8216,7 @@ function SLEvade:CreateObject(obj)
 				self.obj[obj.spellName].range = l.range
 				self.obj[obj.spellName].check = GetDistance(myHero,obj.startPos)/l.speed
 				self.obj[obj.spellName].check2 = GetDistance(myHero,obj.endPos)/l.speed+l.killTime
+				self.obj[obj.spellName].dist = GetDistance(obj.spellOwner,obj.endPos)
 			end
 		end
 	end
@@ -8244,6 +8245,7 @@ function SLEvade:Detection(unit,spellProc)
 				self.obj[spellProc.name].range = l.range
 				self.obj[spellProc.name].check = GetDistance(myHero,spellProc.startPos)/l.speed+l.delay
 				self.obj[spellProc.name].check2 = GetDistance(myHero,spellProc.endPos)/l.speed+l.delay+l.killTime
+				self.obj[spellProc.name].dist = GetDistance(unit,spellProc.endPos)
 				if l.killTime and l.type == "Circle" then
 					DelayAction(function() self.obj[spellProc.name] = nil end, l.killTime + GetDistance(unit,spellProc.endPos)/l.speed + l.delay)
 				elseif l.killTime > 0 and l.type ~= "Circle" then
