@@ -1,4 +1,4 @@
-local SLAIO = 0.01
+local SLAIO,Stage = 0.01,"BETA"
 
 local SLSChamps = {	
 	["Vayne"] = true,
@@ -26,7 +26,7 @@ local turrets = {}
 local spawn = nil
 local Spell = {}
 local str3 = {[0]="Q",[1]="W",[2]="E",[3]="R"}
-local IPrediction = false
+local IPred= false
 local OpenPredict = false
 local SLM = {}
 local SLM2 = {}
@@ -42,7 +42,7 @@ local AutoUpdater = true
 require 'DamageLib'
 if SLSChamps[myHero.charName] then
 	require 'IPrediction'
-	IPrediction = true
+	IPred = true
 end
 
 local function PredMenu(m,sp)
@@ -642,6 +642,7 @@ function Init:__init()
 		end
 	end
 	SLS:Info("Creators", "Made by : SxcS & Zwei")
+	SLS:Info("Verison", "Current Version : "..SLAIO.." | "..Stage)
 end
 
 class 'Recommend'
