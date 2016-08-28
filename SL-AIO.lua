@@ -2346,7 +2346,9 @@ function Kalista:__init()
 
 	self.eTrack = {}
 	self.soul = nil
-	
+	self.dragon = nil
+	self.EpicJgl = nil
+	self.BigJgl = nil
 	for _,i in pairs(GetAllyHeroes()) do
 		if GotBuff(i, "kalistacoopstrikeally") == 1 then
 			soul = i
@@ -2366,9 +2368,6 @@ function Kalista:__init()
 	[0] = function (unit) return CalcDamage(myHero, unit, 60 * GetCastLevel(myHero,0) - 50 + GetBonusDmg(myHero), 0) end, 
 	[2] = function (unit) if not unit then return end return CalcDamage(myHero, unit, (10 * GetCastLevel(myHero,2) + 10 + (GetBonusDmg(myHero)+GetBaseDamage(myHero)) * .6) + ((self.eTrack[GetNetworkID(unit)] or 0)-1) * (({10,14,19,25,32})[GetCastLevel(myHero,2)] + (GetBaseDamage(myHero)+GetBaseDamage(myHero))*({0.2,0.225,0.25,0.275,0.3})[GetCastLevel(myHero,2)]), 0) end,
 	}
-	
-	self.EpicJgl = {["SRU_Baron"]=true, ["SRU_Dragon"]=true, ["TT_Spiderboss"]=true}
-	self.BigJgl = {["SRU_Baron"]=true, ["SRU_Dragon"]=true, ["SRU_Red"]=true, ["SRU_Blue"]=true, ["SRU_Krug"]=true, ["SRU_Murkwolf"]=true, ["SRU_Razorbeak"]=true, ["SRU_Gromp"]=true, ["Sru_Crab"]=true, ["TT_Spiderboss"]=true}
 	
 	BM:Menu("C", "Combo")
 	BM.C:Boolean("Q", "Use Q", true)
@@ -2436,6 +2435,18 @@ function Kalista:RemoveBuff(unit, buff)
 end
 
 function Kalista:Tick()
+	for _,i in pairs(SLM) do
+		if i.charName:lower():find("sru_dragon") then
+			self.dragon = i.charName
+		end
+	end
+	if not self.dragon then
+		self.EpicJgl = {["SRU_Baron"]=true, ["TT_Spiderboss"]=true}
+		self.BigJgl = {["SRU_Baron"]=true, ["SRU_Red"]=true, ["SRU_Blue"]=true, ["SRU_Krug"]=true, ["SRU_Murkwolf"]=true, ["SRU_Razorbeak"]=true, ["SRU_Gromp"]=true, ["Sru_Crab"]=true, ["TT_Spiderboss"]=true}
+	else
+		self.EpicJgl = {["SRU_Baron"]=true, [self.dragon]=true,["TT_Spiderboss"]=true}
+		self.BigJgl = {["SRU_Baron"]=true, [self.dragon]=true, ["SRU_Red"]=true, ["SRU_Blue"]=true, ["SRU_Krug"]=true, ["SRU_Murkwolf"]=true, ["SRU_Razorbeak"]=true, ["SRU_Gromp"]=true, ["Sru_Crab"]=true, ["TT_Spiderboss"]=true}
+	end
 	if myHero.dead then return end
 	
 	GetReady()
@@ -7283,12 +7294,12 @@ function SLEvade:Skillshot()
         s.spell.killTime = 10
         s.spell.mcollision = true
         s.spell.dangerous = false
-        s.spell.radius = 275
-        s.spell.speed = 1200
+        s.spell.radius = 130
+        s.spell.speed = 100
         s.spell.delay = 0
 		s.spell.range = 1200
         s.p.endPos = Vector(2104,95,3196)--Vector(GetMousePos()) + Vector(Vector(myHero) - GetMousePos()):normalized() * (s.spell.range + myHero.boundingRadius)																			
-        s.spell.type = "Circle"
+        s.spell.type = "Line"
         s.uDodge = false 
         s.caster = myHero
 		s.range = 1200
@@ -7298,7 +7309,7 @@ function SLEvade:Skillshot()
 		s.check2 = GetDistance(myHero,s.p.endPos)/s.spell.speed+s.spell.delay+s.spell.killTime
         s.startTime = os.clock()
         self.obj[s.spell.name] = s
-		DelayAction(function() self.obj[s.spell.name] = nil end,i.spell.range/i.spell.speed+i.spell.delay/2--[[s.spell.killTime+s.spell.delay]])
+		DelayAction(function() self.obj[s.spell.name] = nil end,s.spell.range/s.spell.speed+s.spell.delay/2--[[s.spell.killTime+s.spell.delay]])
 end
 
 function SLEvade:Tickp()
