@@ -1796,8 +1796,9 @@ function Kalista:__init()
 	[2] = function (unit) if not unit then return end return CalcDamage(myHero, unit, (10 * GetCastLevel(myHero,2) + 10 + (GetBonusDmg(myHero)+GetBaseDamage(myHero)) * .6) + ((self.eTrack[GetNetworkID(unit)] or 0)-1) * (({10,14,19,25,32})[GetCastLevel(myHero,2)] + (GetBaseDamage(myHero)+GetBaseDamage(myHero))*({0.2,0.225,0.25,0.275,0.3})[GetCastLevel(myHero,2)]), 0) end,
 	}
 	
-	self.EpicJgl = {["SRU_Baron"]=true, ["SRU_Dragon"]=true, ["TT_Spiderboss"]=true}
-	self.BigJgl = {["SRU_Baron"]=true, ["SRU_Dragon"]=true, ["SRU_Red"]=true, ["SRU_Blue"]=true, ["SRU_Krug"]=true, ["SRU_Murkwolf"]=true, ["SRU_Razorbeak"]=true, ["SRU_Gromp"]=true, ["Sru_Crab"]=true, ["TT_Spiderboss"]=true}
+	self.EpicJgl = nil
+	self.BigJgl = nil
+	self.dragon = nil
 	
 	BM:Menu("C", "Combo")
 	BM.C:Boolean("Q", "Use Q", true)
@@ -1862,6 +1863,18 @@ function Kalista:RemoveBuff(unit, buff)
 end
 
 function Kalista:Tick()
+	for _,i in pairs(minionManager.objects) do
+		if i.charName:lower():find("sru_dragon") then
+			self.dragon = i.charName
+		end
+	end
+	if not self.dragon then
+		self.EpicJgl = {["SRU_Baron"]=true, ["TT_Spiderboss"]=true}
+		self.BigJgl = {["SRU_Baron"]=true, ["SRU_Red"]=true, ["SRU_Blue"]=true, ["SRU_Krug"]=true, ["SRU_Murkwolf"]=true, ["SRU_Razorbeak"]=true, ["SRU_Gromp"]=true, ["Sru_Crab"]=true, ["TT_Spiderboss"]=true}
+	else
+		self.EpicJgl = {["SRU_Baron"]=true, [self.dragon]=true,["TT_Spiderboss"]=true}
+		self.BigJgl = {["SRU_Baron"]=true, [self.dragon]=true, ["SRU_Red"]=true, ["SRU_Blue"]=true, ["SRU_Krug"]=true, ["SRU_Murkwolf"]=true, ["SRU_Razorbeak"]=true, ["SRU_Gromp"]=true, ["Sru_Crab"]=true, ["TT_Spiderboss"]=true}
+	end
 	if myHero.dead then return end
 	
 	GetReady()
