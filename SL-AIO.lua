@@ -205,13 +205,16 @@ local function dRectangleOutline(s, e, w, t, c, v)--start,end,width,thickness,co
 	local c5 = WorldToScreen(0,z5)
 	local c6 = WorldToScreen(0,z6)
 	if v then
-		DrawLine(c5.x,c5.y,c6.x,c6.y,t,ARGB(255,15,250,42))
+		DrawLine(c5.x,c5.y,c6.x,c6.y,t+1,ARGB(200,250,192,0))
+		DrawLine(c2.x,c2.y,c3.x,c3.y,t,c)
+		DrawLine(c3.x,c3.y,c4.x,c4.y,t,c)
+		DrawLine(c1.x,c1.y,c4.x,c4.y,t,c)
 	else
-		DrawLine(c5.x,c5.y,c6.x,c6.y,t,ARGB(255,255,0,0))
+		DrawLine(c5.x,c5.y,c6.x,c6.y,t+0.5,ARGB(255,255,0,0))
+		DrawLine(c2.x,c2.y,c3.x,c3.y,t,ARGB(150,255,255,255))
+		DrawLine(c3.x,c3.y,c4.x,c4.y,t,ARGB(150,255,255,255))
+		DrawLine(c1.x,c1.y,c4.x,c4.y,t,ARGB(150,255,255,255))
 	end
-	DrawLine(c2.x,c2.y,c3.x,c3.y,t,c)
-	DrawLine(c3.x,c3.y,c4.x,c4.y,t,c)
-	DrawLine(c1.x,c1.y,c4.x,c4.y,t,c)
 end
 
 local function dRectangleOutline2(s, e, w, t, c, v)--start,end,radius,thickness,color
@@ -224,13 +227,16 @@ local function dRectangleOutline2(s, e, w, t, c, v)--start,end,radius,thickness,
 	local c3 = WorldToScreen(0,z3)
 	local c4 = WorldToScreen(0,z4)
 	if v then
-		DrawLine(c1.x,c1.y,c2.x,c2.y,t,ARGB(255,15,250,42))
+		DrawLine(c1.x,c1.y,c2.x,c2.y,t+1,ARGB(200,250,192,0))
+		DrawLine(c2.x,c2.y,c3.x,c3.y,t,c)
+		DrawLine(c3.x,c3.y,c4.x,c4.y,t,c)
+		DrawLine(c1.x,c1.y,c4.x,c4.y,t,c)
 	else
-		DrawLine(c1.x,c1.y,c2.x,c2.y,t,ARGB(255,255,0,0))
+		DrawLine(c1.x,c1.y,c2.x,c2.y,t+0.5,ARGB(255,255,0,0))
+		DrawLine(c2.x,c2.y,c3.x,c3.y,t,ARGB(255,102,102,102))
+		DrawLine(c3.x,c3.y,c4.x,c4.y,t,ARGB(255,102,102,102))
+		DrawLine(c1.x,c1.y,c4.x,c4.y,t,ARGB(255,102,102,102))
 	end
-	DrawLine(c2.x,c2.y,c3.x,c3.y,t,c)
-	DrawLine(c3.x,c3.y,c4.x,c4.y,t,c)
-	DrawLine(c1.x,c1.y,c4.x,c4.y,t,c)
 end
 
 
@@ -4944,7 +4950,7 @@ end
 
 function HitMe:Ti()
 	if SLS.SB.uS:Value() then
-		heroes[myHero.networkID] = myHero
+		heroes[myHero.networkID] = nil
 		for _,i in pairs(self.object) do
 			if i.o and i.spell.type == "linear" and GetDistance(myHero,i.o) >= 3000 then return end
 			if i.p and i.spell.type == "circular" and GetDistance(myHero,i.p.endPos) >= 3000 then return end
@@ -6861,16 +6867,13 @@ function SLEvade:__init()
 	EMenu.Draws:Boolean("DSEW", "Draw SkillShot Extra Width", true)
 	EMenu.Draws:Boolean("DEPos", "Draw Evade Position", false)
 	EMenu.Draws:Boolean("DES", "Draw Evade Status", true)
-	EMenu.Draws:Menu("SD", "Spell Drawing")
-	EMenu.Draws.SD:ColorPick("c", " Spell Color", {255,255,255,255})
-	EMenu.Draws.SD:Slider("t", "Line width", 0.5, 0, 5, 0.5)
 	EMenu.Draws:Boolean("DevOpt", "Draw for Devs", false)
 	EMenu:SubMenu("Keys", "Key Settings")
 	EMenu.Keys:KeyBinding("DD", "Disable Dodging", string.byte("K"), true)
 	EMenu.Keys:KeyBinding("DDraws", "Disable Drawings", string.byte("J"), true)
 	EMenu.Keys:KeyBinding("DoD", "Dodge only Dangerous", string.byte(" "))
 	EMenu.Keys:KeyBinding("DoD2", "Dodge only Dangerous 2", string.byte("V"))
-	EMenu:Boolean("D","DEBUG",false)
+	EMenu:Boolean("D","DEBUG (Y)",false)
 	
 	DelayAction(function()
 		for _,i in pairs(Spells) do
@@ -7277,27 +7280,29 @@ function SLEvade:Skillshot()
 		s.spell.proj = nil
 		s.spell.danger = 2
 		s.spell.displayname = "DarkBinding"
-        s.spell.killTime = 0.25
+        s.spell.killTime = 10
         s.spell.mcollision = true
         s.spell.dangerous = false
-        s.spell.radius = 120
-        s.spell.speed = 100
-        s.spell.delay = 0.25
+        s.spell.radius = 275
+        s.spell.speed = 1200
+        s.spell.delay = 0
 		s.spell.range = 1200
         s.p.endPos = Vector(2104,95,3196)--Vector(GetMousePos()) + Vector(Vector(myHero) - GetMousePos()):normalized() * (s.spell.range + myHero.boundingRadius)																			
-        s.spell.type = "Line"
+        s.spell.type = "Circle"
         s.uDodge = false 
         s.caster = myHero
 		s.range = 1200
         s.mpos = nil
 		s.debug = true
+		s.check = GetDistance(myHero,s.p.startPos)/s.spell.speed+s.spell.delay
+		s.check2 = GetDistance(myHero,s.p.endPos)/s.spell.speed+s.spell.delay+s.spell.killTime
         s.startTime = os.clock()
         self.obj[s.spell.name] = s
-		DelayAction(function() self.obj[s.spell.name] = nil end,s.spell.range/s.spell.speed - s.spell.delay)
+		DelayAction(function() self.obj[s.spell.name] = nil end,i.spell.range/i.spell.speed+i.spell.delay/2--[[s.spell.killTime+s.spell.delay]])
 end
 
 function SLEvade:Tickp()
-	heroes[myHero.networkID] = myHero
+	heroes[myHero.networkID] = nil
 	for _,i in pairs(self.obj) do
 		if i.o and EMenu.Advanced.LDR:Value() and i.spell.type == "Line" and GetDistance(myHero,i.o) >= 3000 and not self.globalults[_] then return end
 		if i.o and EMenu.Advanced.LDR:Value() and i.spell.type == "Return" and GetDistance(myHero,i.o) >= 3000 and not self.globalults[_] then return end
@@ -7340,7 +7345,7 @@ function SLEvade:Drawp()
 		if i.p then
 			if i.spell.type ~= ("Circle" or "Ring") then self.endposs = Vector(i.p.startPos)+Vector(Vector(i.p.endPos)-i.p.startPos):normalized()*i.spell.range end
 			self.opos = self:sObjpos(_,i)
-			-- self.cpos = self:sCircPos(_,i)
+			self.cpos = self:sCircPos(_,i)
 			self:Drawings(_,i)
 			self:Drawings2(_,i)
 		end
@@ -7417,7 +7422,7 @@ end
 
 function SLEvade:sCircPos(_,i)
 	if i.p then
-		return (i.spell.radius*(os.clock()-(i.spell.killTime + GetDistance(i.caster,i.p.endPos)/i.spell.speed + i.spell.delay)-i.startTime) + i.spell.radius)
+		return math.floor((i.spell.radius/(i.spell.killTime+i.spell.delay+GetDistance(i.caster,i.p.endPos)/i.spell.speed))*(os.clock()-i.startTime))
 	end
 end
 
@@ -7563,15 +7568,15 @@ function SLEvade:UDodge(_,i)
 	end
 	if not i.uDodge then
 		if i.safe and i.spell.type == "Line" then
-			if GetDistance(self.opos)/i.spell.speed + i.spell.delay < GetDistance(i.safe)/myHero.ms then 
+			if i.check < GetDistance(i.safe)/myHero.ms then 
 				i.uDodge = true 
 			end
 		elseif i.safe and i.spell.type == "Circle" and i.p then
-			if GetDistance(i.p.endPos)/i.spell.speed + i.spell.delay < GetDistance(i.safe)/myHero.ms then
+			if i.check2 < GetDistance(i.safe)/myHero.ms then
 				i.uDodge = true 
 			end
 		elseif i.safe and i.spell.type == "Rectangle" and i.p then
-			if GetDistance(i.p.endPos)/i.spell.speed + i.spell.delay < GetDistance(i.safe)/myHero.ms then
+			if i.check2 < GetDistance(i.safe)/myHero.ms then
 				i.uDodge = true 
 			end
 		elseif i.safe and i.spell.type == "Cone" and i.p then
@@ -7579,11 +7584,11 @@ function SLEvade:UDodge(_,i)
 				i.uDodge = true 
 			end
 		elseif i.safe and i.spell.type == "Return" and i.o then
-			if GetDistance(i.o.pos)/i.spell.speed  < GetDistance(i.safe)/myHero.ms then 
+			if i.check < GetDistance(i.safe)/myHero.ms then 
 				i.uDodge = true 
 			end
 		elseif i.safe and i.spell.type == "follow" then
-			if GetDistance(i.caster.pos)/i.spell.speed + i.spell.delay < GetDistance(i.safe)/myHero.ms then 
+			if i.check < GetDistance(i.safe)/myHero.ms then 
 				i.uDodge = true 
 			end
 		end
@@ -7591,7 +7596,7 @@ function SLEvade:UDodge(_,i)
 end
 
 function SLEvade:Pathfinding(_,i)
-	if i.debug or EMenu.Spells[_]["ffe".._]:Value() then
+	if i.debug or EMenu.Spells[_]["ffe".._]:Value()  then
 		DelayAction(function()
 			if i.spell.type == "Line" and i.p then
 					i.p.startPos = Vector(i.p.startPos)
@@ -7993,9 +7998,9 @@ function SLEvade:Drawings(_,i)
 			local sPos = Vector(self.opos)
 			local ePos = Vector(self.endposs)
 			if EMenu.Draws.DSPath:Value() then
-				dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius*2, EMenu.Draws.SD.t:Value(), EMenu.Draws.SD.c:Value(), i.debug or EMenu.Spells[_]["Dodge".._]:Value())
+				dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius, 1.75, ARGB(215,210,210,210), i.debug or EMenu.Spells[_]["Dodge".._]:Value())
 				if EMenu.Draws.DSEW:Value() then
-					dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, EMenu.Draws.SD.t:Value()+0.5, EMenu.Draws.SD.c:Value(), i.debug or EMenu.Spells[_]["Dodge".._]:Value())
+					dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 2.5, ARGB(215,255,255,255), i.debug or EMenu.Spells[_]["Dodge".._]:Value())
 				end
 			end		
 		end
@@ -8006,23 +8011,23 @@ function SLEvade:Drawings(_,i)
 				i.p.endPos = Vector(i.p.endPos)
 			end
 			if EMenu.Draws.DSPath:Value() then
-				DrawCircle(i.p.endPos,i.spell.radius,EMenu.Draws.SD.t:Value()+0.5,75,EMenu.Draws.SD.c:Value())	
-				-- DrawCircle(i.p.endPos,self.cpos,EMenu.Draws.SD.t:Value()+0.5,20,GoS.Yellow)
+				DrawCircle(i.p.endPos,i.spell.radius,1.75,25,ARGB(215,255,255,255))	
+				DrawCircle(i.p.endPos,self.cpos,2.5,25,ARGB(200,250,192,0))
 			end
 		end
 		if i.spell.type == "Rectangle" and not EMenu.Keys.DDraws:Value() then
-			DrawRectangle(i.p.startPos,i.p.endPos,i.spell.radius+myHero.boundingRadius,i.spell.radius2,EMenu.Draws.SD.t:Value()+0.5,EMenu.Draws.SD.c:Value())
+			DrawRectangle(i.p.startPos,i.p.endPos,i.spell.radius+myHero.boundingRadius,i.spell.radius2,2.5,ARGB(215,255,255,255))
 		end
 		if i.spell.type == "Cone" and not EMenu.Keys.DDraws:Value() then
-			DrawCone(i.p.startPos,Vector(self.endposs),i.spell.angle or 40,EMenu.Draws.SD.t:Value()+0.5,EMenu.Draws.SD.c:Value())
+			DrawCone(i.p.startPos,Vector(self.endposs),i.spell.angle or 40,2.5,ARGB(215,255,255,255))
 		end
 		if i.spell.type == "Return" and not EMenu.Keys.DDraws:Value() and i.o then
 			local sPos = Vector(i.o.pos)
 			local ePos = Vector(i.caster.pos)
 			if EMenu.Draws.DSPath:Value() then
-				dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius*2, EMenu.Draws.SD.t:Value(), EMenu.Draws.SD.c:Value(), i.debug or EMenu.Spells[_]["Dodge".._]:Value())
+				dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius, 1.75, ARGB(215,210,210,210), i.debug or EMenu.Spells[_]["Dodge".._]:Value())
 				if EMenu.Draws.DSEW:Value() then
-					dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, EMenu.Draws.SD.t:Value()+0.5, EMenu.Draws.SD.c:Value(), i.debug or EMenu.Spells[_]["Dodge".._]:Value())
+					dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 2.5, ARGB(215,255,255,255), i.debug or EMenu.Spells[_]["Dodge".._]:Value())
 				end
 			end
 		end
@@ -8030,15 +8035,11 @@ function SLEvade:Drawings(_,i)
 			local sPos = Vector(i.caster.pos)
 			local ePos = Vector(i.caster.pos) + i.TarE
 			if EMenu.Draws.DSPath:Value() then
-				dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius*2, EMenu.Draws.SD.t:Value(), EMenu.Draws.SD.c:Value(), i.debug or EMenu.Spells[_]["Dodge".._]:Value())
+				dRectangleOutline(sPos, ePos, i.spell.radius+myHero.boundingRadius, 1.75, ARGB(215,210,210,210), i.debug or EMenu.Spells[_]["Dodge".._]:Value())
 				if EMenu.Draws.DSEW:Value() then
-					dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, EMenu.Draws.SD.t:Value()+0.5, EMenu.Draws.SD.c:Value(), i.debug or EMenu.Spells[_]["Dodge".._]:Value())
+					dRectangleOutline2(sPos, ePos, i.spell.radius+myHero.boundingRadius, 2.5, ARGB(215,255,255,255), i.debug or EMenu.Spells[_]["Dodge".._]:Value())
 				end
 			end
-		end
-		if i.spell.type == "Ring" and not EMenu.Keys.DDraws:Value() then
-			DrawCircle(i.p.endPos.x,i.p.endPos.y,i.p.endPos.z,i.spell.radius,EMenu.Draws.SD.t:Value()+0.5,75,EMenu.Draws.SD.c:Value())
-			DrawCircle(i.p.endPos.x,i.p.endPos.y,i.p.endPos.z,i.spell.radius/1.5,EMenu.Draws.SD.t:Value()+0.5,75,EMenu.Draws.SD.c:Value())
 		end
 		if i.jp and (GetDistance(myHero,i.jp) > i.spell.radius + myHero.boundingRadius) and i.safe and i.spell.type == "Line" then
 			i.safe = nil
@@ -8201,6 +8202,8 @@ function SLEvade:CreateObject(obj)
 				self.obj[obj.spellName].startTime = os.clock()
 				self.obj[obj.spellName].spell = l
 				self.obj[obj.spellName].range = l.range
+				self.obj[obj.spellName].check = GetDistance(myHero,obj.startPos)/l.speed
+				self.obj[obj.spellName].check2 = GetDistance(myHero,obj.endPos)/l.speed+l.killTime
 			end
 		end
 	end
@@ -8227,6 +8230,8 @@ function SLEvade:Detection(unit,spellProc)
 				self.obj[spellProc.name].startTime = os.clock()+l.delay
 				self.obj[spellProc.name].TarE = (Vector(spellProc.endPos) - Vector(unit.pos)):normalized()*l.range
 				self.obj[spellProc.name].range = l.range
+				self.obj[spellProc.name].check = GetDistance(myHero,spellProc.startPos)/l.speed+l.delay
+				self.obj[spellProc.name].check2 = GetDistance(myHero,spellProc.endPos)/l.speed+l.delay+l.killTime
 				if l.killTime and l.type == "Circle" then
 					DelayAction(function() self.obj[spellProc.name] = nil end, l.killTime + GetDistance(unit,spellProc.endPos)/l.speed + l.delay)
 				elseif l.killTime > 0 and l.type ~= "Circle" then
