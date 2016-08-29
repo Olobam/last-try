@@ -5307,15 +5307,15 @@ function Awareness:__init()
 	SLU.A.RT:Boolean("DT", "Draw Timer", true)
 	SLU.A.RT:Boolean("DU", "Draw Unit pos", true)
 	if self.spells[myHero.charName] then
-		SLU.A.RT:Menu("U", "Recall Ult : ")
-		SLU.A.RT:Boolean("ER", "Enable Recall Ult", true)
+		SLU.A.RT:Menu("U", "Base Ult : ")
+		SLU.A.RT:Boolean("ER", "Enable Base Ult", true)
 		DelayAction(function() 
 			for _, i in pairs(GetEnemyHeroes()) do
 				SLU.A.RT.U:Boolean(i.charName, i.charName, true)
 			end
 		end,.001)	
 	else
-		SLU.A.RT:Info("Rec", "Recall Ult isnt supported for "..myHero.charName)
+		SLU.A.RT:Info("Rec", "Base Ult isnt supported for "..myHero.charName)
 	end
 	SLU.A:Menu("JT", "Jungle Tracker")
 	SLU.A.JT:Boolean("E", "Enabled", true)
