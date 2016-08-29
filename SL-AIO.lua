@@ -7292,11 +7292,11 @@ function SLEvade:Skillshot()
 		s.spell.proj = nil
 		s.spell.danger = 2
 		s.spell.displayname = "DarkBinding"
-        s.spell.killTime = 10
+        s.spell.killTime = 3
         s.spell.mcollision = true
         s.spell.dangerous = false
         s.spell.radius = 130
-        s.spell.speed = 100
+        s.spell.speed = 1300
         s.spell.delay = 0
 		s.spell.range = 1200
         s.p.endPos = Vector(2104,95,3196)--Vector(GetMousePos()) + Vector(Vector(myHero) - GetMousePos()):normalized() * (s.spell.range + myHero.boundingRadius)																			
@@ -7308,9 +7308,10 @@ function SLEvade:Skillshot()
 		s.debug = true
 		s.check = GetDistance(myHero,s.p.startPos)/s.spell.speed+s.spell.delay
 		s.check2 = GetDistance(myHero,s.p.endPos)/s.spell.speed+s.spell.delay+s.spell.killTime
+		s.dist = GetDistance(myHero,s.p.endPos)
         s.startTime = os.clock()
         self.obj[s.spell.name] = s
-		DelayAction(function() self.obj[s.spell.name] = nil end,s.spell.range/s.spell.speed+s.spell.delay/2--[[s.spell.killTime+s.spell.delay]])
+		DelayAction(function() self.obj[s.spell.name] = nil end,s.spell.killTime+s.spell.delay)
 end
 
 function SLEvade:Tickp()
@@ -7435,6 +7436,18 @@ end
 function SLEvade:sCircPos(_,i)
 	if i.p then
 		return math.floor((i.spell.radius/(i.spell.killTime+i.spell.delay+i.dist/i.spell.speed))*(os.clock()-i.startTime))
+	end
+end
+
+function SLEvade:sRecPos(_,i)
+	if i.p then
+		return math.floor(((i.spell.radius2 or 400)/(i.spell.killTime+i.spell.delay))*(os.clock()-i.startTime))
+	end
+end
+
+function SLEvade:sCoPos(_,i)
+	if i.p then
+		return i.p.startPos+Vector(Vector(self.endposs)-i.p.startPos):normalized()*((i.spell.range/(i.spell.killTime+i.spell.delay))*(os.clock()-i.startTime))
 	end
 end
 
@@ -8029,9 +8042,11 @@ function SLEvade:Drawings(_,i)
 		end
 		if i.spell.type == "Rectangle" and not EMenu.Keys.DDraws:Value() then
 			DrawRectangle(i.p.startPos,i.p.endPos,i.spell.radius+myHero.boundingRadius,i.spell.radius2,2.5,ARGB(215,255,255,255))
+			DrawRectangle(i.p.startPos,i.p.endPos,i.spell.radius+myHero.boundingRadius,self:sRecPos(_,i),2.5,ARGB(200,250,192,0))
 		end
 		if i.spell.type == "Cone" and not EMenu.Keys.DDraws:Value() then
 			DrawCone(i.p.startPos,Vector(self.endposs),i.spell.angle or 40,2.5,ARGB(215,255,255,255))
+			DrawCone(i.p.startPos,self:sCoPos(_,i),i.spell.angle or 40,2.5,ARGB(200,250,192,0))
 		end
 		if i.spell.type == "Return" and not EMenu.Keys.DDraws:Value() and i.o then
 			local sPos = Vector(i.o.pos)
