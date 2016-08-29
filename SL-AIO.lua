@@ -7296,7 +7296,7 @@ function SLEvade:Skillshot()
         s.spell.mcollision = true
         s.spell.dangerous = false
         s.spell.radius = 130
-        s.spell.speed = 1300
+        s.spell.speed = 400
         s.spell.delay = 0
 		s.spell.range = 1200
         s.p.endPos = Vector(2104,95,3196)--Vector(GetMousePos()) + Vector(Vector(myHero) - GetMousePos()):normalized() * (s.spell.range + myHero.boundingRadius)																			
@@ -7427,7 +7427,7 @@ end
 
 function SLEvade:sObjpos(_,i)
 	if i.spell.speed ~= math.huge and i.p then
-		return i.p.startPos+Vector(Vector(self.endposs)-i.p.startPos):normalized()*(i.spell.speed*(os.clock()-i.startTime) + (i.spell.radius+myHero.boundingRadius)/2)
+		return i.p.startPos+Vector(Vector(self.endposs)-i.p.startPos):normalized()*math.floor((i.spell.speed*(os.clock()-i.startTime) + (i.spell.radius+myHero.boundingRadius)/2))
 	else
 		return Vector(i.p.startPos)
 	end
@@ -7436,18 +7436,6 @@ end
 function SLEvade:sCircPos(_,i)
 	if i.p then
 		return math.floor((i.spell.radius/(i.spell.killTime+i.spell.delay+i.dist/i.spell.speed))*(os.clock()-i.startTime))
-	end
-end
-
-function SLEvade:sRecPos(_,i)
-	if i.p then
-		return math.floor(((i.spell.radius2 or 400)/(i.spell.killTime+i.spell.delay))*(os.clock()-i.startTime)+i.spell.radius+myHero.boundingRadius)
-	end
-end
-
-function SLEvade:sCoPos(_,i)
-	if i.p then
-		return i.p.startPos+Vector(Vector(self.endposs)-i.p.startPos):normalized()*((i.spell.range/(i.spell.killTime+i.spell.delay))*(os.clock()-i.startTime))
 	end
 end
 
@@ -8042,11 +8030,9 @@ function SLEvade:Drawings(_,i)
 		end
 		if i.spell.type == "Rectangle" and not EMenu.Keys.DDraws:Value() then
 			DrawRectangle(i.p.startPos,i.p.endPos,i.spell.radius+myHero.boundingRadius,i.spell.radius2,2.5,ARGB(215,255,255,255))
-			DrawRectangle(i.p.startPos,i.p.endPos,i.spell.radius+myHero.boundingRadius,self:sRecPos(_,i),2.5,ARGB(200,250,192,0))
 		end
 		if i.spell.type == "Cone" and not EMenu.Keys.DDraws:Value() then
 			DrawCone(i.p.startPos,Vector(self.endposs),i.spell.angle or 40,2.5,ARGB(215,255,255,255))
-			DrawCone(i.p.startPos,self:sCoPos(_,i),i.spell.angle or 40,2.5,ARGB(200,250,192,0))
 		end
 		if i.spell.type == "Return" and not EMenu.Keys.DDraws:Value() and i.o then
 			local sPos = Vector(i.o.pos)
