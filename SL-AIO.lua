@@ -7441,7 +7441,7 @@ end
 
 function SLEvade:sRecPos(_,i)
 	if i.p then
-		return math.floor(((i.spell.radius2 or 400)/(i.spell.killTime+i.spell.delay))*(os.clock()-i.startTime))
+		return math.floor(((i.spell.radius2 or 400)/(i.spell.killTime+i.spell.delay))*(os.clock()-i.startTime)+i.spell.radius+myHero.boundingRadius)
 	end
 end
 
