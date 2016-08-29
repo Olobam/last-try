@@ -8484,8 +8484,6 @@ SLW.forceTarget = unit
 SLW.rangebuffer[unit.charName] 						- table, returns extra range, ex: KogMaw W
 SLW.aarange														- returns aa range of myHero
 SLW:Dmg(source,unit,spell)								- SLW:Dmg(myHero,unit,{name="Basic"})
-SLW:GetLowestUnit(unit)
-SLW:GetHighestUnit(unit)
 SLW:ResetAA()
 SLW:IsOrbwalking()											- returns true/false
 SLW:Mode() == "Combo/Harass/LaneClear/LastHit"
