@@ -5855,7 +5855,7 @@ function Activator:__init()
 	Callback.Add("RemoveBuff", function(unit, buff) self:RBuff(unit, buff) end)
 	Callback.Add("CreateObj", function (Object) self:Shop(Object) end)
 	Callback.Add("ProcessSpellComplete", function (unit, spellProc) self:SpellsComplete(unit, spellProc) end)
-	Callback.Add("Draw", function() self:Draw() end)
+	Callback.Add("Draw", function() if Smite then self:Draw() end end)
 end
 
 function Activator:Tickpx()
