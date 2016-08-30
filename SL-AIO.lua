@@ -5737,7 +5737,14 @@ function Activator:__init()
 	Heal = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerheal") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonerheal") and SUMMONER_2 or nil))
 	Snowball = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonersnowball") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonersnowball") and SUMMONER_2 or nil))
 	Barrier = (GetCastName(GetMyHero(),SUMMONER_1):lower():find("summonerbarrier") and SUMMONER_1 or (GetCastName(GetMyHero(),SUMMONER_2):lower():find("summonerbarrier") and SUMMONER_2 or nil))
-	
+	Smite = (GetCastName(myHero,4):lower():find("smite") and 4) or (GetCastName(myHero,5):lower():find("smite") and 5) or nil
+
+	self.smiteD = {390, 410, 430, 450, 480, 510, 540, 570, 600, 640, 680, 720, 760, 800, 850, 900, 950, 1000}
+	self.s1 = {}
+	self.s2 = {}
+	self.EpicJgl = {["SRU_Baron"]="Baron", ["SRU_Dragon"]="Dragon", ["TT_Spiderboss"]="Vilemaw"}
+	self.BigJgl = {["SRU_Red"]="Red Buff", ["SRU_Blue"]="Blue Buff", ["SRU_Krug"]="Krugs", ["SRU_Murkwolf"]="Wolves", ["SRU_Razorbeak"]="Razor", ["SRU_Gromp"]="Gromp", ["Sru_Crab"]="Scuttles"}
+
 	Snowballd = { delay = 0.25, range = 1600, speed = 1200, width = 50 }
 	
 	self.CCType = { 
@@ -5827,6 +5834,20 @@ function Activator:__init()
 	M.Sum.Barrier:Boolean("enable","Use Barrier", true)
 	M.Sum.Barrier:Slider("myHP", "my HP to use Barrier", 8, 1, 100, 2)
 	end
+	if Smite then
+		M.Sum:Menu("Smite", "Smite")
+		M.Sum.Smite:Boolean("E","Enable", true)
+		M.Sum.Smite:SubMenu("M","Epic Mobs")
+		M.Sum.Smite:SubMenu("B","Big Mobs")
+		M.Sum.Smite:Boolean("K", "Killsteal", true)
+		M.Sum.Smite:Boolean("F", "Fast Smite", true)
+		for _,i in pairs(self.EpicJgl) do
+			M.Sum.Smite.M:Boolean(_,i,true)
+		end
+		for _,i in pairs(self.BigJgl) do
+			M.Sum.Smite.B:Boolean(_,i,false)
+		end
+	end
 	
 	
 	Callback.Add("Tick", function() self:Tickpx() end)
@@ -5834,6 +5855,7 @@ function Activator:__init()
 	Callback.Add("RemoveBuff", function(unit, buff) self:RBuff(unit, buff) end)
 	Callback.Add("CreateObj", function (Object) self:Shop(Object) end)
 	Callback.Add("ProcessSpellComplete", function (unit, spellProc) self:SpellsComplete(unit, spellProc) end)
+	Callback.Add("Draw", function() self:Draw() end)
 end
 
 function Activator:Tickpx()
@@ -5852,11 +5874,14 @@ function Activator:Tickpx()
 	if Barrier then 
 		self:Barrier() 
 	end
+	if Smite then
+		self:Smite()
+	end
 end	
 
-function Activator:Shop(Object)
-	if GetObjectBaseName(Object):lower():find("shop") and GetDistance(Object,myHero)<2000 then
-		self.ShopPos = GetOrigin(Object)
+function Activator:Shop(obj)
+	if GetObjectBaseName(obj):lower():find("shop") and GetDistance(obj,myHero)<2000 then
+		self.ShopPos = GetOrigin(obj)
 	end
 end
 
@@ -6078,6 +6103,49 @@ end
 function Activator:Barrier()
 	if IsReady(Barrier) and M.Sum.Barrier.enable:Value() and GetPercentHP(myHero) <= M.Sum.Barrier.myHP:Value() and EnemiesAround(GetOrigin(myHero), 675) >= 1 and not myHero.dead then
 		CastSpell(Barrier)
+	end
+end
+
+function Activator:Smite()
+	if M.Sum.Smite.E:Value() then 
+		for _,i in pairs(SLM) do
+			if (self.EpicJgl[i.charName] and M.Sum.Smite.M[i.charName]) or (self.BigJgl[i.charName] and M.Sum.Smite.B[i.charName]) or (i.charName:lower():find("dragon") and M.Sum.Smite.M["SRU_Dragon"]:Value()) then
+				self.s1[i.charName] = i
+			end
+		end
+		if M.Sum.Smite.K:Value() and GetCastName(myHero,Smite) == "S5_SummonerSmitePlayerGanker" then
+			for _,i in pairs(GetEnemyHeroes()) do
+				if i.valid and i.distance < 675 and i.health-GetDamagePrediction(i,(GetAttackSpeed(myHero)*GetBaseAttackSpeed(myHero))-i.distance/math.huge) < 20 + 8*myHero.level then
+					CastTargetSpell(i,Smite)
+				end
+			end
+		end
+		for _,i in pairs(self.s1) do
+			if i.valid and i.distance < 1000 and ((M.Sum.Smite.B[_] and M.Sum.Smite.B[_]:Value()) or (M.Sum.Smite.M[_] and M.Sum.Smite.M[_]:Value()) or (_:find("Dragon") and M.Sum.Smite.M["SRU_Dragon"])) then
+				self.s2[_] = i
+			else
+				self.s2[_] = nil
+			end
+		end
+		if IsReady(Smite) and not M.Sum.Smite.F:Value() then
+			for _,i in pairs(self.s2) do
+				if i.health-GetDamagePrediction(i,(GetAttackSpeed(myHero)*GetBaseAttackSpeed(myHero))-i.distance/math.huge) < self.smiteD[myHero.level] and i.distance <= 675 then	
+					DelayAction(function()
+						CastTargetSpell(i,Smite)
+					end,GetLatency()/100)
+				end
+			end
+		end
+	end
+end
+
+function Activator:Draw()
+	if M.Sum.Smite.F:Value() and IsReady(Smite) then
+		for _,i in pairs(self.s2) do
+			if i.health-GetDamagePrediction(i,(GetAttackSpeed(myHero)*GetBaseAttackSpeed(myHero))-i.distance/math.huge) < self.smiteD[myHero.level] and i.distance < 675 then
+				CastTargetSpell(i,Smite)
+			end	
+		end
 	end
 end
 
@@ -8482,6 +8550,7 @@ SLW.attacksEnabled = true/false
 SLW.forcePos = Vector3D									- SLW.forcePos = unit.pos
 SLW.forceTarget = unit
 SLW.rangebuffer[unit.charName] 						- table, returns extra range, ex: KogMaw W
+SLW.projectilespeeds[unit.charName]				    - table, returns projectile speed of an unit/object
 SLW.aarange														- returns aa range of myHero
 SLW:Dmg(source,unit,spell)								- SLW:Dmg(myHero,unit,{name="Basic"})
 SLW:ResetAA()
