@@ -1,4 +1,4 @@
-local SLSeries = 1.22
+local SLSeries = 1.23
 local SLPatchnew = nil
 if GetGameVersion():sub(3,4) >= "10" then
 		SLPatchnew = GetGameVersion():sub(1,4)
@@ -3047,6 +3047,7 @@ self.s = {
 end
 
 function HitMe:Ti()
+	if not SLS.SB.uS:Value() then return end
 	for _,i in pairs(self.object) do
 		if i.o and i.spell.type == "linear" and GetDistance(myHero,i.o) >= 3000 then return end
 		if i.p and i.spell.type == "circular" and GetDistance(myHero,i.p.endPos) >= 3000 then return end
