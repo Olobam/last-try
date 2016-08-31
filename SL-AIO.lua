@@ -6456,7 +6456,7 @@ self.ts.range = self.aarange
 self:Orb()
 	for t,turret in pairs(structures) do
 		if turret.dead then
-			turrets[t] = nil		
+			structures[t] = nil		
 		end
 	end
 	for _, i in pairs(self.sa) do
