@@ -31,7 +31,11 @@ local SLM = {}
 local SLM2 = {}
 local lastcheck = 0
 local lastcheck2 = 0
+local lastcheck3 = 0
 local structures = {}
+local turrets = {}
+local Wards = {}
+local Wards2 = {}
 if GetGameVersion():sub(3,4) >= "10" then
 		SLPatchnew = GetGameVersion():sub(1,4)
 	else
@@ -384,6 +388,21 @@ OnObjectLoad(function(obj)
 	if obj and (obj.type:lower():find("turret") or (obj.name == "Barracks_"..GetTeamNumber().."_L1" or obj.name == "Barracks_"..GetTeamNumber().."_C1" or obj.name == "Barracks_"..GetTeamNumber().."_R1" or obj.name == "HQ_"..GetTeamNumber())) and obj.team == MINION_ENEMY then
 		structures[obj.networkID] = obj
 	end
+	if obj and obj.networkID then
+		if obj.name:lower():find("visionward") then
+			if  ((obj.team == myHero.team) or (obj.team ~= myHero.team ))  then
+				if not Wards[obj.networkID] then Wards[obj.networkID] = {} end
+				Wards[obj.networkID].o = obj
+			end
+		end
+		if obj.name:lower():find("sightward") then
+			if  ((obj.team == myHero.team) or (obj.team ~= myHero.team ))  then
+				if not Wards2[obj.networkID] then Wards2[obj.networkID] = {} end
+				Wards2[obj.networkID].o = obj
+				Wards2[obj.networkID].s = GetTickCount()
+			end
+		end
+	end
 	if obj.type == Obj_AI_SpawnPoint and obj.team ~= myHero.team then
 		spawn = obj
     end
@@ -509,7 +528,7 @@ Callback.Add("Tick", function()
 	if lastcheck + 1000 < GetTickCount() then
 		lastcheck = GetTickCount()
 		for _,i in pairs(minionManager.objects) do
-			if i.distance < 2000 and i.alive and i.team ~= ALLY_MINION then
+			if i.valid and i.distance < 2000 and i.alive and i.team ~= MINION_ALLY then
 				SLM[i.networkID] = i
 			end
 		end
@@ -517,10 +536,24 @@ Callback.Add("Tick", function()
 	if lastcheck2 + 1000 < GetTickCount() then
 		lastcheck2 = GetTickCount()
 		for _,i in pairs(minionManager.objects) do
-			if i.distance < 2000 and i.alive and i.team == ALLY_MINION then
+			if i.valid and i.distance < 2000 and i.alive and i.team == MINION_ALLY then
 				SLM2[i.networkID] = i
 			end
 		end
+	end
+	if lastcheck3 + 1000 < GetTickCount() then
+		lastcheck3 = GetTickCount()
+		for _,i in pairs(structures) do
+			if i.valid and i.distance < 2000 and i.alive and i.team == MINION_ENEMY then
+				turrets[i.networkID] = i
+			end
+		end
+	end
+end)
+
+Callback.Add("DeleteObj", function(o)
+	if o and (o.type:lower():find("turret") or (o.name == "Barracks_"..GetTeamNumber().."_L1" or o.name == "Barracks_"..GetTeamNumber().."_C1" or o.name == "Barracks_"..GetTeamNumber().."_R1" or o.name == "HQ_"..GetTeamNumber())) and o.team == MINION_ENEMY then
+		structures[obj.networkID] = nil
 	end
 end)
 
@@ -5349,7 +5382,7 @@ function Awareness:__init()
 	Callback.Add("RemoveBuff", function(u,b) self:RemBuff(u,b) end)
 	Callback.Add("ProcessRecall", function(u,r) self:PrRe(u,r) end)
 	DelayAction(function()
-	self:LoadSprites()
+		self:LoadSprites()
 	end,1)
 end
 
@@ -5412,15 +5445,15 @@ function Awareness:CreO(o)
 	if o and o.networkID then
 		if o.name:lower():find("visionward") then
 			if  ((o.team == myHero.team and SLU.A.WT.TAW:Value()) or (o.team ~= myHero.team and SLU.A.WT.TEW:Value()))  then
-				if not self.Wards[o.networkID] then self.Wards[o.networkID] = {} end
-				self.Wards[o.networkID].o = o
+				if not Wards[o.networkID] then Wards[o.networkID] = {} end
+				Wards[o.networkID].o = o
 			end
 		end
 		if o.name:lower():find("sightward") then
 			if  ((o.team == myHero.team and SLU.A.WT.TAW:Value()) or (o.team ~= myHero.team and SLU.A.WT.TEW:Value()))  then
-				if not self.Wards2[o.networkID] then self.Wards2[o.networkID] = {} end
-				self.Wards2[o.networkID].o = o
-				self.Wards2[o.networkID].s = GetTickCount()
+				if not Wards2[o.networkID] then Wards2[o.networkID] = {} end
+				Wards2[o.networkID].o = o
+				Wards2[o.networkID].s = GetTickCount()
 			end
 		end
 	end
@@ -5430,12 +5463,12 @@ function Awareness:DelO(o)
 	if o and o.networkID then
 		if o.name:lower():find("visionward") then
 			if  ((o.team == myHero.team and SLU.A.WT.TAW:Value()) or (o.team ~= myHero.team and SLU.A.WT.TEW:Value()))  then
-				self.Wards[o.networkID] = nil
+				Wards[o.networkID] = nil
 			end
 		end
 		if o.name:lower():find("sightward") then
 			if  ((o.team == myHero.team and SLU.A.WT.TAW:Value()) or (o.team ~= myHero.team and SLU.A.WT.TEW:Value()))  then
-				self.Wards2[o.networkID] = nil
+				Wards2[o.networkID] = nil
 			end
 		end
 	end
@@ -5461,21 +5494,21 @@ function Awareness:DrawScreen()
 		end
 	end
 	if SLU.A.WT.E:Value() and SLU.A.WT.DS:Value() then
-		for _,i in pairs(self.Wards) do
+		for _,i in pairs(Wards) do
 			if i.o and i.o.valid then
-				if i.o.team ~= myHero.team then
+				if i.o.team ~= myHero.team and SLU.A.WT.TEW:Value() then
 					DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,255,0))
-				else
+				elseif i.o.team == myHero.team and SLU.A.WT.TAW:Value() then
 					DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,0,255))
 				end
 			end
 		end
-		for _,i in pairs(self.Wards2) do
+		for _,i in pairs(Wards2) do
 			if i.o and i.o.valid then
-				if i.o.team ~= myHero.team then
-					DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,242,2,222))
-				else
+				if i.o.team == myHero.team and SLU.A.WT.TAW:Value() then
 					DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,255,0))
+				elseif i.o.team ~= myHero.team and SLU.A.WT.TEW:Value() then
+					DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,242,2,222))
 				end
 				DrawTextSmall(self:GetDuration(self.t,i), WorldToScreen(0,i.o.pos).x, WorldToScreen(0,i.o.pos).y, GoS.White)
 			end
@@ -5505,21 +5538,21 @@ end
 
 function Awareness:draMin()
 	if SLU.A.WT.E:Value() and SLU.A.WT.DM:Value() then 
-		for _,i in pairs(self.Wards) do
+		for _,i in pairs(Wards) do
 			if i.o and i.o.valid then
-				if i.o.team ~= myHero.team then
-					DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,255,0))
-				else
-					DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,0,255))
+				if i.o.team ~= myHero.team and SLU.A.WT.TEW:Value() then
+					DrawCircleMinimap(i.o.pos,350,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,255,0))
+				elseif i.o.team == myHero.team and SLU.A.WT.TAW:Value() then
+					DrawCircleMinimap(i.o.pos,350,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,0,255))
 				end
 			end
 		end
-		for _,i in pairs(self.Wards2) do
+		for _,i in pairs(Wards2) do
 			if i.o and i.o.valid then
-				if i.o.team ~= myHero.team then
-					DrawCircleMinimap(i.o.pos,350,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,242,2,222))
-				else
+				if i.o.team == myHero.team and SLU.A.WT.TAW:Value() then
 					DrawCircleMinimap(i.o.pos,350,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,255,0))
+				elseif i.o.team ~= myHero.team and SLU.A.WT.TEW:Value() then
+					DrawCircleMinimap(i.o.pos,350,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,242,2,222))
 				end
 			end
 		end
@@ -6753,9 +6786,9 @@ end
 
 function SLWalker:LaneClear()
 	for _,o in pairs(SLM) do
-		for t,turret in pairs(structures) do
+		for t,turret in pairs(turrets) do
 			if OMenu.FS.AS:Value() then
-				if turret.distance > self.aarange then
+				if turret.alive and turret.distance > self.aarange then
 					if o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
 						if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"}))*2.5 then
 							return nil
