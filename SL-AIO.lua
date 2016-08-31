@@ -22,7 +22,6 @@ local SLSChamps = {
 }
 
 local SLPatchnew = nil
-local turrets = {}
 local spawn = nil
 local Spell = {}
 local str3 = {[0]="Q",[1]="W",[2]="E",[3]="R"}
@@ -32,6 +31,7 @@ local SLM = {}
 local SLM2 = {}
 local lastcheck = 0
 local lastcheck2 = 0
+local structures = {}
 if GetGameVersion():sub(3,4) >= "10" then
 		SLPatchnew = GetGameVersion():sub(1,4)
 	else
@@ -293,6 +293,14 @@ local function AllyMinionsAround(pos, range)
 	return c
 end
 
+local function GetTeamNumber()
+	if myHero.team == 100 then
+		return "T2"
+	else
+		return "T1"
+	end
+end
+
 local function CircleSegment2(x,y,sRadius,eRadius,sAngle,eAngle,color)
 	for a = sAngle,eAngle do
 		DrawLine(x+sRadius*math.cos(a*math.pi/180),y+sRadius*math.sin(a*math.pi/180),x+eRadius*math.cos(a*math.pi/180),y+eRadius*math.sin(a*math.pi/180),1,color)
@@ -373,8 +381,8 @@ local function Sample(obj)
 end
 
 OnObjectLoad(function(obj)
-	if obj and obj.type == Obj_AI_Turret and obj.team == MINION_ENEMY then
-		turrets[obj.networkID] = obj
+	if obj and (obj.type:lower():find("turret") or (obj.name == "Barracks_"..GetTeamNumber().."_L1" or obj.name == "Barracks_"..GetTeamNumber().."_C1" or obj.name == "Barracks_"..GetTeamNumber().."_R1" or obj.name == "HQ_"..GetTeamNumber())) and obj.team == MINION_ENEMY then
+		structures[obj.networkID] = obj
 	end
 	if obj.type == Obj_AI_SpawnPoint and obj.team ~= myHero.team then
 		spawn = obj
@@ -6446,7 +6454,7 @@ end
 self.aarange = myHero.range+myHero.boundingRadius*2+(self.rangebuffer[myHero.charName] and self.rangebuffer[myHero.charName].r or 0)
 self.ts.range = self.aarange
 self:Orb()
-	for t,turret in pairs(turrets) do
+	for t,turret in pairs(structures) do
 		if turret.dead then
 			turrets[t] = nil		
 		end
@@ -6745,7 +6753,7 @@ end
 
 function SLWalker:LaneClear()
 	for _,o in pairs(SLM) do
-		for t,turret in pairs(turrets) do
+		for t,turret in pairs(structures) do
 			if OMenu.FS.AS:Value() then
 				if turret.distance > self.aarange then
 					if o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
