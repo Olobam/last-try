@@ -544,7 +544,7 @@ Callback.Add("Tick", function()
 	if lastcheck3 + 1000 < GetTickCount() then
 		lastcheck3 = GetTickCount()
 		for _,i in pairs(structures) do
-			if i.valid and i.distance < 2000 and i.alive and i.team == MINION_ENEMY then
+			if i.valid and i.alive and i.team == MINION_ENEMY then
 				turrets[i.networkID] = i
 			end
 		end
