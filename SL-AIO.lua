@@ -391,15 +391,12 @@ OnObjectLoad(function(obj)
 	if obj and obj.networkID then
 		if obj.name:lower():find("visionward") then
 			if  ((obj.team == myHero.team) or (obj.team ~= myHero.team ))  then
-				if not Wards[obj.networkID] then Wards[obj.networkID] = {} end
-				Wards[obj.networkID].o = obj
+				table.insert(Wards,{o=obj})
 			end
 		end
 		if obj.name:lower():find("sightward") then
 			if  ((obj.team == myHero.team) or (obj.team ~= myHero.team ))  then
-				if not Wards2[obj.networkID] then Wards2[obj.networkID] = {} end
-				Wards2[obj.networkID].o = obj
-				Wards2[obj.networkID].s = GetTickCount()
+				table.insert(Wards2,{o=obj,s=GetTickCount()})
 			end
 		end
 	end
@@ -4947,7 +4944,7 @@ self.s = {
 	["TalonRake"]={charName="Talon",slot=1,type="Cone",delay=0.25,range=800,radius=80,speed=2300,angle=45,addHitbox=true,danger=2,dangerous=true,proj="talonrakemissileone",killTime=0,displayname="Rake",mcollision=false},
 	["TalonRakeMissileTwo"]={charName="Talon",slot=1,type="Cone",delay=0.25,range=800,radius=80,speed=1850,angle=45,addHitbox=true,danger=2,dangerous=true,proj="talonrakemissiletwo",killTime=0,displayname="Rake2",mcollision=false},
 	["TahmKenchQ"]={charName="TahmKench",slot=0,type="Line",delay=0.25,range=951,radius=90,speed=2800,addHitbox=true,danger=3,dangerous=true,proj="tahmkenchqmissile",killTime=0,displayname="Tongue Slash",mcollision=true},
-	["TaricE"]={charName="Taric",slot=2,type="follow",delay=1,range=750,radius=100,speed=math.huge,addHitbox=true,danger=3,dangerous=true,proj="TaricE",killTime=0.5,displayname="",mcollision=false},
+	["TaricE"]={charName="Taric",slot=2,type="follow",delay=0.25,range=750,radius=100,speed=math.huge,addHitbox=true,danger=3,dangerous=true,proj="TaricE",killTime=1.25,displayname="",mcollision=false},
 	["ThreshQ"]={charName="Thresh",slot=0,type="Line",delay=0.5,range=1050,radius=70,speed=1900,addHitbox=true,danger=3,dangerous=true,proj="ThreshQMissile",killTime=0,displayname="",mcollision=true},
 	["ThreshEFlay"]={charName="Thresh",slot=2,type="Line",delay=0.125,range=500,radius=110,speed=2000,addHitbox=true,danger=3,dangerous=true,proj="ThreshEMissile1",killTime=0,displayname="Flay",mcollision=false},
 	["RocketJump"]={charName="Tristana",slot=1,type="Circle",delay=0.5,range=900,radius=270,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="RocketJump",killTime=0.3,displayname="",mcollision=false},
@@ -4958,10 +4955,10 @@ self.s = {
 	["UrgotHeatseekingLineMissile"]={charName="Urgot",slot=0,type="Line",delay=0.125,range=1000,radius=60,speed=1600,addHitbox=true,danger=2,dangerous=false,proj="UrgotHeatseekingLineMissile",killTime=0,displayname="Heatseeking Line",mcollision=true},
 	["UrgotPlasmaGrenade"]={charName="Urgot",slot=2,type="Circle",delay=0.25,range=1100,radius=210,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="UrgotPlasmaGrenadeBoom",killTime=0.3,displayname="PlasmaGrenade",mcollision=false},
 	["VarusQMissile"]={charName="Varus",slot=0,type="Line",delay=0.25,range=1475,radius=70,speed=1900,addHitbox=true,danger=2,dangerous=false,proj="VarusQMissile",killTime=0,displayname="VarusQ",mcollision=false},
-	["VarusE"]={charName="Varus",slot=2,type="Circle",delay=1,range=925,radius=235,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="VarusE",killTime=1.5,displayname="",mcollision=false},
+	["VarusE"]={charName="Varus",slot=2,type="Circle",delay=0.25,range=925,radius=235,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="VarusE",killTime=2.25,displayname="",mcollision=false},
 	["VarusR"]={charName="Varus",slot=3,type="Line",delay=0.25,range=800,radius=120,speed=1950,addHitbox=true,danger=3,dangerous=true,proj="VarusRMissile",killTime=0,displayname="",mcollision=false},
 	["VeigarBalefulStrike"]={charName="Veigar",slot=0,type="Line",delay=0.1,range=900,radius=70,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="VeigarBalefulStrikeMis",killTime=0,displayname="BalefulStrike",mcollision=false},
-	["VeigarDarkMatter"]={charName="Veigar",slot=1,type="Circle",delay=1.35,range=900,radius=225,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=0.5,displayname="DarkMatter",mcollision=false},
+	["VeigarDarkMatter"]={charName="Veigar",slot=1,type="Circle",delay=0.25,range=900,radius=225,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=2.55,displayname="DarkMatter",mcollision=false},
 	["VeigarEventHorizon"]={charName="Veigar",slot=2,type="Ring",delay=0.5,range=700,radius=400,speed=math.huge,addHitbox=false,danger=3,dangerous=true,proj="nil",killTime=3.5,displayname="EventHorizon",mcollision=false},
 	["VelkozQ"]={charName="Velkoz",slot=0,type="Line",delay=0.25,range=1100,radius=50,speed=1300,addHitbox=true,danger=2,dangerous=false,proj="VelkozQMissile",killTime=0,displayname="",mcollision=true},
 	["VelkozQMissileSplit"]={charName="Velkoz",slot=0,type="Line",delay=0.25,range=1100,radius=55,speed=2100,addHitbox=true,danger=2,dangerous=false,proj="VelkozQMissileSplit",killTime=0,displayname="",mcollision=true},
@@ -5334,6 +5331,7 @@ function Awareness:__init()
 	self.j = nil
 	self.d = {}
 	self.d2 = {}
+	self.wp = {}
 	self.spells = {
 	["Ashe"] = {d = 0.25, s = 1450,w=120,sp=3,c=true,dmg=function(unit) return 75+175*GetCastLevel(myHero,3)*myHero.ap end,},
 	["Draven"] = {d = 0.4,s = 2000,w=120,sp=3,c=false,dmg=function(unit) return 75+100*GetCastLevel(myHero,3)+1.1*myHero.totalDamage end,},
@@ -5342,6 +5340,7 @@ function Awareness:__init()
 	}
 	self.E = {}
 	self.offy = 60
+	
 	SLU:Menu("A", "|SL| Awareness")
 	
 	SLU.A:Menu("HUD", "HUD")
@@ -5360,14 +5359,15 @@ function Awareness:__init()
 	SLU.A:Menu("ME", "Missing Enemies")
 		SLU.A.ME:Boolean("E", "Enabled", true)
 		SLU.A.ME:Boolean("DT", "Draw Timer", true)
+		SLU.A.ME:Boolean("DI", "Draw Icon", true)
 		SLU.A.ME:Boolean("DC", "Draw Circle", true)
 		
-	SLU.A.ME:Menu("DE", "Enable Draw for :")
-	DelayAction(function() 
-		for _, i in pairs(GetEnemyHeroes()) do
-			SLU.A.ME.DE:Boolean("D"..i.charName, "Draw "..i.charName, true)
-		end
-	end,.001)
+		SLU.A.ME:Menu("DE", "Enable Draw for :")
+		DelayAction(function() 
+			for _, i in pairs(GetEnemyHeroes()) do
+				SLU.A.ME.DE:Boolean("D"..i.charName, "Draw "..i.charName, true)
+			end
+		end,.001)
 	SLU.A:Menu("RT", "Recall Tracker")
 	SLU.A.RT:Boolean("E", "Enabled", true)
 	SLU.A.RT:Boolean("DT", "Draw Timer", true)
@@ -5392,6 +5392,23 @@ function Awareness:__init()
 			SLU.A.JT.ET:Boolean(m, m, true)
 		end
 	end,.001)
+	SLU.A:Menu("WPT", "WayPoint Tracker")
+	SLU.A.WPT:Boolean("E", "Enabled", true)
+	SLU.A.WPT:Boolean("TE", "Track Enemy Team", true)
+	SLU.A.WPT:Boolean("TA", "Track Ally Team ", true)
+	SLU.A.WPT:Boolean("TT", "Draw Timer", true)
+	SLU.A.WPT:Menu("T", "Enable Track for : ", true)
+	DelayAction(function()
+		for _,i in pairs(heroes) do
+			if not SLU.A.WPT.T[i.charName] then 
+				SLU.A.WPT.T:Boolean(i.charName, i.charName, true)
+			end
+		end
+		if not SLU.A.WPT.T[myHero.charName] then 
+				SLU.A.WPT.T:Boolean(myHero.charName, myHero.charName, true)
+		end
+	end,.001)
+	
 	SLU.A:Info("MSTM", "More Soon TM")
 	
 	for _,i in pairs(GetEnemyHeroes()) do 
@@ -5406,9 +5423,22 @@ function Awareness:__init()
 	Callback.Add("UpdateBuff", function(u,b) self:UpdBuff(u,b) end)
 	Callback.Add("RemoveBuff", function(u,b) self:RemBuff(u,b) end)
 	Callback.Add("ProcessRecall", function(u,r) self:PrRe(u,r) end)
+	Callback.Add("ProcessWaypoint", function(u,wp) self:PrWp(u,wp) end)
 	DelayAction(function()
 		self:LoadSprites()
 	end,1)
+end
+
+function Awareness:PrWp(u,wp)
+	if u and u.isHero and wp and wp.index == 1 and SLU.A.WPT.E:Value() and ((u.team == myHero.team and SLU.A.WPT.TA:Value()) or (u.team ~= myHero.team and SLU.A.WPT.TE:Value())) and SLU.A.WPT.T[u.charName] and SLU.A.WPT.T[u.charName]:Value() then
+		if not self.wp[u.networkID] then self.wp[u.networkID] = {} end
+		self.wp[u.networkID] = {u=u,wp=wp,pos=wp.position,s=GetTickCount(),d=(GetDistance(u,wp.position)/myHero.ms)}
+		for _,i in pairs(self.wp) do
+			if i.pos ~= wp.position and u == i.u then
+				self.wp[u.networkID] = nil
+			end
+		end
+	end
 end
 
 function Awareness:LoadSprites()
@@ -5490,16 +5520,13 @@ end
 function Awareness:CreO(o)
 	if o and o.networkID then
 		if o.name:lower():find("visionward") then
-			if  ((o.team == myHero.team and SLU.A.WT.TAW:Value()) or (o.team ~= myHero.team and SLU.A.WT.TEW:Value()))  then
-				if not Wards[o.networkID] then Wards[o.networkID] = {} end
-				Wards[o.networkID].o = o
+			if ((o.team == myHero.team and SLU.A.WT.TAW:Value()) or (o.team ~= myHero.team and SLU.A.WT.TEW:Value())) then
+				table.insert(Wards,{o=o})
 			end
 		end
 		if o.name:lower():find("sightward") then
-			if  ((o.team == myHero.team and SLU.A.WT.TAW:Value()) or (o.team ~= myHero.team and SLU.A.WT.TEW:Value()))  then
-				if not Wards2[o.networkID] then Wards2[o.networkID] = {} end
-				Wards2[o.networkID].o = o
-				Wards2[o.networkID].s = GetTickCount()
+			if ((o.team == myHero.team and SLU.A.WT.TAW:Value()) or (o.team ~= myHero.team and SLU.A.WT.TEW:Value())) then
+				table.insert(Wards2,{o=o,s=GetTickCount()})
 			end
 		end
 	end
@@ -5508,19 +5535,24 @@ end
 function Awareness:DelO(o)
 	if o and o.networkID then
 		if o.name:lower():find("visionward") then
-			if  ((o.team == myHero.team and SLU.A.WT.TAW:Value()) or (o.team ~= myHero.team and SLU.A.WT.TEW:Value()))  then
-				Wards[o.networkID] = nil
+			if ((o.team == myHero.team and SLU.A.WT.TAW:Value()) or (o.team ~= myHero.team and SLU.A.WT.TEW:Value())) then
+				for _,i in pairs(Wards) do
+					table.remove(Wards,_)
+				end
 			end
 		end
 		if o.name:lower():find("sightward") then
-			if  ((o.team == myHero.team and SLU.A.WT.TAW:Value()) or (o.team ~= myHero.team and SLU.A.WT.TEW:Value()))  then
-				Wards2[o.networkID] = nil
+			if ((o.team == myHero.team and SLU.A.WT.TAW:Value()) or (o.team ~= myHero.team and SLU.A.WT.TEW:Value())) then
+				for _,i in pairs(Wards2) do
+					table.remove(Wards2,_)
+				end
 			end
 		end
 	end
 end
 
 function Awareness:DrawScreen()
+	heroes[myHero.networkID] = nil
 	if SLU.A.HUD.E:Value() then
 		local yOff = 0
 		for _,i in pairs(self.d) do
@@ -5543,7 +5575,7 @@ function Awareness:DrawScreen()
 		for _,i in pairs(Wards) do
 			if i.o and i.o.valid then
 				if i.o.team ~= myHero.team and SLU.A.WT.TEW:Value() then
-					DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,255,0))
+					DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,242,2,222))
 				elseif i.o.team == myHero.team and SLU.A.WT.TAW:Value() then
 					DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,0,255))
 				end
@@ -5554,7 +5586,7 @@ function Awareness:DrawScreen()
 				if i.o.team == myHero.team and SLU.A.WT.TAW:Value() then
 					DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,255,0))
 				elseif i.o.team ~= myHero.team and SLU.A.WT.TEW:Value() then
-					DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,242,2,222))
+					DrawCircle(i.o.pos,75,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,255,0,0))
 				end
 				DrawTextSmall(self:GetDuration(self.t,i), WorldToScreen(0,i.o.pos).x, WorldToScreen(0,i.o.pos).y, GoS.White)
 			end
@@ -5580,6 +5612,20 @@ function Awareness:DrawScreen()
 			DrawLine3D(myHero.pos.x, myHero.pos.y,myHero.pos.z, self.j.pos.x, self.j.pos.y,self.j.pos.z, 2, GoS.Red)
 		end
 	end
+	for _,i in pairs(self.wp) do
+		if self:GetDuration(GetDistance(i.u.pos,i.pos)/100,i) ~= -0 and SLU.A.WPT.E:Value() and ((i.u.team == myHero.team and SLU.A.WPT.TA:Value()) or (i.u.team ~= myHero.team and SLU.A.WPT.TE:Value())) and SLU.A.WPT.T[i.u.charName] and SLU.A.WPT.T[i.u.charName]:Value()  then
+			if i.u.team == myHero.team then
+				DrawLine(WorldToScreen(1,i.u.pos).x,WorldToScreen(0,i.u.pos).y,WorldToScreen(0,i.pos).x,WorldToScreen(0,i.pos).y,1,GoS.Blue)
+			else
+				DrawLine(WorldToScreen(1,i.u.pos).x,WorldToScreen(0,i.u.pos).y,WorldToScreen(0,i.pos).x,WorldToScreen(0,i.pos).y,1,GoS.Red)
+			end
+			if SLU.A.WPT.TT:Value() then
+				DrawText(self:GetDuration(i.d,i), 20,WorldToScreen(0,i.pos).x, WorldToScreen(0,i.pos).y, GoS.White)
+			end
+		else
+			self.wp[_] = nil 
+		end
+	end
 end
 
 function Awareness:draMin()
@@ -5587,7 +5633,7 @@ function Awareness:draMin()
 		for _,i in pairs(Wards) do
 			if i.o and i.o.valid then
 				if i.o.team ~= myHero.team and SLU.A.WT.TEW:Value() then
-					DrawCircleMinimap(i.o.pos,350,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,255,0))
+					DrawCircleMinimap(i.o.pos,350,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,242,2,222))
 				elseif i.o.team == myHero.team and SLU.A.WT.TAW:Value() then
 					DrawCircleMinimap(i.o.pos,350,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,0,255))
 				end
@@ -5598,7 +5644,7 @@ function Awareness:draMin()
 				if i.o.team == myHero.team and SLU.A.WT.TAW:Value() then
 					DrawCircleMinimap(i.o.pos,350,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,0,255,0))
 				elseif i.o.team ~= myHero.team and SLU.A.WT.TEW:Value() then
-					DrawCircleMinimap(i.o.pos,350,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,242,2,222))
+					DrawCircleMinimap(i.o.pos,350,SLU.A.WT.Cw:Value(),SLU.A.WT.Cq:Value()*20,ARGB(255,255,0,0))
 				end
 			end
 		end
@@ -5612,7 +5658,7 @@ function Awareness:draMin()
                 i.l = GetGameTimer()
             elseif i.u.alive and i.l and i.ms and i.p2 and i.p and i.l and i.p2.x and i.p2.y and GetGameTimer()-i.l < 30 and (GetGameTimer()-i.l)*i.ms < 5000 then
                 if SLU.A.ME.DC:Value()  then
-                    if not i.u.visible and i.u.alive then
+                    if not i.u.visible and i.u.alive and SLU.A.ME.DI:Value() then
                         local p = WorldToMinimap(i.u.pos)
                         self.d2[i.u.networkID]:Draw(p.x-12,p.y-12,25,25)
                     end
@@ -5640,14 +5686,9 @@ function Awareness:draMin()
 end
 
 function Awareness:Tk()
-	for _,i in pairs(self.Wards) do
-		if i.o and not i.o.valid then
-			self.Wards[_] = nil 
-		end
-	end
-	for _,i in pairs(self.Wards2) do
-		if i.o and not i.o.valid then
-			self.Wards2[_] = nil 
+	for _,i in pairs(self.wp) do
+		if GetDistance(i.pos) < 1 then
+			table.remove(self.wp,_)
 		end
 	end
 	for _, i in pairs(GetEnemyHeroes()) do
@@ -7147,7 +7188,7 @@ Spells = {
 	["CaitlynEntrapment"]={charName="Caitlyn",slot=2,type="Line",delay=0.4,range=1000,radius=70,speed=1600,addHitbox=true,danger=1,dangerous=false,proj="CaitlynEntrapmentMissile",killTime=0,displayname="90 Caliber Net",mcollision=true},
 	["CassiopeiaQ"]={charName="Cassiopeia",slot=0,type="Circle",delay=0.75,range=850,radius=150,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="CassiopeiaNoxiousBlast",killTime=0.2,displayname="Noxious Blast",mcollision=false},
 	["CassiopeiaR"]={charName="Cassiopeia",slot=3,type="Cone",delay=0.6,range=825,radius=80,speed=math.huge,angle=80,addHitbox=false,danger=5,dangerous=true,proj="CassiopeiaPetrifyingGaze",killTime=0,displayname="Petrifying Gaze",mcollision=false},
-	["Rupture"]={charName="Chogath",slot=0,type="Circle",delay=1.2,range=950,radius=250,speed=math.huge,addHitbox=true,danger=3,dangerous=false,proj="Rupture",killTime=0.8,displayname="Rupture",mcollision=false},
+	["Rupture"]={charName="Chogath",slot=0,type="Circle",delay=.25,range=950,radius=250,speed=math.huge,addHitbox=true,danger=3,dangerous=false,proj="Rupture",killTime=1.75,displayname="Rupture",mcollision=false},
 	["PhosphorusBomb"]={charName="Corki",slot=0,type="Circle",delay=0.3,range=825,radius=250,speed=1000,addHitbox=true,danger=2,dangerous=false,proj="PhosphorusBombMissile",killTime=0.35,displayname="Phosphorus Bomb",mcollision=false},
 	["CarpetBombMega"]={charName="Corki",slot=2,type="Line",delay=0.2,range=1900,radius=140,speed=1600,addHitbox=true,danger=2,dangerous=false,proj="CarpetBombMega",killTime=0,displayname="Special Delivery",mcollision=false},
 	["MissileBarrage"]={charName="Corki",slot=3,type="Line",delay=0.2,range=1300,radius=40,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="MissileBarrageMissile",killTime=0,displayname="Missile Barrage",mcollision=true},
@@ -7224,7 +7265,7 @@ Spells = {
 	["KhazixE"]={charName="Khazix",slot=2,type="Circle",delay=0.25,range=600,radius=300,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="KhazixE",killTime=0.2,displayname="",mcollision=false},
 	["KogMawQ"]={charName="KogMaw",slot=0,type="Line",delay=0.25,range=975,radius=70,speed=1650,addHitbox=true,danger=2,dangerous=false,proj="KogMawQ",killTime=0,displayname="",mcollision=true},
 	["KogMawVoidOoze"]={charName="KogMaw",slot=2,type="Line",delay=0.25,range=1200,radius=120,speed=1400,addHitbox=true,danger=2,dangerous=false,proj="KogMawVoidOozeMissile",killTime=0,displayname="Void Ooze",mcollision=false},
-	["KogMawLivingArtillery"]={charName="KogMaw",slot=3,type="Circle",delay=1.2,range=1800,radius=225,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="KogMawLivingArtillery",killTime=0.5,displayname="LivingArtillery",mcollision=false},
+	["KogMawLivingArtillery"]={charName="KogMaw",slot=3,type="Circle",delay=0.25,range=1800,radius=225,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="KogMawLivingArtillery",killTime=1,displayname="LivingArtillery",mcollision=false},
 	["LeblancSlide"]={charName="Leblanc",slot=1,type="Circle",delay=0,range=600,radius=220,speed=1450,addHitbox=true,danger=2,dangerous=false,proj="LeblancSlide",killTime=0.2,displayname="Slide",mcollision=false},
 	["LeblancSlideM"]={charName="Leblanc",slot=3,type="Circle",delay=0,range=600,radius=220,speed=1450,addHitbox=true,danger=2,dangerous=false,proj="LeblancSlideM",killTime=0.2,displayname="Slide R",mcollision=false},
 	["LeblancSoulShackle"]={charName="Leblanc",slot=2,type="Line",delay=0,range=950,radius=70,speed=1750,addHitbox=true,danger=3,dangerous=true,proj="LeblancSoulShackle",killTime=0,displayname="Ethereal Chains R",mcollision=true},
@@ -7242,12 +7283,12 @@ Spells = {
 	["LuluQPix"]={charName="Lulu",slot=0,type="Line",delay=0.25,range=950,radius=60,speed=1450,addHitbox=true,danger=2,dangerous=false,proj="LuluQMissileTwo",killTime=0,displayname="",mcollision=false},
 	["LuxLightBinding"]={charName="Lux",slot=0,type="Line",delay=0.3,range=1300,radius=70,speed=1200,addHitbox=true,danger=3,dangerous=true,proj="LuxLightBindingMis",killTime=0,displayname="Light Binding",mcollision=true},
 	["LuxLightStrikeKugel"]={charName="Lux",slot=2,type="Circle",delay=0.25,range=1100,radius=350,speed=1300,addHitbox=true,danger=2,dangerous=false,proj="LuxLightStrikeKugel",killTime=5.25,displayname="LightStrikeKugel",mcollision=false,killName="LuxLightstrikeToggle"},
-	["LuxMaliceCannon"]={charName="Lux",slot=3,type="Line",delay=1,range=3500,radius=190,speed=math.huge,addHitbox=true,danger=5,dangerous=true,proj="LuxMaliceCannon",killTime=0,displayname="Malice Cannon",mcollision=false},
+	["LuxMaliceCannon"]={charName="Lux",slot=3,type="Line",delay=1.5,range=3500,radius=190,speed=math.huge,addHitbox=true,danger=5,dangerous=true,proj="LuxMaliceCannon",killTime=2,displayname="Malice Cannon",mcollision=false},
 	["UFSlash"]={charName="Malphite",slot=3,type="Circle",delay=0,range=1000,radius=270,speed=1500,addHitbox=true,danger=5,dangerous=true,proj="UFSlash",killTime=0.4,displayname="",mcollision=false},
 	["MalzaharQ"]={charName="Malzahar",slot=0,type="Rectangle",delay=0.75,range=900,radius2=475,radius=130,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="MalzaharQMissile",killTime=0.5,displayname="",mcollision=false},
 	["DarkBindingMissile"]={charName="Morgana",slot=0,type="Line",delay=0.2,range=1300,radius=80,speed=1200,addHitbox=true,danger=3,dangerous=true,proj="DarkBindingMissile",killTime=0,displayname="Dark Binding",mcollision=true},
 	["NamiQ"]={charName="Nami",slot=0,type="Circle",delay=0.95,range=1625,radius=200,speed=math.huge,addHitbox=true,danger=3,dangerous=true,proj="NamiQMissile",killTime=0.35,displayname="",mcollision=false},
-	["NamiR"]={charName="Nami",slot=3,type="Line",delay=1,range=2750,radius=260,speed=850,addHitbox=true,danger=2,dangerous=false,proj="NamiRMissile",killTime=0,displayname="",mcollision=false},
+	["NamiR"]={charName="Nami",slot=3,type="Line",delay=0.8,range=2750,radius=260,speed=850,addHitbox=true,danger=2,dangerous=false,proj="NamiRMissile",killTime=0,displayname="",mcollision=false},
 	["NautilusAnchorDrag"]={charName="Nautilus",slot=0,type="Line",delay=0.25,range=1080,radius=90,speed=2000,addHitbox=true,danger=3,dangerous=true,proj="NautilusAnchorDragMissile",killTime=0,displayname="Anchor Drag",mcollision=true},
 	["AbsoluteZero"]={charName="Nunu",slot=3,type="Circle",delay=0.25,range=0,radius=750,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=4,displayname="",mcollision=false},
 	["NocturneDuskbringer"]={charName="Nocturne",slot=0,type="Line",delay=0.25,range=1125,radius=60,speed=1400,addHitbox=true,danger=2,dangerous=false,proj="NocturneDuskbringer",killTime=0,displayname="Duskbringer",mcollision=false},
@@ -7274,8 +7315,8 @@ Spells = {
 	["SejuaniGlacialPrisonStart"]={charName="Sejuani",slot=3,type="Line",delay=0.25,range=1200,radius=110,speed=1600,addHitbox=true,danger=3,dangerous=true,proj="sejuaniglacialprison",killTime=0,displayname="GlacialPrisonStart",mcollision=false},
 	["SionE"]={charName="Sion",slot=2,type="Line",delay=0.25,range=800,radius=80,speed=1800,addHitbox=true,danger=3,dangerous=true,proj="SionEMissile",killTime=0,displayname="",mcollision=false},
 	["SionR"]={charName="Sion",slot=3,type="Line",delay=0.5,range=20000,radius=120,speed=1000,addHitbox=true,danger=3,dangerous=true,proj="nil",killTime=0,displayname="",mcollision=false},
-	["SorakaQ"]={charName="Soraka",slot=0,type="Circle",delay=0.5,range=950,radius=300,speed=1750,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=0.25,displayname="",mcollision=false},
-	["SorakaE"]={charName="Soraka",slot=2,type="Circle",delay=0.25,range=925,radius=275,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=1,displayname="",mcollision=false},
+	["SorakaQ"]={charName="Soraka",slot=0,type="Circle",delay=0,range=950,radius=300,speed=1750,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=0.75,displayname="",mcollision=false},
+	["SorakaE"]={charName="Soraka",slot=2,type="Circle",delay=0,range=925,radius=275,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=2,displayname="",mcollision=false},
 	["ShenE"]={charName="Shen",slot=2,type="Line",delay=0,range=650,radius=50,speed=1600,addHitbox=true,danger=3,dangerous=true,proj="ShenE",killTime=0,displayname="Shadow Dash",mcollision=false},
 	["ShyvanaFireball"]={charName="Shyvana",slot=2,type="Line",delay=0.25,range=925,radius=60,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="ShyvanaFireballMissile",killTime=0,displayname="Fireball",mcollision=false},
 	["ShyvanaTransformCast"]={charName="Shyvana",slot=3,type="Line",delay=0.25,range=750,radius=150,speed=1500,addHitbox=true,danger=3,dangerous=true,proj="ShyvanaTransformCast",killTime=0,displayname="Transform Cast",mcollision=false},
@@ -7284,7 +7325,7 @@ Spells = {
 	["SivirQ"]={charName="Sivir",slot=0,type="Line",delay=0.25,range=1075,radius=90,speed=1350,addHitbox=true,danger=2,dangerous=false,proj="SivirQMissile",killTime=0,displayname="SivirQ",mcollision=false},
 	["SkarnerFracture"]={charName="Skarner",slot=2,type="Line",delay=0.35,range=350,radius=70,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="SkarnerFractureMissile",killTime=0,displayname="Fracture",mcollision=false},
 	["SonaR"]={charName="Sona",slot=3,type="Line",delay=0.25,range=900,radius=140,speed=2400,addHitbox=true,danger=5,dangerous=true,proj="SonaR",killTime=0,displayname="Crescendo",mcollision=false},
-	["SwainShadowGrasp"]={charName="Swain",slot=1,type="Circle",delay=1.1,range=900,radius=180,speed=math.huge,addHitbox=true,danger=3,dangerous=true,proj="SwainShadowGrasp",killTime=0.5,displayname="Shadow Grasp",mcollision=false},
+	["SwainShadowGrasp"]={charName="Swain",slot=1,type="Circle",delay=0.25,range=900,radius=180,speed=math.huge,addHitbox=true,danger=3,dangerous=true,proj="SwainShadowGrasp",killTime=1.5,displayname="Shadow Grasp",mcollision=false},
 	["SyndraQ"]={charName="Syndra",slot=0,type="Circle",delay=0.6,range=800,radius=150,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="SyndraQSpell",killTime=0.2,displayname="",mcollision=false},
 	["SyndraWCast"]={charName="Syndra",slot=1,type="Circle",delay=0.25,range=950,radius=210,speed=1450,addHitbox=true,danger=2,dangerous=false,proj="syndrawcast",killTime=0.2,displayname="SyndraW",mcollision=false},
 	["SyndraE"]={charName="Syndra",slot=2,type="Cone",delay=0,range=950,radius=100,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="SyndraE",killTime=0,displayname="SyndraE",mcollision=false},
@@ -7292,7 +7333,7 @@ Spells = {
 	["TalonRake"]={charName="Talon",slot=1,type="Cone",delay=0.25,range=800,radius=80,speed=2300,angle=45,addHitbox=true,danger=2,dangerous=true,proj="talonrakemissileone",killTime=0,displayname="Rake",mcollision=false},
 	["TalonRakeMissileTwo"]={charName="Talon",slot=1,type="Cone",delay=0.25,range=800,radius=80,speed=1850,angle=45,addHitbox=true,danger=2,dangerous=true,proj="talonrakemissiletwo",killTime=0,displayname="Rake2",mcollision=false},
 	["TahmKenchQ"]={charName="TahmKench",slot=0,type="Line",delay=0.25,range=951,radius=90,speed=2800,addHitbox=true,danger=3,dangerous=true,proj="tahmkenchqmissile",killTime=0,displayname="Tongue Slash",mcollision=true},
-	["TaricE"]={charName="Taric",slot=2,type="follow",delay=1,range=750,radius=100,speed=math.huge,addHitbox=true,danger=3,dangerous=true,proj="TaricE",killTime=0.5,displayname="",mcollision=false},
+	["TaricE"]={charName="Taric",slot=2,type="follow",delay=0.25,range=750,radius=100,speed=math.huge,addHitbox=true,danger=3,dangerous=true,proj="TaricE",killTime=1.25,displayname="",mcollision=false},
 	["ThreshQ"]={charName="Thresh",slot=0,type="Line",delay=0.5,range=1050,radius=70,speed=1900,addHitbox=true,danger=3,dangerous=true,proj="ThreshQMissile",killTime=0,displayname="",mcollision=true},
 	["ThreshEFlay"]={charName="Thresh",slot=2,type="Line",delay=0.125,range=500,radius=110,speed=2000,addHitbox=true,danger=3,dangerous=true,proj="ThreshEMissile1",killTime=0,displayname="Flay",mcollision=false},
 	["RocketJump"]={charName="Tristana",slot=1,type="Circle",delay=0.5,range=900,radius=270,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="RocketJump",killTime=0.3,displayname="",mcollision=false},
@@ -7303,7 +7344,7 @@ Spells = {
 	["UrgotHeatseekingLineMissile"]={charName="Urgot",slot=0,type="Line",delay=0.125,range=1000,radius=60,speed=1600,addHitbox=true,danger=2,dangerous=false,proj="UrgotHeatseekingLineMissile",killTime=0,displayname="Heatseeking Line",mcollision=true},
 	["UrgotPlasmaGrenade"]={charName="Urgot",slot=2,type="Circle",delay=0.25,range=1100,radius=210,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="UrgotPlasmaGrenadeBoom",killTime=0.3,displayname="PlasmaGrenade",mcollision=false},
 	["VarusQMissile"]={charName="Varus",slot=0,type="Line",delay=0.25,range=1475,radius=70,speed=1900,addHitbox=true,danger=2,dangerous=false,proj="VarusQMissile",killTime=0,displayname="VarusQ",mcollision=false},
-	["VarusE"]={charName="Varus",slot=2,type="Circle",delay=1,range=925,radius=235,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="VarusE",killTime=1.5,displayname="",mcollision=false},
+	["VarusE"]={charName="Varus",slot=2,type="Circle",delay=0.25,range=925,radius=235,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="VarusE",killTime=2.25,displayname="",mcollision=false},
 	["VarusR"]={charName="Varus",slot=3,type="Line",delay=0.25,range=800,radius=120,speed=1950,addHitbox=true,danger=3,dangerous=true,proj="VarusRMissile",killTime=0,displayname="",mcollision=false},
 	["VeigarBalefulStrike"]={charName="Veigar",slot=0,type="Line",delay=0.1,range=900,radius=70,speed=1500,addHitbox=true,danger=2,dangerous=false,proj="VeigarBalefulStrikeMis",killTime=0,displayname="BalefulStrike",mcollision=false},
 	["VeigarDarkMatter"]={charName="Veigar",slot=1,type="Circle",delay=1.35,range=900,radius=225,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=0.5,displayname="DarkMatter",mcollision=false},
@@ -7477,15 +7518,15 @@ function SLEvade:Skillshot()
 		s.spell.proj = nil
 		s.spell.danger = 2
 		s.spell.displayname = "DarkBinding"
-        s.spell.killTime = 3
+        s.spell.killTime = 1.5
         s.spell.mcollision = true
         s.spell.dangerous = false
-        s.spell.radius = 130
-        s.spell.speed = 400
-        s.spell.delay = 0
+        s.spell.radius = 285
+        s.spell.speed = math.huge
+        s.spell.delay = 1
 		s.spell.range = 1200
         s.p.endPos = Vector(2104,95,3196)--Vector(GetMousePos()) + Vector(Vector(myHero) - GetMousePos()):normalized() * (s.spell.range + myHero.boundingRadius)																			
-        s.spell.type = "Line"
+        s.spell.type = "Circle"
         s.uDodge = false 
         s.caster = myHero
 		s.range = 1200
@@ -7634,7 +7675,7 @@ end
 
 function SLEvade:sCircPos(_,i)
 	if i.p then
-		return math.floor((i.spell.radius/(i.spell.killTime+i.spell.delay+i.dist/i.spell.speed))*(os.clock()-i.startTime))
+		return math.floor((i.spell.radius/(i.spell.killTime+i.dist/i.spell.speed+i.spell.delay))*(os.clock()-i.startTime))
 	end
 end
 
