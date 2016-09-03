@@ -7429,15 +7429,20 @@ DelayAction(function()
 	end
 end,001.25)
 
-offer = 0
+self.offer = 0
+self.count = 0
 
 end
 
 function SLEvade:WndMsg(s1,s2)
 	if s2 == string.byte("Y") and s1 == 257 and EMenu.D:Value() then
 		self:Skillshot()
-		offer = offer+1
+		self.offer = self.offer+1
 	end
+	if s2 == 0 and s1 == 516 then
+		self.count = self.count+1
+	end
+	DelayAction(function() self.count = 0 end,.001)
 end
 
 function SLEvade:Skillshot()
@@ -7445,7 +7450,7 @@ function SLEvade:Skillshot()
 		s.spell = {}
 		s.p = {}
 		s.p.startPos = Vector(2874,95,2842)--GetMousePos()
-		s.spell.name = "DarkBindingMissile"..offer
+		s.spell.name = "DarkBindingMissile"..self.offer
 		s.spell.charName = myHero.charName
 		s.spell.proj = nil
 		s.spell.danger = 2
@@ -8361,6 +8366,10 @@ if not SLE then return end
 					BlockOrder()
 				end
 			end
+		end
+		if i.safe and order.flag ~= 3 and self.count > 0 then
+			BlockOrder()
+			self.count = self.count-1
 		end
 	end
 end
