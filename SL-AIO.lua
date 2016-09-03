@@ -5420,10 +5420,10 @@ function Awareness:LoadSprites()
 	end
 	for _,i in pairs(self.E) do
 		if not FileExist(SPRITE_PATH.."Champions\\Circle50\\"..i.u.charName..".png") then
-			GetWebResultAsync("https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/Sprites/Champions/"..i.u.charName..".png", function (b)
+			GetWebResultAsync("https://raw.githubusercontent.com/LoggeL/ChampSprites/master/Circle50/"..i.u.charName..".png", function (b)
 				DelayAction(function()
 					if b ~= "404: Not Found" then 
-						DownloadFileAsync("https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/Sprites/Champions/"..i.u.charName..".png", SPRITE_PATH.."Champions\\Circle50\\"..i.u.charName..".png", 
+						DownloadFileAsync("https://raw.githubusercontent.com/LoggeL/ChampSprites/master/Circle50/"..i.u.charName..".png", SPRITE_PATH.."Champions\\Circle50\\"..i.u.charName..".png", 
 						function() 	
 							DelayAction(function()
 								self.d[i.u.networkID] = Sprite("Champions\\Circle50\\"..i.u.charName..".png", 50, 50, 0, 0) 
@@ -5438,10 +5438,10 @@ function Awareness:LoadSprites()
 			self.d[i.u.networkID] = Sprite("Champions\\Circle50\\"..i.u.charName..".png", 50, 50, 0, 0)
 		end
 		if not FileExist(SPRITE_PATH.."Champions\\Circle25\\"..i.u.charName..".png") then
-			GetWebResultAsync("https://raw.githubusercontent.com/xSxcSx/SL-Series/master/Sprites25/"..i.u.charName..".png", function (b)
+			GetWebResultAsync("https://raw.githubusercontent.com/LoggeL/ChampSprites/master/Circle25/"..i.u.charName..".png", function (b)
 				DelayAction(function()
 					if b ~= "404: Not Found" then 
-						DownloadFileAsync("https://raw.githubusercontent.com/xSxcSx/SL-Series/master/Sprites25/"..i.u.charName..".png", SPRITE_PATH.."Champions\\Circle25\\"..i.u.charName..".png", 
+						DownloadFileAsync("https://raw.githubusercontent.com/LoggeL/ChampSprites/master/Circle25/"..i.u.charName..".png", SPRITE_PATH.."Champions\\Circle25\\"..i.u.charName..".png", 
 						function() 	
 							DelayAction(function()
 								self.d2[i.u.networkID] = Sprite("Champions\\Circle25\\"..i.u.charName..".png", 25, 25, 0, 0) 
