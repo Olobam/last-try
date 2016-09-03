@@ -550,7 +550,7 @@ end)
 
 Callback.Add("DeleteObj", function(o)
 	if o and (o.type:lower():find("turret") or (o.name == "Barracks_"..GetTeamNumber().."_L1" or o.name == "Barracks_"..GetTeamNumber().."_C1" or o.name == "Barracks_"..GetTeamNumber().."_R1" or o.name == "HQ_"..GetTeamNumber())) and o.team == MINION_ENEMY then
-		structures[obj.networkID] = nil
+		structures[o.networkID] = nil
 	end
 end)
 
@@ -5658,7 +5658,7 @@ function Awareness:draMin()
                 i.l = GetGameTimer()
             elseif i.u.alive and i.l and i.ms and i.p2 and i.p and i.l and i.p2.x and i.p2.y and GetGameTimer()-i.l < 30 and (GetGameTimer()-i.l)*i.ms < 5000 then
                 if SLU.A.ME.DC:Value()  then
-                    if not i.u.visible and i.u.alive and SLU.A.ME.DI:Value() then
+                    if not i.u.visible and i.u.alive and SLU.A.ME.DI:Value() and self.d2[i.u.networkID] then
                         local p = WorldToMinimap(i.u.pos)
                         self.d2[i.u.networkID]:Draw(p.x-12,p.y-12,25,25)
                     end
