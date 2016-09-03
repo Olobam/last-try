@@ -3990,8 +3990,6 @@ function Ahri:__init()
 	end
 end
 
-end
-
 function Ahri:AntiChannel(unit,range)
 	if BM.AC.E:Value() and range < Spell[2].range and SReady[2] then
 		CastGenericSkillShot(myHero,unit,Spell[2],2,BM.p)
