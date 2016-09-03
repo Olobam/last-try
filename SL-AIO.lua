@@ -5432,7 +5432,7 @@ end
 function Awareness:PrWp(u,wp)
 	if u and u.isHero and wp and wp.index == 1 and SLU.A.WPT.E:Value() and ((u.team == myHero.team and SLU.A.WPT.TA:Value()) or (u.team ~= myHero.team and SLU.A.WPT.TE:Value())) and SLU.A.WPT.T[u.charName] and SLU.A.WPT.T[u.charName]:Value() then
 		if not self.wp[u.networkID] then self.wp[u.networkID] = {} end
-		self.wp[u.networkID] = {u=u,wp=wp,pos=wp.position,s=GetTickCount(),d=(GetDistance(u,wp.position)/myHero.ms)}
+		self.wp[u.networkID] = {u=u,wp=wp,pos=wp.position,s=GetTickCount(),d=(GetDistance(u,wp.position)/u.ms)}
 		for _,i in pairs(self.wp) do
 			if i.pos ~= wp.position and u == i.u then
 				self.wp[u.networkID] = nil
@@ -5615,9 +5615,9 @@ function Awareness:DrawScreen()
 	for _,i in pairs(self.wp) do
 		if self:GetDuration(GetDistance(i.u.pos,i.pos)/100,i) ~= -0 and SLU.A.WPT.E:Value() and ((i.u.team == myHero.team and SLU.A.WPT.TA:Value()) or (i.u.team ~= myHero.team and SLU.A.WPT.TE:Value())) and SLU.A.WPT.T[i.u.charName] and SLU.A.WPT.T[i.u.charName]:Value()  then
 			if i.u.team == myHero.team then
-				DrawLine(WorldToScreen(1,i.u.pos).x,WorldToScreen(0,i.u.pos).y,WorldToScreen(0,i.pos).x,WorldToScreen(0,i.pos).y,1,GoS.Blue)
+				DrawLine(WorldToScreen(0,i.u.pos).x,WorldToScreen(0,i.u.pos).y,WorldToScreen(0,i.pos).x,WorldToScreen(0,i.pos).y,1,GoS.Blue)
 			else
-				DrawLine(WorldToScreen(1,i.u.pos).x,WorldToScreen(0,i.u.pos).y,WorldToScreen(0,i.pos).x,WorldToScreen(0,i.pos).y,1,GoS.Red)
+				DrawLine(WorldToScreen(0,i.u.pos).x,WorldToScreen(0,i.u.pos).y,WorldToScreen(0,i.pos).x,WorldToScreen(0,i.pos).y,1,GoS.Red)
 			end
 			if SLU.A.WPT.TT:Value() then
 				DrawText(self:GetDuration(i.d,i), 20,WorldToScreen(0,i.pos).x, WorldToScreen(0,i.pos).y, GoS.White)
