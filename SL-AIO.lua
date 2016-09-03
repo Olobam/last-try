@@ -834,13 +834,13 @@ function Vayne:__init()
 end
 
 function Vayne:AntiChannel(unit,range)
-	if BM.AC.E:Value() and range < Vayne.Spell[2].range and SReady[2] then
+	if BM.AC.E:Value() and range < Spell[2].range and SReady[2] then
 		CastTargetSpell(unit,2)
 	end
 end
 
 function Vayne:AntiGapCloser(unit,range)
-	if BM.AGC.E:Value() and range < Vayne.Spell[2].range and SReady[2] then
+	if BM.AGC.E:Value() and range < Spell[2].range and SReady[2] then
 		CastTargetSpell(unit,2)
 	end
 end
@@ -1058,7 +1058,7 @@ end
 function Blitzcrank:AntiChannel(unit,range)
 	if BM.AC.Q:Value() and range < 600 and SReady[3] then
 		CastSpell(3)
-	elseif BM.AC.R:Value() and SReady[0] and range < Blitzcrank.Spell[0].range then
+	elseif BM.AC.R:Value() and SReady[0] and range < Spell[0].range then
 		CastGenericSkillShot(myHero,target,Spell[0],0,BM.p)
 	end
 end
@@ -1214,7 +1214,7 @@ function Soraka:__init()
 end
 
 function Soraka:AntiChannel(unit,range)
-	if SReady[2] and BM.AC.E:Value() and ValidTarget(unit,Soraka.Spell[2].range) then
+	if SReady[2] and BM.AC.E:Value() and ValidTarget(unit,Spell[2].range) then
 		CastSkillShot(2,GetOrigin(unit))
 	end
 end
@@ -1975,13 +1975,13 @@ end
 
 --[[
 function Velkoz:AntiChannel(unit,range)
-	if BM.AC.E:Value() and range < Velkoz.Spell[2].range and SReady[2] then
+	if BM.AC.E:Value() and range < Spell[2].range and SReady[2] then
 		CastSkillShot(2,unit.pos)
 	end
 end
 
 function Velkoz:AntiGapCloser(unit,range)
-	if BM.AGC.E:Value() and range < Velkoz.Spell[2].range and SReady[2] then
+	if BM.AGC.E:Value() and range < Spell[2].range and SReady[2] then
 		CastSkillShot(2,unit.pos)
 	end
 end--]]
@@ -3953,7 +3953,7 @@ function Ahri:__init()
 	BM.KS.R:DropDown("RM", "Ulti Mode", 1, {"Sideways", "MousePos"})
 
 	BM:SubMenu("Dr", "Drawings")
-	BM.Dr:Boolean("UD", "Use Drawings", false)
+	BM.Dr:Boolean("UD", "Use Drawings", true)
 	BM.Dr:ColorPick("Cc", "Circle color", {255,102,102,102})
 	BM.Dr:DropDown("DQ", "Draw Quality", 3, {"High", "Medium", "Low"})
 	BM.Dr:Slider("CW", "Circle width", 1, 1, 5, 1)
@@ -3970,6 +3970,12 @@ function Ahri:__init()
 	Callback.Add("Draw", function() self:D() end)
 	Callback.Add("CreateObj", function(o) self:CreateObj(o) end)
 	Callback.Add("DeleteObj", function(o) self:DeleteObj(o) end)
+	AntiChannel()
+	AntiGapCloser()
+	DelayAction( function ()
+	if BM["AC"] then BM.AC:Info("ad", "Use Spell(s) : ") BM.AC:Boolean("E","Use E", true) end
+	if BM["AGC"] then BM.AGC:Info("ad", "Use Spell(s) : ") BM.AGC:Boolean("E","Use E", true) end
+	end,.001)
 	
 	self.CC = false
 	self.o = {}
@@ -3981,6 +3987,20 @@ function Ahri:__init()
 	
 	for i = 0,2,2 do
 		PredMenu(BM.p,i)
+	end
+end
+
+end
+
+function Ahri:AntiChannel(unit,range)
+	if BM.AC.E:Value() and range < Spell[2].range and SReady[2] then
+		CastGenericSkillShot(myHero,unit,Spell[2],2,BM.p)
+	end
+end
+
+function Ahri:AntiGapCloser(unit,range)
+	if BM.AGC.E:Value() and range < Spell[2].range and SReady[2] then
+		CastGenericSkillShot(myHero,unit,Spell[2],2,BM.p)
 	end
 end
 
