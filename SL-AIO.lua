@@ -5322,8 +5322,9 @@ class 'Awareness'
 
 function Awareness:__init()
 	
-    if not DirExists(SPRITE_PATH.."SLAIO\\") then CreateDir(SPRITE_PATH.."SLAIO\\") end
-    if not DirExists(SPRITE_PATH.."SLAIO\\ChampIcons\\") then CreateDir(SPRITE_PATH.."SLAIO\\ChampIcons\\") end
+    if not DirExists(SPRITE_PATH.."Champions\\") then CreateDir(SPRITE_PATH.."Champions\\") end
+    if not DirExists(SPRITE_PATH.."Champions\\Circle50\\") then CreateDir(SPRITE_PATH.."Champions\\Circle50\\") end
+    if not DirExists(SPRITE_PATH.."Champions\\Circle25\\") then CreateDir(SPRITE_PATH.."Champions\\Circle25\\") end
 	self.Wards = {}
 	self.Wards2 = {}
 	self.R = {}
@@ -5332,6 +5333,7 @@ function Awareness:__init()
 	self.mobs = {["SRU_Baron"]={s=1200,d=420}, ["SRU_Dragon"]={s=150,d=360}, ["SRU_Red"]={s=105,d=300}, ["SRU_Blue"]={s=105,d=300}, ["SRU_Krug"]={s=50,d=100}, ["SRU_Murkwolf"]={s=105,d=103}, ["SRU_Razorbeak"]={s=105,d=90}, ["SRU_Gromp"]={s=105,d=145}, ["Sru_Crab"]={s=150,d=120}}
 	self.j = nil
 	self.d = {}
+	self.d2 = {}
 	self.spells = {
 	["Ashe"] = {d = 0.25, s = 1450,w=120,sp=3,c=true,dmg=function(unit) return 75+175*GetCastLevel(myHero,3)*myHero.ap end,},
 	["Draven"] = {d = 0.4,s = 2000,w=120,sp=3,c=false,dmg=function(unit) return 75+100*GetCastLevel(myHero,3)+1.1*myHero.totalDamage end,},
@@ -5410,27 +5412,48 @@ function Awareness:__init()
 end
 
 function Awareness:LoadSprites()
-	if not FileExist(SPRITE_PATH.."SLAIO\\ChampIcons\\Unknown.png") then
-		DownloadFileAsync("https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/Sprites/RadarHack/miss.png", SPRITE_PATH.."SLAIO\\ChampIcons\\Unknown.png", function() end)
+	if not FileExist(SPRITE_PATH.."Champions\\Circle50\\Unknown.png") then
+		DownloadFileAsync("https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/Sprites/RadarHack/miss.png", SPRITE_PATH.."Champions\\Circle50\\Unknown.png", function() end)
+	end
+	if not FileExist(SPRITE_PATH.."Champions\\Circle25\\Unknown.png") then
+		DownloadFileAsync("https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/Sprites/RadarHack/miss.png", SPRITE_PATH.."Champions\\Circle25\\Unknown.png", function() end)
 	end
 	for _,i in pairs(self.E) do
-		if not FileExist(SPRITE_PATH.."SLAIO\\ChampIcons\\"..i.u.charName..".png") then
+		if not FileExist(SPRITE_PATH.."Champions\\Circle50\\"..i.u.charName..".png") then
 			GetWebResultAsync("https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/Sprites/Champions/"..i.u.charName..".png", function (b)
 				DelayAction(function()
 					if b ~= "404: Not Found" then 
-						DownloadFileAsync("https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/Sprites/Champions/"..i.u.charName..".png", SPRITE_PATH.."SLAIO\\ChampIcons\\"..i.u.charName..".png", 
+						DownloadFileAsync("https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/Sprites/Champions/"..i.u.charName..".png", SPRITE_PATH.."Champions\\Circle50\\"..i.u.charName..".png", 
 						function() 	
 							DelayAction(function()
-								self.d[i.u.networkID] = Sprite("SLAIO\\ChampIcons\\"..i.u.charName..".png", 50, 50, 0, 0) 
+								self.d[i.u.networkID] = Sprite("Champions\\Circle50\\"..i.u.charName..".png", 50, 50, 0, 0) 
 							end,.1)
 						end)
 					else
-						self.d[i.u.networkID] = Sprite("SLAIO\\ChampIcons\\Unknown.png", 50, 50, 0, 0)
+						self.d[i.u.networkID] = Sprite("Champions\\Circle50\\Unknown.png", 50, 50, 0, 0)
 					end
 				end,.1)
 			end)
 		else
-			self.d[i.u.networkID] = Sprite("SLAIO\\ChampIcons\\"..i.u.charName..".png", 50, 50, 0, 0)
+			self.d[i.u.networkID] = Sprite("Champions\\Circle50\\"..i.u.charName..".png", 50, 50, 0, 0)
+		end
+		if not FileExist(SPRITE_PATH.."Champions\\Circle25\\"..i.u.charName..".png") then
+			GetWebResultAsync("https://raw.githubusercontent.com/xSxcSx/SL-Series/master/Sprites25/"..i.u.charName..".png", function (b)
+				DelayAction(function()
+					if b ~= "404: Not Found" then 
+						DownloadFileAsync("https://raw.githubusercontent.com/xSxcSx/SL-Series/master/Sprites25/"..i.u.charName..".png", SPRITE_PATH.."Champions\\Circle25\\"..i.u.charName..".png", 
+						function() 	
+							DelayAction(function()
+								self.d2[i.u.networkID] = Sprite("Champions\\Circle25\\"..i.u.charName..".png", 25, 25, 0, 0) 
+							end,.1)
+						end)
+					else
+						self.d2[i.u.networkID] = Sprite("Champions\\Circle25\\Unknown.png", 25, 25, 0, 0)
+					end
+				end,.1)
+			end)
+		else
+			self.d2[i.u.networkID] = Sprite("Champions\\Circle25\\"..i.u.charName..".png", 25, 25, 0, 0)
 		end
 	end
 end
@@ -5581,26 +5604,25 @@ function Awareness:draMin()
 		end
 	end
     for _,i in pairs(self.E) do
-		if SLU.A.ME.E:Value() and i.u and SLU.A.ME.DE["D"..i.u.charName]:Value() then
-			if i.u.visible and i.u.alive then
-				i.p = WorldToMinimap(i.u.pos)
-				i.p2 = i.u.pos
-				i.ms = i.u.ms
-				i.l = GetGameTimer()
-			elseif i.u.alive and i.l and i.ms and i.p2 and i.p and i.l and i.p2.x and i.p2.y and GetGameTimer()-i.l < 20 and (GetGameTimer()-i.l)*i.ms < 4000 then
-				if SLU.A.ME.DC:Value()  then
-					-- for x,p in pairs(self.d) do
-						-- if FileExist(SPRITE_PATH.."SLAIO\\ChampIcons\\"..i.u.charName..".png") and self.d[_] then
-							-- p:Draw(i.p.x,i.p.y,GoS.White)
-						-- end
-					-- end
-					DrawCircleMinimap(i.p2, (GetGameTimer()-i.l)*i.ms, 0, 0, ARGB(1.25*(20-GetGameTimer()-i.l),255,255,255))
-				end
-				if SLU.A.ME.DT:Value() then
-					DrawText(math.floor(GetGameTimer()-i.l),12,i.p.x,i.p.y, ARGB(255,255,255,255))
-				end
-			end
-		end
+        if SLU.A.ME.E:Value() and i.u and SLU.A.ME.DE["D"..i.u.charName]:Value() then
+            if i.u.visible and i.u.alive then
+                i.p = WorldToMinimap(i.u.pos)
+                i.p2 = i.u.pos
+                i.ms = i.u.ms
+                i.l = GetGameTimer()
+            elseif i.u.alive and i.l and i.ms and i.p2 and i.p and i.l and i.p2.x and i.p2.y and GetGameTimer()-i.l < 30 and (GetGameTimer()-i.l)*i.ms < 5000 then
+                if SLU.A.ME.DC:Value()  then
+                    if not i.u.visible and i.u.alive then
+                        local p = WorldToMinimap(i.u.pos)
+                        self.d2[i.u.networkID]:Draw(p.x-12,p.y-12,25,25)
+                    end
+                    DrawCircleMinimap(i.p2, (GetGameTimer()-i.l)*i.ms, 0, 0, ARGB(1.25*(20-GetGameTimer()-i.l),255,255,255))
+                end
+                if SLU.A.ME.DT:Value() then
+                    DrawText(math.floor(GetGameTimer()-i.l),12,i.p.x,i.p.y, ARGB(255,255,255,255))
+                end
+            end
+        end
     end
 	if self.j and self.j.alive and self.j.visible and SLU.A.JT.E:Value() and SLU.A.JT.TJ:Value() then
 		DrawCircleMinimap(self.j.pos, 350, 1, 20, GoS.Red)
