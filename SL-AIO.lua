@@ -5613,7 +5613,7 @@ function Awareness:DrawScreen()
 		end
 	end
 	for _,i in pairs(self.wp) do
-		if self:GetDuration(GetDistance(i.u.pos,i.pos)/100,i) ~= -0 and SLU.A.WPT.E:Value() and ((i.u.team == myHero.team and SLU.A.WPT.TA:Value()) or (i.u.team ~= myHero.team and SLU.A.WPT.TE:Value())) and SLU.A.WPT.T[i.u.charName] and SLU.A.WPT.T[i.u.charName]:Value()  then
+		if self:GetDuration(i.d,i) ~= -0 and SLU.A.WPT.E:Value() and ((i.u.team == myHero.team and SLU.A.WPT.TA:Value()) or (i.u.team ~= myHero.team and SLU.A.WPT.TE:Value())) and SLU.A.WPT.T[i.u.charName] and SLU.A.WPT.T[i.u.charName]:Value()  then
 			if i.u.team == myHero.team then
 				DrawLine(WorldToScreen(0,i.u.pos).x,WorldToScreen(0,i.u.pos).y,WorldToScreen(0,i.pos).x,WorldToScreen(0,i.pos).y,1,GoS.Blue)
 			else
