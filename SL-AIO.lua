@@ -221,6 +221,20 @@ local function dRectangleOutline(s, e, w, t, c, v)--start,end,width,thickness,co
 	end
 end
 
+function DrawRectangle2(x, y, width, height, color, thickness)
+    local thickness = thickness or 1
+	if thickness == 0 then return end
+    x = x - 1
+    y = y - 1
+    width = width + 2
+    height = height + 2
+    local halfThick = math.floor(thickness/2)
+    DrawLine(x - halfThick, y, x + width + halfThick, y, thickness, color)
+    DrawLine(x, y + halfThick, x, y + height - halfThick, thickness, color)
+    DrawLine(x + width, y + halfThick, x + width, y + height - halfThick, thickness, color)
+    DrawLine(x - halfThick, y + height, x + width + halfThick, y + height, thickness, color)
+end
+
 local function dRectangleOutline2(s, e, w, t, c, v)--start,end,radius,thickness,color
 	local z1 = s+Vector(Vector(e)-s):perpendicular():normalized()*w
 	local z2 = s+Vector(Vector(e)-s):perpendicular2():normalized()*w
@@ -5332,6 +5346,9 @@ function Awareness:__init()
 	self.d = {}
 	self.d2 = {}
 	self.wp = {}
+	self.cd = {}
+	self.str = {["SummonerDot"]="Ig",["SummonerFlash"]="Fl",["SummonerExhaust"]="Ex",["SummonerGhost"]="Gh",["SummonerTeleport"]="Tp",["SummonerBarrier"]="Ba",["SummonerSmite"]="Sm",["SummonerHeal"]="He"}
+	self.framepos = Point(GetHPBarPos(myHero).x - 69 * 150, GetHPBarPos(myHero).y * 50 + 12.5)
 	self.spells = {
 	["Ashe"] = {d = 0.25, s = 1450,w=120,sp=3,c=true,dmg=function(unit) return 75+175*GetCastLevel(myHero,3)*myHero.ap end,},
 	["Draven"] = {d = 0.4,s = 2000,w=120,sp=3,c=false,dmg=function(unit) return 75+100*GetCastLevel(myHero,3)+1.1*myHero.totalDamage end,},
@@ -5344,9 +5361,15 @@ function Awareness:__init()
 	SLU:Menu("A", "|SL| Awareness")
 	
 	SLU.A:Menu("HUD", "HUD")
-		SLU.A.HUD:Boolean("E","Draw Enemies",true)
-		SLU.A.HUD:Boolean("R","Draw Ult CD", true)
-	
+		SLU.A.HUD:Boolean("E", "Enabled",true)
+		SLU.A.HUD:Boolean("DE","Draw Enemies",true)
+		-- SLU.A.HUD:Boolean("R","Draw Ult CD", true)
+		
+	SLU.A:Menu("CDT", "Cooldown Tracker")
+		SLU.A.CDT:Boolean("E", "Enabled",true)
+		SLU.A.CDT:Boolean("TE", "Track Enemies", true)
+		SLU.A.CDT:Boolean("TA", "Track Allies", true)
+		
 	SLU.A:Menu("WT", "Ward Tracker")
 		SLU.A.WT:Boolean("E", "Enabled",true)
 		SLU.A.WT:Boolean("DS", "Draw on Screen", true)
@@ -5553,7 +5576,7 @@ end
 
 function Awareness:DrawScreen()
 	heroes[myHero.networkID] = nil
-	if SLU.A.HUD.E:Value() then
+	if SLU.A.HUD.E:Value() and SLU.A.HUD.DE:Value() then
 		local yOff = 0
 		for _,i in pairs(self.d) do
 			local h = math.floor(GetPercentHP(self.E[_].u))
@@ -5624,6 +5647,13 @@ function Awareness:DrawScreen()
 			end
 		else
 			self.wp[_] = nil 
+		end
+	end
+	if SLU.A.CDT.E:Value() then
+		for _,i in pairs(heroes) do
+			if i.visible and i.alive and ((i.team == myHero.team and SLU.A.CDT.TA:Value()) or (i.team ~= myHero.team and SLU.A.CDT.TE:Value())) then
+				self:DrawCdTracker(i)
+			end
 		end
 	end
 end
@@ -5724,6 +5754,74 @@ function Awareness:Tk()
 					if p.u.health < self.spells[myHero.charName].dmg(p.u) and not self:Coll() then
 						CastSkillShot(i.sp,spawn.pos)
 					end	
+				end
+			end
+		end
+	end
+	for _,i in pairs(heroes) do
+		if i and i.valid then
+			if not self.cd[i.charName] then self.cd[i.charName] = {} end
+				self.cd[i.charName] = {
+					[0] = i:GetSpellData(0),
+					[1] = i:GetSpellData(1),
+					[2] = i:GetSpellData(2),
+					[3] = i:GetSpellData(3),
+					[4] = i:GetSpellData(4),
+					[5] = i:GetSpellData(5),
+				}
+		end
+	end
+end
+
+function Awareness:DrawCdTracker(unit)
+	for i = 0,3 do	
+		if unit then
+			local p = Vector(GetHPBarPos(unit).x,GetHPBarPos(unit).y+22.5,0):perpendicular()
+			local pos = p:perpendicular2()
+			DrawRectangle2(GetHPBarPos(unit).x, GetHPBarPos(unit).y+15 - 1, 110,6, 0xFF000000)
+			DrawLine(GetHPBarPos(unit).x+i*26,GetHPBarPos(unit).y+12.5,pos.x+i*26,pos.y,4,0xFF000000)
+			if self.cd[unit.charName] and self.cd[unit.charName][i] then
+				local k = self.cd[unit.charName][i]
+				if k and k.level > 0 then
+					if  k.currentCd > 0 then
+						DrawLine(GetHPBarPos(unit).x+i*26,GetHPBarPos(unit).y+15,GetHPBarPos(unit).x+i*26+(GetCastCooldown(unit,i,GetCastLevel(unit,i)) - k.currentCd) / GetCastCooldown(unit,i,GetCastLevel(unit,i)) * 25,GetHPBarPos(unit).y+15,5, ARGB(255,255,0,0))
+					else
+						DrawLine(GetHPBarPos(unit).x+i*26,GetHPBarPos(unit).y+15,GetHPBarPos(unit).x+i*26+(GetCastCooldown(unit,i,GetCastLevel(unit,i)) - k.currentCd) / GetCastCooldown(unit,i,GetCastLevel(unit,i)) * 25,GetHPBarPos(unit).y+15,5, ARGB(255,0,255,0))
+					end
+				end
+			end
+		end
+	end
+	for i = 4,4 do
+		if unit then
+			if self.cd[unit.charName] and self.cd[unit.charName][i] then
+				local k = self.cd[unit.charName][i]
+				if k and k.level > 0 then
+					if k.currentCd > 0 then
+						DrawLine(GetHPBarPos(unit).x-26,GetHPBarPos(unit).y+i*2,GetHPBarPos(unit).x-26+(GetCastCooldown(unit,i,GetCastLevel(unit,i)) - k.currentCd) / GetCastCooldown(unit,i,GetCastLevel(unit,i)) * 25,GetHPBarPos(unit).y+i*2,5, ARGB(255,255,0,0))
+					else
+						DrawLine(GetHPBarPos(unit).x-26,GetHPBarPos(unit).y+i*2,GetHPBarPos(unit).x-26+(GetCastCooldown(unit,i,GetCastLevel(unit,i)) - k.currentCd) / GetCastCooldown(unit,i,GetCastLevel(unit,i)) * 25,GetHPBarPos(unit).y+i*2,5, ARGB(255,0,255,0))
+					end
+					if self.str[self.cd[unit.charName][i].name] then
+						DrawTextSmall(self.str[self.cd[unit.charName][i].name] ,GetHPBarPos(unit).x-48,GetHPBarPos(unit).y+i*3,GoS.White)
+					end
+				end
+			end
+		end
+	end
+	for i = 5,5 do
+		if unit then
+			if self.cd[unit.charName] and self.cd[unit.charName][i] then
+				local k = self.cd[unit.charName][i]
+				if k and k.level > 0 then
+					if k.currentCd > 0 then
+						DrawLine(GetHPBarPos(unit).x-26,GetHPBarPos(unit).y+i/2,GetHPBarPos(unit).x-26+(GetCastCooldown(unit,i,GetCastLevel(unit,i)) - k.currentCd) / GetCastCooldown(unit,i,GetCastLevel(unit,i)) * 25,GetHPBarPos(unit).y+i/2,5, ARGB(255,255,0,0))
+					else
+						DrawLine(GetHPBarPos(unit).x-26,GetHPBarPos(unit).y+i/2,GetHPBarPos(unit).x-26+(GetCastCooldown(unit,i,GetCastLevel(unit,i)) - k.currentCd) / GetCastCooldown(unit,i,GetCastLevel(unit,i)) * 25,GetHPBarPos(unit).y+i/2,5, ARGB(255,0,255,0))
+					end
+					if self.str[self.cd[unit.charName][i].name]  then
+						DrawTextSmall(self.str[self.cd[unit.charName][i].name]  ,GetHPBarPos(unit).x-48,GetHPBarPos(unit).y+i/3,GoS.White)
+					end
 				end
 			end
 		end
