@@ -7618,12 +7618,12 @@ function SLEvade:Skillshot()
         s.spell.killTime = 1.5
         s.spell.mcollision = true
         s.spell.dangerous = false
-        s.spell.radius = 285
-        s.spell.speed = math.huge
+        s.spell.radius = 130
+        s.spell.speed = 400
         s.spell.delay = 1
-		s.spell.range = 1200
+		s.spell.range = 1300
         s.p.endPos = Vector(2104,95,3196)--Vector(GetMousePos()) + Vector(Vector(myHero) - GetMousePos()):normalized() * (s.spell.range + myHero.boundingRadius)																			
-        s.spell.type = "Circle"
+        s.spell.type = "Line"
         s.uDodge = false 
         s.caster = myHero
 		s.range = 1200
@@ -8502,7 +8502,8 @@ if not SLE then return end
 	for _,i in pairs(self.obj) do
 		if order.flag ~= 3 and order.position then
 			if i.jp and i.spell.type == "Line" then
-				if (GetDistance(order.position,i.jp) < ((i.spell.radius + myHero.boundingRadius)*1.1)) and not i.safe then
+				local jp3 = VectorPointProjectionOnLineSegment(Vector(myHero.pos),Vector(order.position),Vector(VectorPointProjectionOnLineSegment(Vector(self.opos),Vector(self.endposs),myHero.pos).x,i.p.endPos.y,VectorPointProjectionOnLineSegment(Vector(self.opos),Vector(self.endposs),myHero.pos).y))
+				if GetDistance(jp3,i.jp) < ((i.spell.radius + myHero.boundingRadius)*1.1) and not i.safe then	
 					BlockOrder()
 				end
 			elseif i.p and i.spell.type == "Circle" then
@@ -8510,11 +8511,15 @@ if not SLE then return end
 					BlockOrder()
 				end
 			elseif i.jp and i.spell.type == "Rectangle" then
-				if (GetDistance(order.position,i.jp) < ((i.spell.radius + myHero.boundingRadius)*1.1)) and not i.safe then
+				local startp = Vector(i.p.endPos) - (Vector(i.p.endPos) - Vector(i.p.startPos)):normalized():perpendicular() * (i.spell.radius2 or 400)
+				local endp = Vector(i.p.endPos) + (Vector(i.p.endPos) - Vector(i.p.startPos)):normalized():perpendicular() * (i.spell.radius2 or 400)
+				local jp3 = VectorPointProjectionOnLineSegment(Vector(myHero.pos),Vector(order.position),Vector(VectorPointProjectionOnLineSegment(Vector(startp),Vector(endp),myHero.pos).x,endp.y,VectorPointProjectionOnLineSegment(Vector(startp),Vector(endp),myHero.pos).y))
+				if (GetDistance(jp3,i.jp) < ((i.spell.radius + myHero.boundingRadius)*1.1)) and not i.safe then
 					BlockOrder()
 				end
 			elseif i.jp and i.spell.type == "Cone" then
-				if (GetDistance(order.position,i.jp) < ((i.spell.radius + myHero.boundingRadius)*1.1)) and not i.safe then
+				local jp3 = VectorPointProjectionOnLineSegment(Vector(myHero.pos),Vector(order.position),Vector(VectorPointProjectionOnLineSegment(Vector(self.opos),Vector(self.endposs),myHero.pos).x,i.p.endPos.y,VectorPointProjectionOnLineSegment(Vector(self.opos),Vector(self.endposs),myHero.pos).y))
+				if (GetDistance(jp3,i.jp) < ((i.spell.radius + myHero.boundingRadius)*1.1)) and not i.safe then
 					BlockOrder()
 				end
 			elseif i.jp and i.spell.type == "Return" then
