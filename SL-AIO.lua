@@ -5347,8 +5347,7 @@ function Awareness:__init()
 	self.d2 = {}
 	self.wp = {}
 	self.cd = {}
-	self.str = {["SummonerDot"]="Ig",["SummonerFlash"]="Fl",["SummonerExhaust"]="Ex",["SummonerGhost"]="Gh",["SummonerTeleport"]="Tp",["SummonerBarrier"]="Ba",["SummonerSmite"]="Sm",["SummonerHeal"]="He"}
-	self.framepos = Point(GetHPBarPos(myHero).x - 69 * 150, GetHPBarPos(myHero).y * 50 + 12.5)
+	self.str = {["SummonerDot"]="Ig",["SummonerFlash"]="Fl",["SummonerExhaust"]="Ex",["SummonerGhost"]="Gh",["SummonerTeleport"]="Tp",["SummonerBarrier"]="Ba",["SummonerSmite"]="Sm",["SummonerHeal"]="He",["SummonerSnowball"]="Sn"}
 	self.spells = {
 	["Ashe"] = {d = 0.25, s = 1450,w=120,sp=3,c=true,dmg=function(unit) return 75+175*GetCastLevel(myHero,3)*myHero.ap end,},
 	["Draven"] = {d = 0.4,s = 2000,w=120,sp=3,c=false,dmg=function(unit) return 75+100*GetCastLevel(myHero,3)+1.1*myHero.totalDamage end,},
