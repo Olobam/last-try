@@ -325,22 +325,20 @@ local function CircleSegment2(x,y,sRadius,eRadius,sAngle,eAngle,color)
 	end
 end
 
-local function GetLowestUnit(range)
-	if not range then return myHero.range+myHero.boundingRadius*2 end
+local function GetLowestUnit(i,range)
+	if not range then range = myHero.range+myHero.boundingRadius*2 end
 	local t, p = nil, math.huge
-	for _,i in pairs(SLM) do
-		if i.alive and i and i.team ~= myHero.team then
-			if ValidTarget(i, range) and i.health < p then
-				t = i
-				p = i.health
-			end
+	if i.alive and i and i.team ~= myHero.team then
+		if ValidTarget(i, range) and i.health < p then
+			t = i
+			p = i.health
 		end
 	end
 	return t
 end
 
 local function GetHighestUnit(i,range)
-	if not range then return myHero.range+myHero.boundingRadius*2 end
+	if not range then range = myHero.range+myHero.boundingRadius*2 end
 	local t = nil
 		if i and i.alive and i.team ~= myHero.team then
 			if ValidTarget(i, range) and not t or GetMaxHP(i) > GetMaxHP(t) then
@@ -559,12 +557,6 @@ Callback.Add("Tick", function()
 				turrets[i.networkID] = i
 			end
 		end
-	end
-end)
-
-Callback.Add("DeleteObj", function(o)
-	if o and (o.type:lower():find("turret") or (o.name == "Barracks_"..GetTeamNumber().."_L1" or o.name == "Barracks_"..GetTeamNumber().."_C1" or o.name == "Barracks_"..GetTeamNumber().."_R1" or o.name == "HQ_"..GetTeamNumber())) and o.team == MINION_ENEMY then
-		structures[o.networkID] = nil
 	end
 end)
 
@@ -6570,10 +6562,8 @@ function SLWalker:__init()
 	OMenu:Menu("FS", "Farm Settings")
 	OMenu.FS:Boolean("AJ", "Attack Jungle", true)
 	OMenu.FS:Boolean("AS", "Attack Structures", true)
-	if myHero.charName == "KogMaw" then 
-		OMenu.FS:Boolean("EL", "Enable Kite Limiter", true)
-		OMenu.FS:Slider("DK", "Dont Kite if Attackspeed > x", 3,2,5,0.1)
-	end
+	OMenu.FS:Boolean("EL", "Enable Kite Limiter", true)
+	OMenu.FS:Slider("DK", "Dont Kite if Attackspeed > x",0.5,0.5,5,0.1)
 	OMenu.FS:Slider("FD", "Farm Delay", 0,-20,20,1)
 	
 	OMenu:Menu("D", "Drawings")
@@ -6658,7 +6648,7 @@ end
 
 function SLWalker:T()
 if not SLW then return end
-if myHero.charName == "KogMaw" and OMenu.FS.EL:Value() and self:Mode() == ("Combo" or "Harass") then
+if OMenu.FS.EL:Value() and self:Mode() ~= "LastHit" then
 	 if self:GetTarget() and ValidTarget(self:GetTarget(),self.aarange) then
 		if GetBaseAttackSpeed(myHero)*GetAttackSpeed(myHero) > OMenu.FS.DK:Value() then
 			self.movementEnabled = false
@@ -6718,7 +6708,7 @@ if not SLW then return end
 	end
 	for _,k in pairs(GetAllyHeroes()) do
 		if OMenu.D.DAAR:Value() and k.visible and k.alive then
-			DrawCircle(k.pos,k.range+k.boundingRadius*2,1.5,20,ARGB(255,255,100,50))
+			DrawCircle(k.pos,k.range+k.boundingRadius*2,1.5,20,ARGB(255,0,0,255))
 		end		
 	end
 	if OMenu.D.DHR:Value() then
@@ -6976,7 +6966,7 @@ function SLWalker:LaneClear()
 						if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"}))*2.5 then
 							return nil
 						else
-							return GetLowestUnit(self.aarange)
+							return GetLowestUnit(o,self.aarange)
 						end
 					end
 				else
@@ -6987,7 +6977,7 @@ function SLWalker:LaneClear()
 					if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"}))*2.5 then
 						return nil
 					else
-						return GetLowestUnit(self.aarange)
+						return GetLowestUnit(o,self.aarange)
 					end
 				end
 			end
@@ -7031,7 +7021,7 @@ function SLWalker:Harass()
 		if o and o.team == MINION_ENEMY then
 			if self:CanOrb(o) and ValidTarget(o,self.aarange)then
 				if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
-					return GetLowestUnit(self.aarange)
+					return GetLowestUnit(o,self.aarange)
 				end
 			end
 		end
