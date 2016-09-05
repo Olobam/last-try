@@ -19,6 +19,7 @@ local SLSChamps = {
 	["Ahri"] = true,
 	["Khazix"] = true,
 	["Zed"] = true,
+	["Anivia"] = true,
 }
 
 local SLPatchnew = nil
@@ -565,7 +566,7 @@ Callback.Add("Load", function()
 	Init()
 	if SLSChamps[ChampName] and SLS.Loader.LC:Value() then
 		_G[ChampName]() 
-		if myHero.charName ~= "Orianna" and myHero.charName ~= "Ahri" then
+		if myHero.charName ~= "Orianna" and myHero.charName ~= "Ahri" and myHero.charName ~= "Anivia" then
 			Drawings()
 		end
 	end
@@ -4122,13 +4123,13 @@ end
 
 function Ahri:Harass(u)	
 	if u then
-		if BM.C.Q:Value() and SReady[0] and ValidTarget(u, Spell[0].range) then
+		if BM.H.Q:Value() and SReady[0] and ValidTarget(u, Spell[0].range) then
 			CastGenericSkillShot(myHero,u,Spell[0],0,BM.p)
 		end		
-		if BM.C.W:Value() and SReady[1] and ValidTarget(u, myHero.range+myHero.boundingRadius) then
+		if BM.H.W:Value() and SReady[1] and ValidTarget(u, myHero.range+myHero.boundingRadius) then
 			CastSpell(1)
 		end	
-		if BM.C.E:Value() and SReady[2] and ValidTarget(u, Spell[2].range) then
+		if BM.H.E:Value() and SReady[2] and ValidTarget(u, Spell[2].range) then
 			CastGenericSkillShot(myHero,u,Spell[2],2,BM.p)
 		end	
 	end
@@ -4137,13 +4138,13 @@ end
 function Ahri:LaneClear()	
 	for _,i in pairs(SLM) do
 		if i.team == MINION_ENEMY then
-			if BM.JC.Q:Value() and SReady[0] and ValidTarget(i, Spell[0].range) then
+			if BM.LC.Q:Value() and SReady[0] and ValidTarget(i, Spell[0].range) then
 				CastGenericSkillShot(myHero,i,Spell[0],0,BM.p)
 			end		
-			if BM.JC.W:Value() and SReady[1] and ValidTarget(i, myHero.range+myHero.boundingRadius) then
+			if BM.LC.W:Value() and SReady[1] and ValidTarget(i, myHero.range+myHero.boundingRadius) then
 				CastSpell(1)
 			end	
-			if BM.JC.E:Value() and SReady[2] and ValidTarget(i, Spell[2].range) then
+			if BM.LC.E:Value() and SReady[2] and ValidTarget(i, Spell[2].range) then
 				CastGenericSkillShot(myHero,i,Spell[2],2,BM.p)
 			end	
 		end
@@ -4422,10 +4423,10 @@ function Zed:Harass(target)
 	if target and not target.dead then
 		for _,i in pairs(self.W) do
 			if i.pos then
-				if SReady[0] and BM.LC.Q:Value() and GetDistance(i.pos,target) < Spell[0].range then
+				if SReady[0] and BM.H.Q:Value() and GetDistance(i.pos,target) < Spell[0].range then
 					CastGenericSkillShot(i.pos,target,Spell[0],0,BM.p)
 				end
-				if SReady[2] and BM.LC.E:Value() and GetDistance(i.pos,target) < Spell[2].range then
+				if SReady[2] and BM.H.E:Value() and GetDistance(i.pos,target) < Spell[2].range then
 					CastSpell(2)
 				end
 				self.WPos = true
@@ -4435,10 +4436,10 @@ function Zed:Harass(target)
 		end
 		for _,i in pairs(self.R) do
 			if i.pos then
-				if SReady[0] and BM.LC.Q:Value() and GetDistance(i.pos,target) < Spell[0].range then
+				if SReady[0] and BM.H.Q:Value() and GetDistance(i.pos,target) < Spell[0].range then
 					CastGenericSkillShot(i.pos,target,Spell[0],0,BM.p)
 				end
-				if SReady[2] and BM.LC.E:Value() and GetDistance(i.pos,target) < Spell[2].range then
+				if SReady[2] and BM.H.E:Value() and GetDistance(i.pos,target) < Spell[2].range then
 					CastSpell(2)
 				end
 				self.RPos = true
@@ -4447,10 +4448,10 @@ function Zed:Harass(target)
 			end
 		end
 		if not self.WPos and not self.RPos then
-			if SReady[0] and BM.JC.Q:Value() and target.distance < Spell[0].range then
+			if SReady[0] and BM.H.Q:Value() and target.distance < Spell[0].range then
 				CastGenericSkillShot(myHero,target,Spell[0],0,BM.p)
 			end
-			if SReady[2] and BM.JC.E:Value() and target.distance < Spell[2].range then
+			if SReady[2] and BM.H.E:Value() and target.distance < Spell[2].range then
 				CastSpell(2)
 			end
 		end
@@ -4492,10 +4493,10 @@ function Zed:LaneClear()
 				end
 			end
 			if not self.WPos and not self.RPos then
-				if SReady[0] and BM.JC.Q:Value() and target.distance < Spell[0].range then
+				if SReady[0] and BM.LC.Q:Value() and target.distance < Spell[0].range then
 					CastGenericSkillShot(myHero,target,Spell[0],0,BM.p)
 				end
-				if SReady[2] and BM.JC.E:Value() and target.distance < Spell[2].range then
+				if SReady[2] and BM.LC.E:Value() and target.distance < Spell[2].range then
 					CastSpell(2)
 				end
 			end
@@ -4629,6 +4630,450 @@ function Zed:KS()
 					CastSpell(2)
 				end
 			end
+		end
+	end
+end
+
+class 'Anivia'
+
+function Anivia:__init()
+
+	self.CCType = { 
+	[5] = "Stun", 
+	[8] = "Taunt", 
+	[11] = "Snare", 
+	[21] = "Fear", 
+	[22] = "Charm", 
+	[24] = "Suppression",
+	}
+	
+	self.CCType2 = { 
+	[5] = "Stun", 
+	[10] = "Slow",
+	}
+
+	Spell = {
+	[0] = { delay=0.25,range=1075,radius=110,speed=850,type = "line",col=false},
+	[1] = { range = 1000},
+	[2] = { range = 650},
+	[3] = { range = 750, width = 200,width2 = 200},
+	}
+	
+	Dmg = {
+    [0] = function(unit) return (30+30*GetCastLevel(myHero,0)*2+myHero.ap)+(35+25*GetCastLevel(myHero,0)+0.4*myHero.ap) end,
+    [2] = function(unit) return (25+30*GetCastLevel(myHero,2)+0.5*myHero.ap)*(self.AniviaStun2[unit.networkID] and self.AniviaStun2[unit.networkID]+1 or 1) end,
+    [3] = function(unit) return 40+40*GetCastLevel(myHero,3)+0.25*myHero.ap end,
+	}
+	
+	BM:SubMenu("C", "Combo")
+	BM.C:Boolean("Q", "Use Q", true)
+	BM.C:Boolean("E", "Use E", true)
+	BM.C:Menu("R", "R")
+	BM.C.R:Boolean("E", "Enabled", true)
+	BM.C.R:Slider("EAR", "EnemiesAround > x", 1, 1, 5, 1)
+	BM.C.R:Slider("AAR", "AlliesAround > x", 0, 0, 5, 1)
+	BM.C.R:Slider("MHP", "My Hero HP < x", 100, 0, 100, 5)
+	BM.C.R:Slider("EHP", "Enemy HP < x", 100, 0, 100, 5)
+	BM.C.R:Slider("MM", "Mana > x", 10, 0, 100, 5)
+	
+	BM:SubMenu("H", "Harass")
+	BM.H:Boolean("Q", "Use Q", true)
+	BM.H:Boolean("E", "Use E", true)	
+	BM.H:Menu("R", "R")
+	BM.H.R:Boolean("E", "Enabled", true)
+	BM.H.R:Slider("EAR", "EnemiesAround > x", 1, 1, 5, 1)
+	BM.H.R:Slider("AAR", "AlliesAround > x", 0, 0, 5, 1)
+	BM.H.R:Slider("MHP", "My Hero HP < x", 100, 0, 100, 5)
+	BM.H.R:Slider("EHP", "Enemy HP < x", 100, 0, 100, 5)
+	BM.H.R:Slider("MM", "Mana > x", 10, 0, 100, 5)
+
+	BM:SubMenu("LC", "LaneClear")
+	BM.LC:Boolean("Q", "Use Q", true)
+	BM.LC:Boolean("E", "Use E", true)
+	BM.LC:Boolean("R", "Use R", true)	
+	
+	BM:SubMenu("JC", "JungleClear")
+	BM.JC:Boolean("Q", "Use Q", true)
+	BM.JC:Boolean("E", "Use E", true)
+	BM.JC:Boolean("R", "Use R", true)	
+
+	BM:SubMenu("p", "Prediction")
+
+	BM:SubMenu("KS", "Killsteal")
+	BM.KS:Boolean("Q", "Use Q", true)
+	BM.KS:Boolean("E", "Use E", true)
+	BM.KS:Boolean("R", "Use R", true)
+
+	BM:SubMenu("Dr", "Drawings")
+	BM.Dr:Boolean("UD", "Use Drawings", true)
+	BM.Dr:ColorPick("Cc", "Circle color", {255,102,102,102})
+	BM.Dr:DropDown("DQ", "Draw Quality", 3, {"High", "Medium", "Low"})
+	BM.Dr:Slider("CW", "Circle width", 1, 1, 5, 1)
+	BM.Dr:Boolean("DQC", "Draw Q Circle", true)
+	BM.Dr:Boolean("Q", "Draw Q", true)
+	BM.Dr:Boolean("W", "Draw W", true)
+	BM.Dr:Boolean("E", "Draw E", true)
+	BM.Dr:Boolean("R", "Draw R", true)
+	
+	BM:Boolean("AQ", "Auto Q on immobile", true)
+	BM:Boolean("AE", "Auto E on Slowed,Stuned", true)
+	
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("UpdateBuff", function(u,b) self:UpdateBuff(u,b) end)
+	Callback.Add("RemoveBuff", function(u,b) self:RemoveBuff(u,b) end)
+	Callback.Add("Draw", function() self:D() end)
+	Callback.Add("CreateObj", function(o) self:CreateObj(o) end)
+	Callback.Add("DeleteObj", function(o) self:DeleteObj(o) end)
+	Callback.Add("ProcessSpell", function(u,s) self:ProcSp(u,s) end)
+	AntiChannel()
+	AntiGapCloser()
+	DelayAction( function ()
+	if BM["AC"] then BM.AC:Info("ad", "Use Spell(s) : ") BM.AC:Boolean("Q","Use Q", true) BM.AC:Boolean("W","Use W", true) end
+	if BM["AGC"] then BM.AGC:Info("ad", "Use Spell(s) : ") BM.AGC:Boolean("Q","Use Q", true) BM.AGC:Boolean("W","Use W", true)end
+	end,.001)
+	
+	self.CC = false
+	self.AniviaStun = false
+	self.AniviaStun2 = {}
+	self.o = {}
+	self.R = {}
+	self.R2Casted = false
+	self.Q2Casted = false
+	
+	for i = 0,0 do
+		PredMenu(BM.p,i)
+	end
+end
+
+function Anivia:CleanObj(_,i)
+	if i.o and not i.o.valid then
+		self.o[_] = nil
+		self.Q2Casted = false
+	end
+end
+
+function Anivia:AntiChannel(unit,range)
+	if BM.AC.Q:Value() and range < Spell[0].range then
+		if not self.Q2Casted then
+			CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
+		end
+		for _,i in pairs(self.o) do
+			if self.Q2Casted and EnemyHeroesAround(i.o.pos,120+myHero.boundingRadius) > 0 then
+				CastSpell(0)
+			end
+		end
+	end
+	if BM.AC.W:Value() and range < Spell[1].range then
+		CastSkillShot(1,unit.pos)
+	end
+end
+
+function Anivia:AntiGapCloser(unit,range)
+	if BM.AGC.Q:Value() and range < Spell[0].range then
+		if not self.Q2Casted then
+			CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
+		end
+		for _,i in pairs(self.o) do
+			if self.Q2Casted and EnemyHeroesAround(i.o.pos,120+myHero.boundingRadius) > 0 then
+				CastSpell(0)
+			end
+		end
+	end
+	if BM.AGC.W:Value() and range < Spell[1].range then
+		CastSkillShot(1,unit.pos)
+	end
+end
+
+function Anivia:CreateObj(o)
+	if o.spellOwner.isMe and o and o.isSpell then
+		if o.spellName == "FlashFrostSpell" then
+			if not self.o[o.spellName] then self.o[o.spellName] = {} end
+			self.o[o.spellName].o = o
+			self.Q2Casted = true
+		end
+	end
+end
+
+function Anivia:DeleteObj(o)
+	if o.spellOwner.isMe and o and o.isSpell then
+		if o.spellName == "FlashFrostSpell" then
+			self.o[o.spellName] = nil
+			self.Q2Casted = false
+		end
+	end
+end
+
+function Anivia:UpdateBuff(u,b)
+	if u and u.team == MINION_ENEMY and b and u.isHero then
+		if self.CCType[b.Type] then
+			self.CC = true
+		end
+	end
+	if u and u.team == MINION_ENEMY and b and u.isHero then
+		if self.CCType2[b.Type] then
+			self.AniviaStun = true
+		end
+	end
+	if u and u.team == MINION_ENEMY and b and u.isHero then
+		if self.CCType2[b.Type] then
+			self.AniviaStun2[u.networkID] = b.Count
+		end
+	end
+	if u and u.isMe and b and u.isHero then
+		if b.Name == "GlacialStorm" then
+			self.R2Casted = true
+		end
+	end
+end
+
+function Anivia:RemoveBuff(u,b)
+	if u and u.team == MINION_ENEMY and b and u.isHero then
+		if self.CCType[b.Type] then
+			self.CC = false
+		end
+	end
+	if u and u.team == MINION_ENEMY and b and u.isHero then
+		if self.CCType2[b.Type] then
+			self.AniviaStun = false
+		end
+	end
+	if u and u.team == MINION_ENEMY and b and u.isHero then
+		if self.CCType2[b.Type] then
+			self.AniviaStun2[u.networkID] = 0
+		end
+	end
+	if u and u.isMe and b and u.isHero then
+		if b.Name == "GlacialStorm" then
+			for _,i in pairs(self.R) do
+				self.R[_] = nil
+			end
+			self.R2Casted = false
+		end
+	end
+end
+
+function Anivia:ProcSp(u,s)
+	if u.isMe and u and s then
+		if s.name == "GlacialStorm" then
+			if not self.R[s.name] then self.R[s.name] = {} end
+			self.R[s.name].s = s
+			self.R[s.name].st = GetGameTimer()
+		end
+	end
+end
+
+function Anivia:D()
+	if BM.Dr.UD:Value() then
+		for _,i in pairs(self.o) do
+			if i.o and i.o.valid and BM.Dr.DQC:Value() then
+				DrawCircle(i.o.pos,120+myHero.boundingRadius,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,GoS.White)
+			end
+		end
+		if BM.Dr.Q:Value() and SReady[0] then
+			DrawCircle(myHero.pos,Spell[0].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+		end
+		if BM.Dr.W:Value() and SReady[1] then
+			DrawCircle(myHero.pos,Spell[1].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+		end
+		if BM.Dr.E:Value() and SReady[2] then
+			DrawCircle(myHero.pos,Spell[2].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+		end
+		if BM.Dr.R:Value() and SReady[3] then
+			DrawCircle(myHero.pos,Spell[3].range,BM.Dr.CW:Value(),BM.Dr.DQ:Value()*20,BM.Dr.Cc:Value())
+		end
+	end
+end
+
+function Anivia:Tick()
+	for _,i in pairs(self.o) do
+		self:CleanObj(_,i)
+	end
+	for _,i in pairs(self.R) do
+		 if i and i.st and i.st + 3 > GetGameTimer() then
+			Spell[3].width = Spell[3].width2 + (GetGameTimer()  - i.st)* 67
+		elseif i and i.st and i.st + 3 == GetGameTimer() then
+			Spell[3].width = Spell[3].width
+		 end
+	end
+	if not self.R2Casted then
+		Spell[3].width = Spell[3].width2
+	end
+	if myHero.dead then return end
+	
+	GetReady()
+	
+	self:KS()
+	
+	local target = GetCurrentTarget()
+	
+	self:AutoQ()
+	self:AutoE()
+
+    if Mode == "Combo" then
+		self:Combo(target)
+	elseif Mode == "LaneClear" then
+		self:LaneClear()
+		self:JungleClear()
+	elseif Mode == "Harass" then
+		self:Harass(target)
+	else
+		return
+	end
+end
+
+function Anivia:Combo(u)	
+	if u.isHero then
+		if BM.C.Q:Value() and SReady[0] and ValidTarget(u, Spell[0].range) then
+			if not self.Q2Casted then
+				CastGenericSkillShot(myHero,u,Spell[0],0,BM.p)
+			end
+			for _,i in pairs(self.o) do
+				if self.Q2Casted and EnemyMinionsAround(i.o.pos,120+myHero.boundingRadius) > 0 then
+					CastSpell(0)
+				end
+			end	
+		end
+		if BM.C.E:Value() and SReady[2] and ValidTarget(u, Spell[2].range) and self.AniviaStun then
+			CastTargetSpell(u,2)
+		end	
+		if not self.R2Casted and BM.C.R.E:Value() and SReady[3] and ValidTarget(u, 1000) and GetPercentMP(myHero) >= BM.C.R.MM:Value() and GetPercentHP(myHero) <= BM.C.R.MHP:Value() and GetPercentHP(u) <= BM.C.R.EHP:Value() and EnemyHeroesAround(myHero.pos,1000) >= BM.C.R.EAR:Value() and AllyHeroesAround(myHero.pos,1000) >= BM.C.R.AAR:Value() then
+			CastSkillShot(3,u.pos)
+		end
+		for _,i in pairs(self.R) do
+			if self.R2Casted and i.p and BM.C.R.E:Value() and SReady[3] or EnemyHeroesAround(i.s.endPos,Spell[3].width) == 0 then
+				CastSpell(3)
+			end
+		end
+	end
+end
+
+function Anivia:Harass(u)	
+	if u.isHero then
+		if BM.H.Q:Value() and SReady[0] and ValidTarget(u, Spell[0].range) then
+			if not self.Q2Casted then
+				CastGenericSkillShot(myHero,u,Spell[0],0,BM.p)
+			end
+			for _,i in pairs(self.o) do
+				if self.Q2Casted and EnemyMinionsAround(i.o.pos,120+myHero.boundingRadius) > 0 then
+					CastSpell(0)
+				end
+			end
+		end		
+		if BM.H.E:Value() and SReady[2] and ValidTarget(u, Spell[2].range) and self.AniviaStun then
+			CastTargetSpell(u,2)
+		end	
+		if not self.R2Casted and BM.H.R.E:Value() and SReady[3] and ValidTarget(u, 1000) and GetPercentMP(myHero) >= BM.H.R.MM:Value() and GetPercentHP(myHero) <= BM.H.R.MHP:Value() and GetPercentHP(u) <= BM.H.R.EHP:Value() and EnemyHeroesAround(myHero.pos,1000) >= BM.H.R.EAR:Value() and AllyHeroesAround(myHero.pos,1000) >= BM.H.R.AAR:Value() then
+			CastSkillShot(3,u.pos)
+		end
+		for _,i in pairs(self.R) do
+			if self.R2Casted and i.p and BM.H.R.E:Value() and SReady[3] or EnemyHeroesAround(i.s.endPos,Spell[3].width) == 0 then
+				CastSpell(3)
+			end
+		end
+	end
+end
+
+function Anivia:LaneClear()	
+	for k,unit in pairs(SLM) do
+		if unit.team == MINION_ENEMY then
+			if BM.LC.Q:Value() and SReady[0] and ValidTarget(unit, Spell[0].range) then
+				if not self.Q2Casted then
+					CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
+				end
+				for _,i in pairs(self.o) do
+					if self.Q2Casted and EnemyMinionsAround(i.o.pos,120+myHero.boundingRadius) > 0 then
+						CastSpell(0)
+					end
+				end
+			end		
+			if BM.LC.E:Value() and SReady[2] and ValidTarget(unit, Spell[2].range) and self.AniviaStun then
+				CastTargetSpell(unit,2)
+			end
+			if not self.R2Casted and BM.LC.R:Value() and SReady[3] and ValidTarget(unit, 1000) then
+				CastSkillShot(3,unit.pos)
+			end
+			for _,i in pairs(self.R) do
+				if self.R2Casted and i.p and BM.LC.R:Value() and SReady[3] or EnemyMinionsAround(i.s.endPos,Spell[3].width) == 0 then
+					CastSpell(3)
+				end
+			end			
+		end
+	end
+end
+
+function Anivia:JungleClear()
+	for k,unit in pairs(SLM) do
+		if unit.team == MINION_JUNGLE then
+			if BM.JC.Q:Value() and SReady[0] and ValidTarget(unit, Spell[0].range) then
+				if not self.Q2Casted then
+					CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
+				end
+				for _,i in pairs(self.o) do
+					if self.Q2Casted and EnemyMinionsAround(i.o.pos,120+myHero.boundingRadius) > 0 then
+						CastSpell(0)
+					end
+				end
+			end		
+			if BM.JC.E:Value() and SReady[2] and ValidTarget(unit, Spell[2].range) and self.AniviaStun then
+				CastTargetSpell(unit,2)
+			end	
+			if not self.R2Casted and BM.JC.R:Value() and SReady[3] and ValidTarget(unit, 1000) then
+				CastSkillShot(3,unit.pos)
+			end
+			for _,i in pairs(self.R) do
+				if self.R2Casted and i.p and BM.JC.R:Value() and SReady[3] or JungleMinionsAround(i.s.endPos,Spell[3].width) == 0 then
+					CastSpell(3)
+				end
+			end	
+		end
+	end
+end
+
+function Anivia:KS()
+	for k,unit in pairs(GetEnemyHeroes()) do
+		if BM.KS.Q:Value() and SReady[0] and ValidTarget(unit, Spell[0].range) and GetAPHP(unit) < Dmg[0](unit) then
+			if not self.Q2Casted then
+				CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
+			end
+			for _,i in pairs(self.o) do
+				if self.Q2Casted and EnemyHeroesAround(i.o.pos,120+myHero.boundingRadius) > 0 then
+					CastSpell(0)
+				end
+			end
+		end
+		if BM.KS.E:Value() and SReady[2] and ValidTarget(unit, Spell[2].range) and GetAPHP(unit) < Dmg[2](unit) then
+			CastTargetSpell(unit,2)
+		end	
+		if not self.R2Casted and GetAPHP(unit) < Dmg[3](unit) and BM.KS.E:Value() and SReady[3] and ValidTarget(u, 1000) then
+			CastSkillShot(3,unit.pos)
+		end
+		for _,i in pairs(self.R) do
+			if self.R2Casted and i.p and BM.C.R.E:Value() and SReady[3] or EnemyHeroesAround(i.s.endPos,Spell[3].width) == 0 then
+				CastSpell(3)
+			end
+		end			
+	end
+end
+
+function Anivia:AutoQ()
+	for m,unit in pairs(GetEnemyHeroes()) do
+		if unit and BM.AQ:Value() and SReady[0] and ValidTarget(unit,Spell[0].range) and (self.CC or self.AniviaStun) then
+			if not self.Q2Casted then
+				CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
+			end
+			for _,i in pairs(self.o) do
+				if self.Q2Casted and EnemyHeroesAround(i.o.pos,120+myHero.boundingRadius) > 0 then
+					CastSpell(0)
+				end
+			end
+		end
+	end
+end
+
+function Anivia:AutoE()
+	for m,unit in pairs(GetEnemyHeroes()) do
+		if unit and BM.AE:Value() and SReady[2] and ValidTarget(unit,Spell[2].range) and self.AniviaStun then
+			CastTargetSpell(unit,2)
 		end
 	end
 end
