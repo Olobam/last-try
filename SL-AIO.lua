@@ -34,9 +34,11 @@ local lastcheck = 0
 local lastcheck2 = 0
 local lastcheck3 = 0
 local structures = {}
+local target = nil
 local turrets = {}
 local Wards = {}
 local Wards2 = {}
+local ts = nil
 if GetGameVersion():sub(3,4) >= "10" then
 		SLPatchnew = GetGameVersion():sub(1,4)
 	else
@@ -609,6 +611,13 @@ Callback.Add("Load", function()
 		Recommend()
 	end
 	SLOrb()
+	SLS:Menu("TS", "|SL| TargetSelector")
+	local AP = {"Velkoz","Orianna","Vladimir","Veigar","Ahri","Blitzcrank"}
+	if AP[myHero.charName] then
+		ts = SLTS("AP",SLS.TS)
+	else
+		ts = SLTS("AD",SLS.TS)
+	end
 end)   
  
 class 'Init'
@@ -762,6 +771,7 @@ function SLOrb:__init()
 	
 	Callback.Add("Tick",function() 
 		Mode = ModeTable[OrbMode()]
+		target = ts:GetTarget()
 	end)
 end
 	
@@ -855,8 +865,7 @@ function Vayne:Tick()
 	GetReady()
 	
 	self:KS()
-
-	local target = GetCurrentTarget()
+	
 	   if Mode == "Combo" then
 		self:Combo(target)
 	elseif Mode == "LaneClear" then
@@ -1045,8 +1054,6 @@ end
 function Blitzcrank:Tick()
 	if myHero.dead then return end
 	
-	local target = GetCurrentTarget()
-	
 	   if Mode == "Combo" then
 		self:Combo(target)
 	elseif Mode == "LaneClear" then
@@ -1234,11 +1241,9 @@ function Soraka:Tick()
 	self:AutoW()
 		
 	self:AutoR()
-	
-	local Target = GetCurrentTarget()
 
 	if Mode == "Combo" then
-		self:Combo(Target)
+		self:Combo(target)
 	elseif Mode == "LaneClear" then
 		self:JungleClear()
 		self:LaneClear()
@@ -1378,11 +1383,9 @@ function Sivir:Tick()
 	GetReady()
 		
 	self:KS()
-		
-	local Target = GetCurrentTarget()
 	
 	if Mode == "Combo" then
-		self:Combo(Target)
+		self:Combo(target)
 	elseif Mode == "LaneClear" then
 		self:JungleClear()
 		self:LaneClear()
@@ -1504,11 +1507,9 @@ function Nocturne:Tick()
 	GetReady()
 		
 	self:KS()
-		
-	local Target = GetCurrentTarget()
 	
 	if Mode == "Combo" then
-		self:Combo(Target)
+		self:Combo(target)
 	elseif Mode == "LaneClear" then
 		self:LaneClear()
 	else
@@ -1640,8 +1641,6 @@ function Aatrox:Tick()
 	GetReady()
 		
 	self:KS()
-		
-	local target = GetCurrentTarget()
 		
 	self:Toggle(target)
 		
@@ -1819,13 +1818,13 @@ function KogMaw:Tick()
 	GetReady()
 	self.WOn = CanUseSpell(myHero,2) == 8
 	self:Pred()
-	local unit = GetCurrentTarget()
-	if Mode == "Combo" and unit.valid then
-		self:Combo(unit)
+	
+	if Mode == "Combo" and target.valid then
+		self:Combo(target)
 	elseif Mode == "LaneClear" then
 		self:LaneClear()
 	elseif Mode == "Harass" then
-		self:Harass(unit)
+		self:Harass(target)
 	else
 		return
 	end
@@ -1992,16 +1991,16 @@ end--]]
 
 function Velkoz:Tick()
 	GetReady()
-	local unit = GetCurrentTarget()
+
 	if Mode == "Combo" then
-		self:Combo(unit)
+		self:Combo(target)
 	elseif Mode == "LaneClear" then
 	--	self:LaneClear()
 	--	self:JungleClear()
 	elseif Mode == "LastHit" then
 	--	self:LastHit()
 	elseif Mode == "Harass" then
-	--	self:Harass(unit)
+	--	self:Harass(target)
 	else
 		return
 	end
@@ -2026,7 +2025,7 @@ function Velkoz:Combo(unit)
 end
 
 function Velkoz:Split()
-	local i = GetCurrentTarget()
+	local i = target
 	if self.QBall then
 		local iPredN2 = nil
 		if BM.p.CP:Value() == 1 and OpenPredict then
@@ -2223,8 +2222,6 @@ function Jinx:Tick()
 	GetReady()
 		
 	self:KS()
-		
-	local target = GetCurrentTarget()
 		
 	if Mode == "Combo" then
 		self:Combo(target)
@@ -2499,8 +2496,6 @@ function Kalista:Tick()
 	self:KS()
 	self:AutoR()
 	self:WallJump()
-		
-	local target = GetCurrentTarget()
 	
 	if Mode == "LaneClear" then
 		self:LaneClear()
@@ -2687,8 +2682,6 @@ function Nasus:Tick()
 	self.qDmg = self:getQdmg()
 	self:KS()
 	self:Farm()
-	local target = GetCurrentTarget()
-
 
     if Mode == "Combo" then
 		self:Combo(target)
@@ -2818,7 +2811,6 @@ function Kindred:__init()
 	OnProcessSpellComplete(function(unit, spell) self:OnProcComplete(unit, spell) end)
 	OnProcessSpell(function(unit, spell) self:OnProc(unit, spell) end)
 	Flash = (GetCastName(myHero, SUMMONER_1):lower():find("summonerflash") and SUMMONER_1 or (GetCastName(myHero, SUMMONER_2):lower():find("summonerflash") and SUMMONER_2 or nil)) -- Ty Platy
-	self.target = nil
 
 	BM:Menu("Combo", "Combo")
 	BM.Combo:Boolean("Q", "Use Q", true)
@@ -2865,10 +2857,9 @@ function Kindred:Tick()
 	if not IsDead(myHero) then
 	
 		GetReady()
-		self.target = GetCurrentTarget()
 
 		if Mode == "Combo" then
-			self:Combo(self.target)
+			self:Combo(target)
 		elseif Mode == "LaneClear" then
 			self:LaneClear()
 		end
@@ -2970,7 +2961,7 @@ function Kindred:OnProcComplete(unit, spell)
 					end
 				end
 			elseif Mode == "Combo" then
-				if BM.QOptions.QC:Value() and SReady[0] and BM.Combo.Q:Value() and ValidTarget(self.target, 500) then
+				if BM.QOptions.QC:Value() and SReady[0] and BM.Combo.Q:Value() and ValidTarget(target, 500) then
     				CastSkillShot(0, GetMousePos()) 
 				end
 			end
@@ -3132,7 +3123,6 @@ function Khazix:Tick()
 		Spell[2].evolved = true
 	end
 	
-	local target = GetCurrentTarget()
 	self:KS()
 	if Mode == "Combo" and target.valid then
 		self:Combo(target)
@@ -3221,7 +3211,7 @@ function Khazix:UseR(Unit)
 end
 
 function Khazix:Proc(unit, spellProc)
-	if self.Dashes[unit.charName] and Mode == "Combo" and SReady[2] and spellProc.name == GetCastName(unit, self.Dashes[unit.charName].Spellslot) and unit == GetCurrentTarget() and GetDistance(spellProc.endPos) > myHero.boundingRadius +Spell[0].range + unit.boundingRadius and GetDistance(spellProc.endPos) < Spell[2].range and BM.J[unit.networkID]:Value() and GetDistance(spellProc.startPos) < GetDistance(spellProc.endPos) then
+	if self.Dashes[unit.charName] and Mode == "Combo" and SReady[2] and spellProc.name == GetCastName(unit, self.Dashes[unit.charName].Spellslot) and unit == target and GetDistance(spellProc.endPos) > myHero.boundingRadius +Spell[0].range + unit.boundingRadius and GetDistance(spellProc.endPos) < Spell[2].range and BM.J[unit.networkID]:Value() and GetDistance(spellProc.startPos) < GetDistance(spellProc.endPos) then
 		CastSkillShot(2, spellProc.endPos)
 	end
 end
@@ -3341,8 +3331,6 @@ function Vladimir:Tick()
 	GetReady()
 	
 	self:KS()
-	
-	local target = GetCurrentTarget()
 
 	if self.ECharge and GetGameTimer() - self.ECharge > 1 then
 		CastSkillShot2(2,myHero.pos)
@@ -3551,8 +3539,6 @@ function Orianna:T()
 	
 	GetReady()
 	
-	local target = GetCurrentTarget()
-	
     if Mode == "Combo" then
 		self:Combo(target)
 	elseif Mode == "LaneClear" then
@@ -3758,8 +3744,6 @@ function Veigar:Tick()
 	self:KS()
 
 	self:FarmQ()
-	
-	local target = GetCurrentTarget()
 	
 	self:AutoW(target)
 
@@ -4083,8 +4067,6 @@ function Ahri:Tick()
 	
 	self:KS()
 	
-	local target = GetCurrentTarget()
-	
 	self:AutoQ()
 
     if Mode == "Combo" then
@@ -4334,8 +4316,6 @@ function Zed:Tick()
 	GetReady()
 	
 	self:KS()
-	
-	local target = GetCurrentTarget()
 	
 	self:AutoQ()
 
@@ -4903,8 +4883,6 @@ function Anivia:Tick()
 	GetReady()
 	
 	self:KS()
-	
-	local target = GetCurrentTarget()
 	
 	self:AutoQ()
 	self:AutoE()
@@ -7024,10 +7002,6 @@ function SLWalker:__init()
 	OMenu.K:KeyBinding("LC", "LaneClear Key", string.byte("V"))
 	OMenu.K:KeyBinding("LH", "LastHit Key", string.byte("X"))
 	
-	OMenu:Menu("TS", "TargetSelector")
-	self.ts = TargetSelector(self.aarange, TARGET_LESS_CAST, DAMAGE_PHYSICAL)
-	OMenu.TS:TargetSelector("TS", "TargetSelector", self.ts)
-	
 	OMenu:Menu("Hum", "Humanizer")
 	OMenu.Hum:Boolean("Enable", "Enable Humanizer", true)
 	OMenu.Hum:Slider("lhit", "Max. Movements in Last Hit", 6, 1, 20, 1)
@@ -7103,7 +7077,6 @@ if OMenu.FS.EL:Value() and self:Mode() ~= "LastHit" then
 	end
 end
 self.aarange = myHero.range+myHero.boundingRadius*2+(self.rangebuffer[myHero.charName] and self.rangebuffer[myHero.charName].r or 0)
-self.ts.range = self.aarange
 self:Orb()
 	for t,turret in pairs(structures) do
 		if turret.dead then
@@ -7441,9 +7414,9 @@ function SLWalker:LastHit()
 end
 
 function SLWalker:Combo()
-	if self.ts:GetTarget() and not self.forceTarget then
-		if self:CanOrb(self.ts:GetTarget()) and ValidTarget(self.ts:GetTarget(),self.aarange) then
-			return self.ts:GetTarget() 
+	if target and not self.forceTarget then
+		if self:CanOrb(target) and ValidTarget(target,self.aarange) then
+			return target
 		end
 	elseif self.forceTarget then
 		if self:CanOrb(self.forceTarget) and ValidTarget(self.forceTarget,self.aarange) then
@@ -7454,9 +7427,9 @@ end
 
 function SLWalker:Harass()
 	for _,o in pairs(SLM) do
-		if self.ts:GetTarget() and not self.forceTarget then
-			if self:CanOrb(self.ts:GetTarget()) and ValidTarget(self.ts:GetTarget(),self.aarange)then		
-				return self.ts:GetTarget()
+		if target and not self.forceTarget then
+			if self:CanOrb(target) and ValidTarget(target,self.aarange)then		
+				return target
 			end
 		elseif self.forceTarget then
 			if self:CanOrb(self.forceTarget) and ValidTarget(self.forceTarget,self.aarange) then
@@ -9051,6 +9024,241 @@ end
 function LoadSLE()
 	if not _G.SLE then _G.SLE = SLEvade() end
 	return SLE
+end
+
+class 'SLTS'--Updated version of Inspired TS (credits:Inspired)
+
+function SLTS:__init(type, m)
+	self.dtype = type
+	for i = 0,3 do
+		if Spell[i] and Spell[i].range then
+			t = 0
+			if not t or Spell[i].range > Spell[t].range then
+				t = i
+			end
+		end
+	end
+	if t then
+		self.range = Spell[t].range
+	else
+		if _G.SLW then
+			self.range = SLW.aarange
+		else
+			self.range = myHero.boundingRadius*2+myHero.range
+		end
+	end
+	self.focusselected = true
+	self.m = m or nil
+	self.morganashield = false
+	self.sivirshield = false
+	self.nocturneshield = false
+	self.item1 = false
+	self.item2 = false
+	self.pt1 = {"Alistar", "Amumu", "Blitzcrank", "Braum", "ChoGath", "DrMundo", "Garen", "Gnar", "Hecarim", "JarvanIV", "Leona", "Lulu", "Malphite", "Nasus", "Nautilus", "Nunu", "Olaf", "Rammus", "Renekton", "Sejuani", "Shen", "Shyvana", "Singed", "Sion", "Skarner", "Taric", "Thresh", "Volibear", "Warwick", "MonkeyKing", "Yorick", "Zac"}
+	self.pt2 = {"Aatrox", "Darius", "Elise", "Evelynn", "Galio", "Gangplank", "Gragas", "Irelia", "Jax","LeeSin", "Maokai", "Morgana", "Nocturne", "Pantheon", "Poppy", "Rengar", "Rumble", "Ryze", "Swain","Trundle", "Tryndamere", "Udyr", "Urgot", "Vi", "XinZhao", "RekSai"}
+	self.pt3 = {"Akali", "Diana", "Fiddlesticks", "Fiora", "Fizz", "Heimerdinger", "Janna", "Jayce", "Kassadin","Kayle", "KhaZix", "Lissandra", "Mordekaiser", "Nami", "Nidalee", "Riven", "Shaco", "Sona", "Soraka", "TahmKench", "Vladimir", "Yasuo", "Zilean", "Zyra"}
+	self.pt4 = {"Ahri", "Anivia", "Annie", "Brand",  "Cassiopeia", "Ekko", "Karma", "Karthus", "Katarina", "Kennen", "LeBlanc",  "Lux", "Malzahar", "MasterYi", "Orianna", "Syndra", "Talon",  "TwistedFate", "Veigar", "VelKoz", "Viktor", "Xerath", "Zed", "Ziggs" }
+	self.pt5 = {"Ashe", "Caitlyn", "Corki", "Draven", "Ezreal", "Graves", "Jinx", "Kalista", "KogMaw", "Lucian", "MissFortune", "Quinn", "Sivir", "Teemo", "Tristana", "Twitch", "Varus", "Vayne"}
+
+	self.m:Boolean("sel", "Focus selected", self.focusselected or false)
+	self.m:Boolean("dsel", "Draw current target", true)
+	self.m:Boolean("sh", "Include Shields", true)
+	self.m:DropDown("mode", "TargetSelector Mode:", 3, {"Less Cast", "Less Cast Priority", "Priority", "Most AP", "Most AD", "Closest", "Near Mouse", "Lowest Health", "Lowest Health Priority"})
+	DelayAction(function()
+		for k,m in pairs(GetEnemyHeroes()) do
+			if m.type == myHero.type then 
+				self.m:Slider(m.charName,"Priority for : "..m.charName,self:GetPrioritym(m), 1, 5, 1)
+			end
+		end
+	end,.001)
+	self.m:Info("1", "5 = Highest Priority")
+	Callback.Add("WndMsg", function(m,k) self:FocusSelected(m,k) end)
+	Callback.Add("UpdateBuff", function(u,b) self:UpdateB(u,b) end)
+	Callback.Add("RemoveBuff", function(u,b) self:RemoveB(u,b) end)
+	Callback.Add("Draw", function() self:Draw() end)
+end
+
+function SLTS:UpdateB(u,b)
+	if u and b and u.team ~= myHero.team and u.isHero then
+		if b.Name == "BlackShield" then
+			self.morganashield = true
+		elseif b.Name == "SivirShield" then
+			self.sivirshield = true
+		elseif b.Name == "ShroudofDarkness" then
+			self.item1 = true
+		elseif b.Name == "BansheesVeil" then
+			self.item2 = true
+		end
+	end
+end
+
+function SLTS:RemoveB(u,b)
+	if u and b and u.team ~= myHero.team and u.isHero then
+		if b.Name == "BlackShield" then
+			self.morganashield = false
+		elseif b.Name == "SivirShield" then
+			self.sivirshield = false
+		elseif b.Name == "ShroudofDarkness" then
+			self.item1 = false
+		elseif b.Name == "BansheesVeil" then
+			self.item2 = false
+		end
+	end
+end
+
+function SLTS:IsShielded(i)
+	if self.dtype == "AP" and self.m.sh:Value() then
+		if self.morganashield or self.sivirshield or self.item1 or self.item2 then
+			return true
+		end
+	end
+	return false
+end
+
+function SLTS:GetPrioritym(i)
+	if table.contains(self.pt5,i.charName) then
+		return 5
+	elseif table.contains(self.pt4,i.charName)  then
+		return 4
+	elseif table.contains(self.pt3,i.charName) then
+		return 3
+	elseif table.contains(self.pt2,i.charName)  then
+		return 2
+	elseif table.contains(self.pt1,i.charName)  then
+		return 1
+	else
+		return 1
+	end
+end
+
+function SLTS:GetPriority(i)
+	if table.contains(self.pt5,i.charName) then
+		return 1
+	elseif table.contains(self.pt4,i.charName)  then
+		return 2
+	elseif table.contains(self.pt3,i.charName) then
+		return 3
+	elseif table.contains(self.pt2,i.charName)  then
+		return 4
+	elseif table.contains(self.pt1,i.charName)  then
+		return 5
+	else
+		return 5
+	end
+end
+
+function SLTS:IsValid(t,r)
+	if t and t.alive and t.visible and t.valid and not self:IsShielded(t) then
+		return true
+	else
+		return false
+	end
+end
+
+function SLTS:GetTarget()
+	 if self.m.sel:Value() then
+		if self:IsValid(self.selected) then
+			return self.selected
+		else
+			self.selected = nil
+		end
+	end
+	if not self.selected then
+		for _,i in pairs(GetEnemyHeroes()) do
+			if self.range and i.distance < self.range then
+				if self.m.mode:Value() == 1 then
+					local t, p = nil, math.huge
+					if self:IsValid(i,self.range) and CalcDamage(myHero, i, self.dtype == "AD" and 100 or 0, self.dtype == "AP" and 100 or 0) < p then
+						t = i
+						p = CalcDamage(myHero, i, self.dtype == "AD" and 100 or 0, self.dtype == "AP" and 100 or 0)
+					end
+					return t
+				end
+				if self.m.mode:Value() == 2 then
+					local t,p = nil, math.huge
+					if self:IsValid(i,self.range) and CalcDamage(myHero, i, self.dtype == "AD" and 100 or 0, self.dtype == "AP" and 100 or 0)*self:GetPriority(i) < p then
+						t = i
+						p = CalcDamage(myHero, i, self.dtype == "AD" and 100 or 0, self.dtype == "AP" and 100 or 0)*self:GetPriority(i)
+					end
+					return t
+				end
+				if self.m.mode:Value() == 3 then
+					local t, p = nil, math.huge
+					if self:IsValid(i,self.range) and self:GetPriority(i) < p then
+						t = i
+						p = self:GetPriority(i)
+					end
+					return t
+				end
+				if self.m.mode:Value() == 4 then
+					local t, p = nil, -1
+					if self:IsValid(i,self.range) and i.ap > p then
+						t = i
+						p = prio
+					end
+					return t
+				end
+				if self.m.mode:Value() == 5 then
+					local t, p = nil, -1
+					if self:IsValid(i,self.range) and i.totalDamage > p then
+						t = i
+						p = i.totalDamage
+					end
+					return t
+				end
+				if self.m.mode:Value() == 6 then
+					local t, p = nil, math.huge
+					if self:IsValid(i,self.range) and i.distance < p then
+					  t = i
+					  p = i.distance
+					end
+					return t
+				end
+			end
+			if self.m.mode:Value() == 7 then
+				local t, p = nil, math.huge
+				if self:IsValid(i,self.range) and GetDistance(i.pos,GetMousePos()) < p then
+					t = i
+					p = GetDistance(i.pos,GetMousePos())
+				end
+				return t
+			end
+			if self.m.mode:Value() == 8 then
+				local t, p = nil, math.huge
+				if self:IsValid(i,self.range) and i.health < p then
+					t = i
+					p = i.health
+				end
+				return t
+			end
+			if self.m.mode:Value() == 9 then
+				local t, p = nil, math.huge
+				if self:IsValid(i,self.range) and i.health*self:GetPriority(i) < p then
+					t = i
+					p = i.health*self:GetPriority(i)
+				end
+				return t
+			end
+		end
+	end
+end
+
+function SLTS:FocusSelected(m,k)
+	if m == 513 then
+		for _,i in pairs(GetEnemyHeroes()) do 
+			if GetDistance(i.pos,GetMousePos()) < i.boundingRadius*1.5 and i.alive then
+				self.selected = i
+			else
+				self.selected = nil
+			end
+		end
+	end
+end
+
+function SLTS:Draw()
+	if self:GetTarget() and self.m.dsel:Value() then
+		DrawCircle(self:GetTarget(),50,1,20,GoS.White)
+	end
 end
 
 class 'AntiChannel'
