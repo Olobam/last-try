@@ -9039,14 +9039,27 @@ function SLTS:__init(type, m)
 		end
 	end
 	if t then
-		self.range = Spell[t].range
+		if _G.SLW then
+			if myHero.boundingRadius*2+myHero.range+(SLW.rangebuffer[myHero.charName] and SLW.rangebuffer[myHero.charName].r or 0) > Spell[t].range then
+				self.r = myHero.boundingRadius*2+myHero.range+(SLW.rangebuffer[myHero.charName] and SLW.rangebuffer[myHero.charName].r or 0)
+			else
+				self.r = Spell[t].range
+			end
+		else
+			if Spell[t].range > myHero.boundingRadius*2+myHero.range then
+				self.r = myHero.boundingRadius*2+myHero.range
+			else
+				self.r = Spell[t].range
+			end
+		end
 	else
 		if _G.SLW then
-			self.range = SLW.aarange
+			self.r = myHero.boundingRadius*2+myHero.range+(SLW.rangebuffer[myHero.charName] and SLW.rangebuffer[myHero.charName].r or 0)
 		else
-			self.range = myHero.boundingRadius*2+myHero.range
+			self.r = myHero.boundingRadius*2+myHero.range
 		end
 	end
+	self.range = self.r
 	self.focusselected = true
 	self.m = m or nil
 	self.morganashield = false
@@ -9064,6 +9077,11 @@ function SLTS:__init(type, m)
 	self.m:Boolean("dsel", "Draw current target", true)
 	self.m:Boolean("sh", "Include Shields", true)
 	self.m:DropDown("mode", "TargetSelector Mode:", 3, {"Less Cast", "Less Cast Priority", "Priority", "Most AP", "Most AD", "Closest", "Near Mouse", "Lowest Health", "Lowest Health Priority"})
+	if self.r < 3500 then
+		self.m:Slider("range", "Range to check for enemies", self.r+300,0,3500,50)
+	else
+		self.m:Slider("range", "Range to check for enemies", self.r+300,0,20000,50)
+	end
 	DelayAction(function()
 		for k,m in pairs(GetEnemyHeroes()) do
 			if m.type == myHero.type then 
@@ -9075,7 +9093,7 @@ function SLTS:__init(type, m)
 	Callback.Add("WndMsg", function(m,k) self:FocusSelected(m,k) end)
 	Callback.Add("UpdateBuff", function(u,b) self:UpdateB(u,b) end)
 	Callback.Add("RemoveBuff", function(u,b) self:RemoveB(u,b) end)
-	Callback.Add("Draw", function() self:Draw() end)
+	Callback.Add("Draw", function() self:Draw() self.range = self.m.range:Value() end)
 end
 
 function SLTS:UpdateB(u,b)
