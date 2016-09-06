@@ -9183,7 +9183,7 @@ function SLTS:GetTarget()
 	end
 	if not self.selected then
 		for _,i in pairs(GetEnemyHeroes()) do
-			if self.range and i.distance < self.range then
+			if self.range and i.distance < self.range and not i.dead then
 				if self.m.mode:Value() == 1 then
 					local t, p = nil, math.huge
 					if self:IsValid(i) and CalcDamage(myHero, i, self.dtype == "AD" and 100 or 0, self.dtype == "AP" and 100 or 0) < p then
