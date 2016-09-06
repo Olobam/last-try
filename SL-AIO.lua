@@ -9166,7 +9166,7 @@ function SLTS:GetPriority(i)
 end
 
 function SLTS:IsValid(t,r)
-	if t and t.alive and t.visible and t.valid and not self:IsShielded(t) then
+	if t and t.alive and t.visible and t.valid and not self:IsShielded(t) and t.alive then
 		return true
 	else
 		return false
@@ -9186,7 +9186,7 @@ function SLTS:GetTarget()
 			if self.range and i.distance < self.range then
 				if self.m.mode:Value() == 1 then
 					local t, p = nil, math.huge
-					if self:IsValid(i,self.range) and CalcDamage(myHero, i, self.dtype == "AD" and 100 or 0, self.dtype == "AP" and 100 or 0) < p then
+					if self:IsValid(i) and CalcDamage(myHero, i, self.dtype == "AD" and 100 or 0, self.dtype == "AP" and 100 or 0) < p then
 						t = i
 						p = CalcDamage(myHero, i, self.dtype == "AD" and 100 or 0, self.dtype == "AP" and 100 or 0)
 					end
@@ -9194,7 +9194,7 @@ function SLTS:GetTarget()
 				end
 				if self.m.mode:Value() == 2 then
 					local t,p = nil, math.huge
-					if self:IsValid(i,self.range) and CalcDamage(myHero, i, self.dtype == "AD" and 100 or 0, self.dtype == "AP" and 100 or 0)*self:GetPriority(i) < p then
+					if self:IsValid(i) and CalcDamage(myHero, i, self.dtype == "AD" and 100 or 0, self.dtype == "AP" and 100 or 0)*self:GetPriority(i) < p then
 						t = i
 						p = CalcDamage(myHero, i, self.dtype == "AD" and 100 or 0, self.dtype == "AP" and 100 or 0)*self:GetPriority(i)
 					end
@@ -9202,7 +9202,7 @@ function SLTS:GetTarget()
 				end
 				if self.m.mode:Value() == 3 then
 					local t, p = nil, math.huge
-					if self:IsValid(i,self.range) and self:GetPriority(i) < p then
+					if self:IsValid(i) and self:GetPriority(i) < p then
 						t = i
 						p = self:GetPriority(i)
 					end
@@ -9210,7 +9210,7 @@ function SLTS:GetTarget()
 				end
 				if self.m.mode:Value() == 4 then
 					local t, p = nil, -1
-					if self:IsValid(i,self.range) and i.ap > p then
+					if self:IsValid(i) and i.ap > p then
 						t = i
 						p = prio
 					end
@@ -9218,7 +9218,7 @@ function SLTS:GetTarget()
 				end
 				if self.m.mode:Value() == 5 then
 					local t, p = nil, -1
-					if self:IsValid(i,self.range) and i.totalDamage > p then
+					if self:IsValid(i) and i.totalDamage > p then
 						t = i
 						p = i.totalDamage
 					end
@@ -9226,7 +9226,7 @@ function SLTS:GetTarget()
 				end
 				if self.m.mode:Value() == 6 then
 					local t, p = nil, math.huge
-					if self:IsValid(i,self.range) and i.distance < p then
+					if self:IsValid(i) and i.distance < p then
 					  t = i
 					  p = i.distance
 					end
@@ -9235,7 +9235,7 @@ function SLTS:GetTarget()
 			end
 			if self.m.mode:Value() == 7 then
 				local t, p = nil, math.huge
-				if self:IsValid(i,self.range) and GetDistance(i.pos,GetMousePos()) < p then
+				if self:IsValid(i) and GetDistance(i.pos,GetMousePos()) < p then
 					t = i
 					p = GetDistance(i.pos,GetMousePos())
 				end
@@ -9243,7 +9243,7 @@ function SLTS:GetTarget()
 			end
 			if self.m.mode:Value() == 8 then
 				local t, p = nil, math.huge
-				if self:IsValid(i,self.range) and i.health < p then
+				if self:IsValid(i) and i.health < p then
 					t = i
 					p = i.health
 				end
@@ -9251,7 +9251,7 @@ function SLTS:GetTarget()
 			end
 			if self.m.mode:Value() == 9 then
 				local t, p = nil, math.huge
-				if self:IsValid(i,self.range) and i.health*self:GetPriority(i) < p then
+				if self:IsValid(i) and i.health*self:GetPriority(i) < p then
 					t = i
 					p = i.health*self:GetPriority(i)
 				end
