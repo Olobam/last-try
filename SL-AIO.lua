@@ -9165,8 +9165,8 @@ function SLTS:GetPriority(i)
 	end
 end
 
-function SLTS:IsValid(t,r)
-	if t and t.alive and t.visible and t.valid and not self:IsShielded(t) and t.alive then
+function SLTS:IsValid(t)
+	if t and t.alive and t.visible and t.valid and not self:IsShielded(t) then
 		return true
 	else
 		return false
