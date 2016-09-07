@@ -1163,7 +1163,7 @@ function Soraka:__init()
 
 	Spell = {
 	[0] = { delay = 0.250, speed = math.huge, width = 235, range = 800, type = "circular",col = false },
-	[1] = { range = 550 },
+	[1] = { range = 550, ally = true },
 	[2] = { delay = 1.75, speed = math.huge, width = 310, range = 900, type = "circular", col = false}
 	}
 	
@@ -7028,6 +7028,18 @@ function SLWalker:__init()
 	OMenu.Hum:Slider("combo", "Max. Movements in Combo", 8, 1, 20, 1)
 	
 	OMenu:Menu("Adv", "Advanced")
+	OMenu.Adv:Menu("Combo", "Combo")
+	OMenu.Adv.Combo:Boolean("em", "Enable Movement", true)
+	OMenu.Adv.Combo:Boolean("ea", "Enable Attacks", true)
+	OMenu.Adv:Menu("Harass", "Harass")
+	OMenu.Adv.Harass:Boolean("em", "Enable Movement", true)
+	OMenu.Adv.Harass:Boolean("ea", "Enable Attacks", true)
+	OMenu.Adv:Menu("LaneClear", "LaneClear")
+	OMenu.Adv.LaneClear:Boolean("em", "Enable Movement", true)
+	OMenu.Adv.LaneClear:Boolean("ea", "Enable Attacks", true)
+	OMenu.Adv:Menu("LastHit", "LastHit")
+	OMenu.Adv.LastHit:Boolean("em", "Enable Movement", true)
+	OMenu.Adv.LastHit:Boolean("ea", "Enable Attacks", true)
 	OMenu.Adv:Slider("AAD", "Auto Attack Delay", -50,-50,50,5)
 	OMenu.Adv:Slider("MD", "Move Delay", 20,-50,50,5)
 	
@@ -7481,14 +7493,14 @@ end
 
 function SLWalker:Orb()
 	if not self:IsOrbwalking() or self:DontOrb() then return end
-	if self:CanMove() or self:CanAttack() then
+	if (self:CanMove() or self:CanAttack()) then
 		if self:CanAttack() then
-			if self:GetTarget() then
+			if self:GetTarget() and (OMenu.Adv[self:Mode()]["ea"]:Value() or true) then
 				AttackUnit(self:GetTarget())
-			elseif self:CanMove() and GetDistance(myHero, GetMousePos()) > myHero.boundingRadius then
+			elseif self:CanMove() and GetDistance(myHero, GetMousePos()) > myHero.boundingRadius and  (OMenu.Adv[self:Mode()]["em"]:Value()) then
 					MoveToXYZ(self.forcePos or GetMousePos())
 			end
-		elseif self:CanMove() and GetDistance(myHero, GetMousePos()) > myHero.boundingRadius then
+		elseif self:CanMove() and GetDistance(myHero, GetMousePos()) > myHero.boundingRadius and  (OMenu.Adv[self:Mode()]["em"]:Value()) then
 				MoveToXYZ(self.forcePos or GetMousePos())
 		end
 		if GetDistance(myHero, GetMousePos()) < 80 then
@@ -9049,47 +9061,8 @@ class 'SLTS'--Updated version of Inspired TS (credits:Inspired)
 
 function SLTS:__init(type, m, s)
 	self.dtype = type
-	t = nil
-	if s then
-		for i = 0,3 do
-			if Spell[i] and Spell[i].range then
-				if not t or Spell[i].range > Spell[t].range then
-					t = i
-				end
-			end
-		end
-		if t then
-			if _G.SLW then
-				if myHero.boundingRadius*2+myHero.range+(SLW.rangebuffer[myHero.charName] and SLW.rangebuffer[myHero.charName].r or 0) > Spell[t].range then
-					self.r = myHero.boundingRadius*2+myHero.range+(SLW.rangebuffer[myHero.charName] and SLW.rangebuffer[myHero.charName].r or 0)
-				else
-					self.r = Spell[t].range
-				end
-			else
-				if Spell[t].range > myHero.boundingRadius*2+myHero.range then
-					self.r = myHero.boundingRadius*2+myHero.range
-				else
-					self.r = Spell[t].range
-				end
-			end
-		else
-			if _G.SLW then
-				self.r = myHero.boundingRadius*2+myHero.range+(SLW.rangebuffer[myHero.charName] and SLW.rangebuffer[myHero.charName].r or 0)
-			else
-				self.r = myHero.boundingRadius*2+myHero.range
-			end
-		end
-	else
-		if _G.SLW then
-			self.r = myHero.boundingRadius*2+myHero.range+(SLW.rangebuffer[myHero.charName] and SLW.rangebuffer[myHero.charName].r or 0)
-		else
-			self.r = myHero.boundingRadius*2+myHero.range
-		end
-	end
-	if self.r >10000 then
-		self.r = 3000
-	end
-	self.range = self.r
+	self.range = {}
+	self.str= {[0]="Q",[1]="W",[2]="E",[3]="R"} 
 	self.focusselected = true
 	self.m = m or nil
 	self.morganashield = false
@@ -9107,7 +9080,11 @@ function SLTS:__init(type, m, s)
 	self.m:Boolean("dsel", "Draw current target", true)
 	self.m:Boolean("sh", "Include Shields", true)
 	self.m:DropDown("mode", "TargetSelector Mode:", 3, {"Less Cast", "Less Cast Priority", "Priority", "Most AP", "Most AD", "Closest", "Near Mouse", "Lowest Health", "Lowest Health Priority"})
-	self.m:Slider("range"..myHero.charName, "Range to check for enemies", self.r+150,0,3500,50)
+	for i=0,3 do
+		if Spell[i] and not Spell[i].ally then
+			self.m:Slider("range"..self.str[i], "Range to check for enemies for : "..self.str[i], Spell[i].range,0,Spell[i].range+2000,50)
+		end
+	end
 	DelayAction(function()
 		for k,m in pairs(GetEnemyHeroes()) do
 			if m.type == myHero.type then 
@@ -9119,7 +9096,7 @@ function SLTS:__init(type, m, s)
 	Callback.Add("WndMsg", function(m,k) self:FocusSelected(m,k) end)
 	Callback.Add("UpdateBuff", function(u,b) self:UpdateB(u,b) end)
 	Callback.Add("RemoveBuff", function(u,b) self:RemoveB(u,b) end)
-	Callback.Add("Draw", function() self:Draw() self.range = self.m["range"..myHero.charName]:Value() end)
+	Callback.Add("Draw", function() self:Draw() for i=0,3 do if Spell[i] and not Spell[i].ally then self.range[i] = {range = self.m["range"..self.str[i]]:Value()} end end end)
 end
 
 function SLTS:UpdateB(u,b)
@@ -9197,79 +9174,81 @@ function SLTS:GetTarget()
 	end
 	if not self.selected then
 		for _,i in pairs(GetEnemyHeroes()) do
-			if self.range and i.distance < self.range and not i.dead then
-				if self.m.mode:Value() == 1 then
+			for l = 0,3 do 
+				if self.range[l] and i.distance < self.range[l].range and not i.dead and Ready(l) then
+					if self.m.mode:Value() == 1 then
+						local t, p = nil, math.huge
+						if self:IsValid(i) and CalcDamage(myHero, i, self.dtype == "AD" and 100 or 0, self.dtype == "AP" and 100 or 0) < p then
+							t = i
+							p = CalcDamage(myHero, i, self.dtype == "AD" and 100 or 0, self.dtype == "AP" and 100 or 0)
+						end
+						return t
+					end
+					if self.m.mode:Value() == 2 then
+						local t,p = nil, math.huge
+						if self:IsValid(i) and CalcDamage(myHero, i, self.dtype == "AD" and 100 or 0, self.dtype == "AP" and 100 or 0)*self:GetPriority(i) < p then
+							t = i
+							p = CalcDamage(myHero, i, self.dtype == "AD" and 100 or 0, self.dtype == "AP" and 100 or 0)*self:GetPriority(i)
+						end
+						return t
+					end
+					if self.m.mode:Value() == 3 then
+						local t, p = nil, math.huge
+						if self:IsValid(i) and self:GetPriority(i) < p then
+							t = i
+							p = self:GetPriority(i)
+						end
+						return t
+					end
+					if self.m.mode:Value() == 4 then
+						local t, p = nil, -1
+						if self:IsValid(i) and i.ap > p then
+							t = i
+							p = prio
+						end
+						return t
+					end
+					if self.m.mode:Value() == 5 then
+						local t, p = nil, -1
+						if self:IsValid(i) and i.totalDamage > p then
+							t = i
+							p = i.totalDamage
+						end
+						return t
+					end
+					if self.m.mode:Value() == 6 then
+						local t, p = nil, math.huge
+						if self:IsValid(i) and i.distance < p then
+						  t = i
+						  p = i.distance
+						end
+						return t
+					end
+				end
+				if self.m.mode:Value() == 7 then
 					local t, p = nil, math.huge
-					if self:IsValid(i) and CalcDamage(myHero, i, self.dtype == "AD" and 100 or 0, self.dtype == "AP" and 100 or 0) < p then
+					if self:IsValid(i) and GetDistance(i.pos,GetMousePos()) < p then
 						t = i
-						p = CalcDamage(myHero, i, self.dtype == "AD" and 100 or 0, self.dtype == "AP" and 100 or 0)
+						p = GetDistance(i.pos,GetMousePos())
 					end
 					return t
 				end
-				if self.m.mode:Value() == 2 then
-					local t,p = nil, math.huge
-					if self:IsValid(i) and CalcDamage(myHero, i, self.dtype == "AD" and 100 or 0, self.dtype == "AP" and 100 or 0)*self:GetPriority(i) < p then
-						t = i
-						p = CalcDamage(myHero, i, self.dtype == "AD" and 100 or 0, self.dtype == "AP" and 100 or 0)*self:GetPriority(i)
-					end
-					return t
-				end
-				if self.m.mode:Value() == 3 then
+				if self.m.mode:Value() == 8 then
 					local t, p = nil, math.huge
-					if self:IsValid(i) and self:GetPriority(i) < p then
+					if self:IsValid(i) and i.health < p then
 						t = i
-						p = self:GetPriority(i)
+						p = i.health
 					end
 					return t
 				end
-				if self.m.mode:Value() == 4 then
-					local t, p = nil, -1
-					if self:IsValid(i) and i.ap > p then
-						t = i
-						p = prio
-					end
-					return t
-				end
-				if self.m.mode:Value() == 5 then
-					local t, p = nil, -1
-					if self:IsValid(i) and i.totalDamage > p then
-						t = i
-						p = i.totalDamage
-					end
-					return t
-				end
-				if self.m.mode:Value() == 6 then
+				if self.m.mode:Value() == 9 then
 					local t, p = nil, math.huge
-					if self:IsValid(i) and i.distance < p then
-					  t = i
-					  p = i.distance
+					if self:IsValid(i) and i.health*self:GetPriority(i) < p then
+						t = i
+						p = i.health*self:GetPriority(i)
 					end
 					return t
 				end
-			end
-			if self.m.mode:Value() == 7 then
-				local t, p = nil, math.huge
-				if self:IsValid(i) and GetDistance(i.pos,GetMousePos()) < p then
-					t = i
-					p = GetDistance(i.pos,GetMousePos())
-				end
-				return t
-			end
-			if self.m.mode:Value() == 8 then
-				local t, p = nil, math.huge
-				if self:IsValid(i) and i.health < p then
-					t = i
-					p = i.health
-				end
-				return t
-			end
-			if self.m.mode:Value() == 9 then
-				local t, p = nil, math.huge
-				if self:IsValid(i) and i.health*self:GetPriority(i) < p then
-					t = i
-					p = i.health*self:GetPriority(i)
-				end
-				return t
 			end
 		end
 	end
