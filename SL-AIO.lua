@@ -7495,12 +7495,12 @@ function SLWalker:Orb()
 	if not self:IsOrbwalking() or self:DontOrb() then return end
 	if (self:CanMove() or self:CanAttack()) then
 		if self:CanAttack() then
-			if self:GetTarget() and (OMenu.Adv[self:Mode()]["ea"]:Value() or true) then
+			if self:GetTarget() and OMenu.Adv[self:Mode()]["ea"]:Value() then
 				AttackUnit(self:GetTarget())
-			elseif self:CanMove() and GetDistance(myHero, GetMousePos()) > myHero.boundingRadius and  (OMenu.Adv[self:Mode()]["em"]:Value()) then
+			elseif self:CanMove() and GetDistance(myHero, GetMousePos()) > myHero.boundingRadius and OMenu.Adv[self:Mode()]["em"]:Value() then
 					MoveToXYZ(self.forcePos or GetMousePos())
 			end
-		elseif self:CanMove() and GetDistance(myHero, GetMousePos()) > myHero.boundingRadius and  (OMenu.Adv[self:Mode()]["em"]:Value()) then
+		elseif self:CanMove() and GetDistance(myHero, GetMousePos()) > myHero.boundingRadius and OMenu.Adv[self:Mode()]["em"]:Value() then
 				MoveToXYZ(self.forcePos or GetMousePos())
 		end
 		if GetDistance(myHero, GetMousePos()) < 80 then
