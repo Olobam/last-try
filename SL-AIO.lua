@@ -561,7 +561,6 @@ Callback.Add("Tick", function()
 			end
 		end
 	end
-	 target = ts:GetTarget()
 end)
 
 Callback.Add("Load", function()	
@@ -612,13 +611,6 @@ Callback.Add("Load", function()
 		Recommend()
 	end
 	SLOrb()
-	SLS:Menu("TS", "|SL| TargetSelector")
-	local AP = {"Velkoz","Orianna","Vladimir","Veigar","Ahri","Blitzcrank"}
-	if AP[myHero.charName] then
-		ts = SLTS("AP",SLS.TS)
-	else
-		ts = SLTS("AD",SLS.TS)
-	end
 end)   
  
 class 'Init'
@@ -830,6 +822,9 @@ function Vayne:__init()
 	BM.JC:Boolean("Q", "Use Q", true)
 	BM.JC:Boolean("E", "Use E", true)
 	
+	BM:Menu("TS", "TargetSelector")
+	ts = SLTS("AD",BM.TS,false)
+	
 	BM:Menu("LC", "LaneClear")
 	BM.LC:DropDown("QL", "Q-Logic", 1, {"Advanced", "Simple"})
 	BM.LC:Boolean("Q", "Use Q", true)
@@ -844,7 +839,7 @@ function Vayne:__init()
 	if BM["AC"] then BM.AC:Info("ad", "Use Spell(s) : ") BM.AC:Boolean("E","Use E", true) end
 	if BM["AGC"] then BM.AGC:Info("ad", "Use Spell(s) : ") BM.AGC:Boolean("E","Use E", true) end
 	end,.001)
-
+	
 end
 
 function Vayne:AntiChannel(unit,range)
@@ -861,7 +856,9 @@ end
 
 function Vayne:Tick()
 	if myHero.dead then return end
-			
+		
+	target = ts:GetTarget()
+	
 	GetReady()
 	
 	self:KS()
@@ -1034,6 +1031,9 @@ function Blitzcrank:__init()
 	BM.KS:Boolean("Q", "Use Q", true)
 	BM.KS:Boolean("R", "Use R", true)
 	
+	BM:Menu("TS", "TargetSelector")
+	ts = SLTS("AP",BM.TS,false)
+	
 	BM:Menu("p", "Prediction")
 	
 	Callback.Add("Tick", function() self:Tick() end)
@@ -1053,7 +1053,7 @@ end
 
 function Blitzcrank:Tick()
 	if myHero.dead then return end
-	
+		target = ts:GetTarget()
 	   if Mode == "Combo" then
 		self:Combo(target)
 	elseif Mode == "LaneClear" then
@@ -1211,6 +1211,9 @@ function Soraka:__init()
 	BM:Menu("JC", "JungleClear")
 	BM.JC:Boolean("Q", "Use Q", true)
 	
+	BM:Menu("TS", "TargetSelector")
+	ts = SLTS("AP",BM.TS,false)
+	
 	BM:Menu("p", "Prediction")
 	BM.p:Slider("aE", "Adjust E Delay", 1.5, .5, 2, .1)
 	
@@ -1233,7 +1236,9 @@ end
 function Soraka:Tick()
 	if myHero.dead then return end
 	Spell[0].delay = BM.p.aE:Value()
-		
+	
+	target = ts:GetTarget()
+	
 	GetReady()
 		
 	self:KS()
@@ -1366,6 +1371,9 @@ function Sivir:__init()
 	BM:Menu("KS", "Killsteal")
 	BM.KS:Boolean("Q", "Use Q", true)
 	
+	BM:Menu("TS", "TargetSelector")
+	ts = SLTS("AD",BM.TS,false)
+	
 	BM:Menu("p", "Prediction")
 	
 	Callback.Add("Tick", function() self:Tick() end)
@@ -1379,6 +1387,8 @@ end
 
 function Sivir:Tick()
 	if myHero.dead then return end
+		
+	target = ts:GetTarget()
 		
 	GetReady()
 		
@@ -1489,6 +1499,9 @@ function Nocturne:__init()
 	BM:Menu("KS", "Killsteal")
 	BM.KS:Boolean("Q", "Use Q", true)
 	
+	BM:Menu("TS", "TargetSelector")
+	ts = SLTS("AD",BM.TS,false)
+	
 	BM:Menu("p", "Prediction")
 	
 	Callback.Add("Tick", function() self:Tick() end)
@@ -1503,7 +1516,7 @@ end
 
 function Nocturne:Tick()
 	if myHero.dead then return end
-		
+	target = ts:GetTarget()
 	GetReady()
 		
 	self:KS()
@@ -6988,7 +7001,7 @@ function SLWalker:__init()
 	OMenu.FS:Boolean("AJ", "Attack Jungle", true)
 	OMenu.FS:Boolean("AS", "Attack Structures", true)
 	OMenu.FS:Boolean("EL", "Enable Kite Limiter", true)
-	OMenu.FS:Slider("DK", "Dont Kite if Attackspeed > x",0.5,0.5,5,0.1)
+	OMenu.FS:Slider("DK", "Dont Kite if Attackspeed > x",3,0.5,5,0.1)
 	OMenu.FS:Slider("FD", "Farm Delay", 0,-20,20,1)
 	
 	OMenu:Menu("D", "Drawings")
@@ -7003,6 +7016,9 @@ function SLWalker:__init()
 	OMenu.K:KeyBinding("H", "Harass Key", string.byte("C"))
 	OMenu.K:KeyBinding("LC", "LaneClear Key", string.byte("V"))
 	OMenu.K:KeyBinding("LH", "LastHit Key", string.byte("X"))
+	
+	self.ts = TargetSelector(self.aarange, TARGET_LESS_CAST, DAMAGE_PHYSICAL)
+	OMenu:TargetSelector("TS", "TargetSelector", self.ts)
 	
 	OMenu:Menu("Hum", "Humanizer")
 	OMenu.Hum:Boolean("Enable", "Enable Humanizer", true)
@@ -7079,6 +7095,7 @@ if OMenu.FS.EL:Value() and self:Mode() ~= "LastHit" then
 	end
 end
 self.aarange = myHero.range+myHero.boundingRadius*2+(self.rangebuffer[myHero.charName] and self.rangebuffer[myHero.charName].r or 0)
+self.ts.range = self.aarange
 self:Orb()
 	for t,turret in pairs(structures) do
 		if turret.dead then
@@ -7416,9 +7433,9 @@ function SLWalker:LastHit()
 end
 
 function SLWalker:Combo()
-	if target and not self.forceTarget then
-		if self:CanOrb(target) and ValidTarget(target,self.aarange) then
-			return target
+	if self.ts:GetTarget() and not self.forceTarget then
+		if self:CanOrb(self.ts:GetTarget()) and ValidTarget(self.ts:GetTarget(),self.aarange) then
+			return self.ts:GetTarget() 
 		end
 	elseif self.forceTarget then
 		if self:CanOrb(self.forceTarget) and ValidTarget(self.forceTarget,self.aarange) then
@@ -7429,9 +7446,9 @@ end
 
 function SLWalker:Harass()
 	for _,o in pairs(SLM) do
-		if target and not self.forceTarget then
-			if self:CanOrb(target) and ValidTarget(target,self.aarange)then		
-				return target
+		if self.ts:GetTarget() and not self.forceTarget then
+			if self:CanOrb(self.ts:GetTarget()) and ValidTarget(self.ts:GetTarget(),self.aarange)then		
+				return self.ts:GetTarget()
 			end
 		elseif self.forceTarget then
 			if self:CanOrb(self.forceTarget) and ValidTarget(self.forceTarget,self.aarange) then
@@ -9030,28 +9047,36 @@ end
 
 class 'SLTS'--Updated version of Inspired TS (credits:Inspired)
 
-function SLTS:__init(type, m)
+function SLTS:__init(type, m, s)
 	self.dtype = type
 	t = nil
-	for i = 0,3 do
-		if Spell[i] and Spell[i].range then
-			if not t or Spell[i].range > Spell[t].range then
-				t = i
+	if s then
+		for i = 0,3 do
+			if Spell[i] and Spell[i].range then
+				if not t or Spell[i].range > Spell[t].range then
+					t = i
+				end
 			end
 		end
-	end
-	if t then
-		if _G.SLW then
-			if myHero.boundingRadius*2+myHero.range+(SLW.rangebuffer[myHero.charName] and SLW.rangebuffer[myHero.charName].r or 0) > Spell[t].range then
-				self.r = myHero.boundingRadius*2+myHero.range+(SLW.rangebuffer[myHero.charName] and SLW.rangebuffer[myHero.charName].r or 0)
+		if t then
+			if _G.SLW then
+				if myHero.boundingRadius*2+myHero.range+(SLW.rangebuffer[myHero.charName] and SLW.rangebuffer[myHero.charName].r or 0) > Spell[t].range then
+					self.r = myHero.boundingRadius*2+myHero.range+(SLW.rangebuffer[myHero.charName] and SLW.rangebuffer[myHero.charName].r or 0)
+				else
+					self.r = Spell[t].range
+				end
 			else
-				self.r = Spell[t].range
+				if Spell[t].range > myHero.boundingRadius*2+myHero.range then
+					self.r = myHero.boundingRadius*2+myHero.range
+				else
+					self.r = Spell[t].range
+				end
 			end
 		else
-			if Spell[t].range > myHero.boundingRadius*2+myHero.range then
-				self.r = myHero.boundingRadius*2+myHero.range
+			if _G.SLW then
+				self.r = myHero.boundingRadius*2+myHero.range+(SLW.rangebuffer[myHero.charName] and SLW.rangebuffer[myHero.charName].r or 0)
 			else
-				self.r = Spell[t].range
+				self.r = myHero.boundingRadius*2+myHero.range
 			end
 		end
 	else
