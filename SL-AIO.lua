@@ -34,10 +34,10 @@ local lastcheck = 0
 local lastcheck2 = 0
 local lastcheck3 = 0
 local structures = {}
-local target = nil
 local turrets = {}
 local Wards = {}
 local Wards2 = {}
+local target = nil
 local ts = nil
 if GetGameVersion():sub(3,4) >= "10" then
 		SLPatchnew = GetGameVersion():sub(1,4)
@@ -561,6 +561,7 @@ Callback.Add("Tick", function()
 			end
 		end
 	end
+	 target = ts:GetTarget()
 end)
 
 Callback.Add("Load", function()	
@@ -771,7 +772,6 @@ function SLOrb:__init()
 	
 	Callback.Add("Tick",function() 
 		Mode = ModeTable[OrbMode()]
-		target = ts:GetTarget()
 	end)
 end
 	
@@ -2025,7 +2025,7 @@ function Velkoz:Combo(unit)
 end
 
 function Velkoz:Split()
-	local i = target
+	local i = target or GetCurrentTarget()
 	if self.QBall then
 		local iPredN2 = nil
 		if BM.p.CP:Value() == 1 and OpenPredict then
@@ -2039,10 +2039,12 @@ function Velkoz:Split()
 		end
 	elseif not self.ult then
 		local iPred = nil
+		local iPred2
 		if BM.p.CP:Value() == 1 and OpenPredict then
 			iPred = GetPrediction(i,Spell[-1]).castPos
+			iPred2 = GetPrediction(i,Spell[-1])
 		else
-			iPred = GetPredictionForPlayer(myHero.pos,i,i.ms, Spell[-1].speed, Spell[-1].delay*1000, Spell[-1].range, Spell[-1].width, false, true).PredPos
+			iPred = GetPredictionForPlayer(myHero.pos,i,i.ms, Spell[-1].speed, Spell[-1].delay*1000, Spell[-1].range, Spell[-1].width, true, true).PredPos
 		end
 		if iPred then
 			local iPred2D = WorldToScreen(0,iPred)
@@ -2068,7 +2070,7 @@ function Velkoz:Split()
 					end
 				end
 			end
-			if Mode == "Combo" and lowestV and GetCastName(myHero,0) == "VelkozQ" then
+			if Mode == "Combo" and lowestV and GetCastName(myHero,0) == "VelkozQ" and (OpenPredict and IPred2 and not iPred2:mCollision(1) or true) then
 				if GetDistance(lowestV) > 150 then
 					CastSkillShot(0,lowestV)
 				else
@@ -9030,9 +9032,9 @@ class 'SLTS'--Updated version of Inspired TS (credits:Inspired)
 
 function SLTS:__init(type, m)
 	self.dtype = type
+	t = nil
 	for i = 0,3 do
 		if Spell[i] and Spell[i].range then
-			t = 0
 			if not t or Spell[i].range > Spell[t].range then
 				t = i
 			end
@@ -9059,6 +9061,9 @@ function SLTS:__init(type, m)
 			self.r = myHero.boundingRadius*2+myHero.range
 		end
 	end
+	if self.r >10000 then
+		self.r = 3000
+	end
 	self.range = self.r
 	self.focusselected = true
 	self.m = m or nil
@@ -9077,11 +9082,7 @@ function SLTS:__init(type, m)
 	self.m:Boolean("dsel", "Draw current target", true)
 	self.m:Boolean("sh", "Include Shields", true)
 	self.m:DropDown("mode", "TargetSelector Mode:", 3, {"Less Cast", "Less Cast Priority", "Priority", "Most AP", "Most AD", "Closest", "Near Mouse", "Lowest Health", "Lowest Health Priority"})
-	if self.r < 3500 then
-		self.m:Slider("range", "Range to check for enemies", self.r+300,0,3500,50)
-	else
-		self.m:Slider("range", "Range to check for enemies", self.r+300,0,20000,50)
-	end
+	self.m:Slider("range"..myHero.charName, "Range to check for enemies", self.r+150,0,3500,50)
 	DelayAction(function()
 		for k,m in pairs(GetEnemyHeroes()) do
 			if m.type == myHero.type then 
@@ -9093,7 +9094,7 @@ function SLTS:__init(type, m)
 	Callback.Add("WndMsg", function(m,k) self:FocusSelected(m,k) end)
 	Callback.Add("UpdateBuff", function(u,b) self:UpdateB(u,b) end)
 	Callback.Add("RemoveBuff", function(u,b) self:RemoveB(u,b) end)
-	Callback.Add("Draw", function() self:Draw() self.range = self.m.range:Value() end)
+	Callback.Add("Draw", function() self:Draw() self.range = self.m["range"..myHero.charName]:Value() end)
 end
 
 function SLTS:UpdateB(u,b)
@@ -9150,19 +9151,7 @@ function SLTS:GetPrioritym(i)
 end
 
 function SLTS:GetPriority(i)
-	if table.contains(self.pt5,i.charName) then
-		return 1
-	elseif table.contains(self.pt4,i.charName)  then
-		return 2
-	elseif table.contains(self.pt3,i.charName) then
-		return 3
-	elseif table.contains(self.pt2,i.charName)  then
-		return 4
-	elseif table.contains(self.pt1,i.charName)  then
-		return 5
-	else
-		return 5
-	end
+	return self.m[i.charName]:Value()
 end
 
 function SLTS:IsValid(t)
