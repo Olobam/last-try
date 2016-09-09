@@ -5477,9 +5477,6 @@ function Syndra:JungleClear()
 end
 
 function Syndra:JungleSteal()
-	for _,i in pairs(minionManager.objects) do
-		if i.team == 300 then print(i.charName) end
-	end
 	for _,i in pairs(SLM) do
 		if i.team == MINION_JUNGLE then
 			if i.valid and i.distance < 1000 and ((BM.JS.S[i.charName] and BM.JS.S[i.charName]:Value()) or (i.charName:find("Dragon") and BM.JS.S["SRU_Dragon"]:Value())) then
