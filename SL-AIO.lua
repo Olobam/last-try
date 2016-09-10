@@ -5532,13 +5532,13 @@ function Syndra:KS()
 		if BM.KS.Q:Value() and SReady[0] and ValidTarget(i, Spell[0].range) and GetAPHP(i) < Dmg[0](i) then
 			CastGenericSkillShot(myHero,i,Spell[0],0,BM.p)
 		end
-		if BM.KS.W:Value() and SReady[2] and ValidTarget(i, Spell[2].range) and GetAPHP(i) < Dmg[1](i) then
+		if BM.KS.W:Value() and SReady[1] and ValidTarget(i, Spell[1].range) and GetAPHP(i) < Dmg[1](i) then
 			self:CastW(i)
 		end
 		if BM.KS.E:Value() and SReady[2] and ValidTarget(i, Spell[2].range) and GetAPHP(i) < Dmg[2](i) then
 			self:CastE(i)
 		end	
-		if BM.C.R.E:Value() and SReady[3] and ValidTarget(i, Spell[2].range) and GetAPHP(i) < Dmg[3](i) then
+		if BM.KS.R:Value() and SReady[3] and ValidTarget(i, Spell[3].range) and GetAPHP(i) < Dmg[3](i) then
 			CastTargetSpell(i,3)
 		end			
 	end
