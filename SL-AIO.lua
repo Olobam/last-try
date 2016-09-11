@@ -811,10 +811,10 @@ function Vayne:__init()
 	
 	BM:Menu("Q", "[Tumble] Q Settings")
 	BM.Q:DropDown("QM", "QMode", 1, {"AAReset", "W Proc"})
-	BM.Q:Boolean('C', 'Use Tumble in Combo', true)
-	BM.Q:Boolean('H', 'Use Tumble in Harass', false)
-	BM.Q:Boolean('JC', 'Use Tumble in JungleClear', true)
-	BM.Q:Boolean('LC', 'Use Tumble in LaneClear', false)
+	BM.Q:Boolean('C', 'Use in Combo', true)
+	BM.Q:Boolean('H', 'Use in Harass', false)
+	BM.Q:Boolean('JC', 'Use in JungleClear', true)
+	BM.Q:Boolean('LC', 'Use in LaneClear', false)
 	BM.Q:Info("q",'')
 	BM.Q:Boolean("TC", "Dont Tumble into turrets", true)
 	BM.Q:Info("",'')
@@ -824,9 +824,11 @@ function Vayne:__init()
 	BM.Q:Slider('MLC', "Use in LaneClear if Mana > x", 50, 0, 100, 0)
 	
 	BM:Menu("E", "[Condemn] E Settings")
-	BM.E:Boolean('C', 'Use Condemn in Combo', true)
-	BM.E:Boolean('H', 'Use Condemn in Harass', true)
-	BM.E:Boolean('JC', 'Use Condemn in JungleClear', true)
+	BM.E:Boolean('C', 'Use in Combo', true)
+	BM.E:Boolean('H', 'Use in Harass', true)
+	BM.E:Boolean('JC', 'Use in JungleClear', true)
+	BM.E:Info("q",'')
+	BM.E:Boolean("KS", "Enable KS", true)
 	BM.E:Info("",'')
 	BM.E:Slider("a", "accuracy", 30, 1, 50, 5)
 	BM.E:Slider("pd", "Push distance", 480, 1, 550, 5)	
@@ -1039,16 +1041,18 @@ end
 
 function Vayne:CastE(u)
 	if SReady[2] and (Mode == "Combo" and BM.E.C:Value() and GetPercentMP(myHero) > BM.E.MH:Value()) or (Mode == "Harass" and BM.E.H:Value() and GetPercentMP(myHero) > BM.E.MC:Value()) or (u and u.isMinion and u.team == MINION_JUNGLE and Mode == "LaneClear" and BM.E.JC:Value() and GetPercentMP(myHero) > BM.E.MJC:Value()) then
-		local e = GetPrediction(u, Spell[2])
-		local ePos = Vector(e.castPos)
-		local c = math.ceil(BM.E.a:Value())
-		local cd = math.ceil(BM.E.pd:Value()/c)
-		for step = 1, c, 5 do
-			local PP = Vector(ePos) + Vector(Vector(ePos) - Vector(myHero)):normalized()*(cd*step)
-				
-			if MapPosition:inWall(PP) == true then
-				CastTargetSpell(u, 2)
-			end		
+		if u.valid and u.distance < 800 then
+			local e = GetPrediction(u, Spell[2])
+			local ePos = Vector(e.castPos)
+			local c = math.ceil(BM.E.a:Value())
+			local cd = math.ceil(BM.E.pd:Value()/c)
+			for step = 1, c, 5 do
+				local PP = Vector(ePos) + Vector(Vector(ePos) - Vector(myHero)):normalized()*(cd*step)
+					
+				if MapPosition:inWall(PP) == true then
+					CastTargetSpell(u, 2)
+				end		
+			end
 		end
 	end
 end
@@ -1069,7 +1073,7 @@ function Vayne:Tick()
 	
 	self:Checks()
 	
-	-- self:KS()
+	self:KS()
 
 	   if Mode == "Combo" then
 		self:Combo(target)
@@ -1170,6 +1174,14 @@ function Vayne:Drawi()
 			DrawText("Invisble for : "..self:GetRTimer().." sek",20,myHero.pos2D.x-75,myHero.pos2D.y,GoS.White)
 		end
 	end		
+end
+
+function Vayne:KS()
+	for _,i in pairs(GetEnemyHeroes()) do
+		if i and i.alive and i.valid and i.distance < Spell[2].range and Dmg[2](i) > GetADHP(i) and BM.E.KS:Value() then
+			CastTargetSpell(i,2)
+		end
+	end
 end
 
 
