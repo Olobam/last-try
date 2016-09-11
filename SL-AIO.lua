@@ -5018,7 +5018,7 @@ function Anivia:Tick()
 end
 
 function Anivia:Combo(u)	
-	if u.isHero then
+	if u then
 		if BM.C.Q:Value() and SReady[0] and ValidTarget(u, Spell[0].range) then
 			if not self.Q2Casted then
 				CastGenericSkillShot(myHero,u,Spell[0],0,BM.p)
@@ -5044,7 +5044,7 @@ function Anivia:Combo(u)
 end
 
 function Anivia:Harass(u)	
-	if u.isHero then
+	if u then
 		if BM.H.Q:Value() and SReady[0] and ValidTarget(u, Spell[0].range) then
 			if not self.Q2Casted then
 				CastGenericSkillShot(myHero,u,Spell[0],0,BM.p)
