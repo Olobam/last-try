@@ -605,7 +605,7 @@ Callback.Add("Load", function()
 		if SLU.Load.LRLI:Value() then 
 			Reallifeinfo()
 		end
-		if SLU.Load.LWJ:Value() and myHero.charName == "Katarina" or myHero.charName == "LeeSin" or myHero.charName == "Jax" then
+		if (myHero.charName == "Katarina" or myHero.charName == "LeeSin" or myHero.charName == "Jax" and SLU.Load.LWJ:Value()) then
 			WardJump()
 		end
 	end
