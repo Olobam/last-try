@@ -605,6 +605,9 @@ Callback.Add("Load", function()
 		if SLU.Load.LRLI:Value() then 
 			Reallifeinfo()
 		end
+		if SLU.Load.LWJ:Value() and myHero.charName == "Katarina" or myHero.charName == "LeeSin" or myHero.charName == "Jax" then
+			WardJump()
+		end
 	end
 	if SLS.Loader.LE:Value() then
 		if not _G.MapPosition then
@@ -671,6 +674,10 @@ function Init:__init()
 		SLU.Load:Info("0.6.", "")
 		SLU.Load:Boolean("LRLI", "Load Real life info", true)
 		SLU.Load:Info("0.6yc", "")
+		if myHero.charName == "Katarina" or myHero.charName == "LeeSin" or myHero.charName == "Jax" then
+		SLU.Load:Boolean("LWJ", "Load Ward Jump", true)
+		SLU.Load:Info("0.6^c", "")
+		end
 		SLU.Load:Info("0.7.", "You will have to press 2f6")
 		SLU.Load:Info("0.8.", "to apply the changes")
 		
@@ -6998,6 +7005,106 @@ function Reallifeinfo:EnableDraw()
 	end
 end
 
+class 'WardJump'
+function WardJump:__init()
+
+	self.items = {
+		{id = 2045,stack = true},
+		{id = 2049,stack = true},
+		{id = 2044,stack = true},
+		{id = 3340,stack = true},
+	}
+	
+	SLU:SubMenu("WJ","|SL| Ward Jump")
+	SLU.WJ:Key("k", "Ward Jump Key", string.byte("T"))
+	
+	self.champtable = {["Katarina"] = 2, ["Jax"] = 0 }
+	self.slot = nil
+	self.casted = false
+	self.wardpos = nil
+	self.wardpos2 = nil
+	self.stack = false
+	self.wards = {}
+	Callback.Add("Tick", function() self:Tick() end)
+	Callback.Add("CreateObj", function(o) self:CretO(o) end)
+end
+
+function WardJump:GetBestWardPos()	
+	if GetDistance(GetMousePos()) < 600 then
+		self.wardpos = Vector(myHero)+Vector(Vector(GetMousePos())-myHero):normalized()*GetDistance(GetMousePos())
+		self.wardpos2 = Vector(myHero)+Vector(Vector(GetMousePos())-myHero):normalized():perpendicular()*GetDistance(GetMousePos())
+	else
+		self.wardpos = Vector(myHero)+Vector(Vector(GetMousePos())-myHero):normalized()*600
+		self.wardpos2 = Vector(myHero)+Vector(Vector(GetMousePos())-myHero):normalized():perpendicular()*600
+	end
+	if MapPosition:inWall(self.wardpos) then 
+		return self.wardpos2
+	else
+		return self.wardpos
+	end
+end
+
+function WardJump:GetJumpSlot()
+	if myHero.charName ~= "LeeSin" then
+		return self.champtable[myHero.charName]
+	else
+		if GetCastName(myHero,1) ~= "blindmonkwtwo" then
+			return 1
+		end
+	end
+	return nil
+end
+
+function WardJump:Tick()
+	if self:GetJumpSlot() then
+		for _,i in pairs(self.items) do
+			if GetItemSlot(myHero,i.id) > 0 and IsReady(GetItemSlot(myHero,i.id)) then 
+				self.slot = GetItemSlot(myHero,i.id)
+				self.stack = i.stack
+			end
+		end	
+		if self.slot and SLU.WJ.k:Value() and (not self.stack or GetItemAmmo(myHero,GetItemSlot(myHero,self.slot))>=1) and not self.casted and IsReady(self:GetJumpSlot()) then
+			self.casted = true
+			CastSkillShot(self.slot,self:GetBestWardPos())
+			DelayAction(function()
+				self.casted = false
+			end,1)
+		end
+		for _,i in pairs(self.wards) do
+			if i and GetDistance(i.o,GetMousePos()) < 500 and self.casted then
+				DelayAction(function()
+					CastTargetSpell(i.o,self:GetJumpSlot())
+				end,.001)
+			end
+		end
+		if SLU.WJ.k:Value() then
+			MoveToXYZ(GetMousePos()) 
+		end
+	end
+end
+
+function WardJump:CretO(o)
+	if o and o.networkID then
+		if o.name:lower():find("visionward") then
+			if o.team == myHero.team then
+				if not self.wards[o.networkID] then self.wards[o.networkID] = {} end
+				self.wards[o.networkID] = {o=o}
+				DelayAction(function()
+					self.wards[o.networkID] = nil
+				end,1)
+			end
+		end
+		if o.name:lower():find("sightward") then
+			if o.team == myHero.team then				
+				if not self.wards[o.networkID] then self.wards[o.networkID] = {} end
+				self.wards[o.networkID] = {o=o}
+				DelayAction(function()
+					self.wards[o.networkID] = nil
+				end,1)
+			end
+		end
+	end
+end
 
 class 'AutoLevel'
 
