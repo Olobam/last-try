@@ -8197,7 +8197,7 @@ function SLWalker:LaneClear()
 			if OMenu.FS.AS:Value() then
 				if turret.alive and turret.distance > self.aarange then
 					if o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
-						if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"}))*2.5 then
+						if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"}))+self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) then
 							return nil
 						else
 							return GetLowestUnit(o,self.aarange)
@@ -9143,7 +9143,7 @@ function SLEvade:UDodge(_,i)
 	end
 	if not i.uDodge then
 		if i.safe and i.spell.type == "Line" then
-			if i.check < GetDistance(i.safe)/myHero.ms then 
+			if i.check < (GetDistance(i.safe)/2)/myHero.ms then 
 				i.uDodge = true 
 			end
 		elseif i.safe and i.spell.type == "Circle" and i.p then
@@ -9151,7 +9151,7 @@ function SLEvade:UDodge(_,i)
 				i.uDodge = true 
 			end
 		elseif i.safe and i.spell.type == "Rectangle" and i.p then
-			if i.check2 < GetDistance(i.safe)/myHero.ms then
+			if i.check2 < (GetDistance(i.safe)/2)/myHero.ms then
 				i.uDodge = true 
 			end
 		elseif i.safe and i.spell.type == "Cone" and i.p then
@@ -9159,7 +9159,7 @@ function SLEvade:UDodge(_,i)
 				i.uDodge = true 
 			end
 		elseif i.safe and i.spell.type == "Return" and i.o then
-			if i.check < GetDistance(i.safe)/myHero.ms then 
+			if i.check < (GetDistance(i.safe)/2)/myHero.ms then 
 				i.uDodge = true 
 			end
 		elseif i.safe and i.spell.type == "follow" then
