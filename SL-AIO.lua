@@ -8996,7 +8996,7 @@ end
 
 function SLEvade:sCircPos(_,i)
 	if i.p then
-		return math.floor((i.spell.radius/(i.spell.killTime+i.dist/i.spell.speed+i.spell.delay))*(os.clock()-i.startTime))
+		return math.floor((i.spell.radius/(i.spell.killTime+i.dist/i.spell.speed+i.spell.delay))*(os.clock()-i.startTime+i.spell.delay))
 	end
 end
 
