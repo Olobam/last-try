@@ -3436,13 +3436,13 @@ function Khazix:Tick()
 	end
 	
 	self:KS()
-	if Mode == "Combo" and target.valid then
+	if Mode == "Combo" and target and target.valid then
 		self:Combo(target)
 	elseif Mode == "LaneClear" then
 		self:LaneClear()
 	elseif Mode == "LastHit" then
 		self:LastHit()
-	elseif Mode == "Harass" and target.valid then
+	elseif Mode == "Harass" and target and target.valid then
 		self:Harass(target)
 	else
 		return
