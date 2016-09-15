@@ -3751,9 +3751,9 @@ function Orianna:__init()
 
 	Spell = {
 	[0] = { range = 815, delay = 0, radius = 80, speed = 1200,type = "line",col=false },
-	[1] = { radius = 255 },
+	[1] = { radius = 255, range = 815 },
 	[2] = { range = 1095, radius = 80 },
-	[3] = { radius = 410 },
+	[3] = { radius = 410, range = 815 },
 	}
 	
 	Dmg = {
