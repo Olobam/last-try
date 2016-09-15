@@ -3860,7 +3860,7 @@ function Orianna:T()
 			self.Ball = i.o
 		end
 	end
-	targte = ts:GetTarget()
+	target = ts:GetTarget()
 	GetReady()
 	
     if Mode == "Combo" then
@@ -3906,7 +3906,7 @@ function Orianna:Combo(target)
 		CastSpell(1)
 	end
 	if SReady[2] and ValidTarget(target, Spell[2].range) and BM.C.E:Value() then
-		local VP = VectorPointProjectionOnLineSegment(Vector(myHero), Vector(target), Vector(self.Ball))
+		local VP = VectorPointProjectionOnLineSegment(Vector(myHero), Vector(self.Ball), Vector(target))
 		if GetDistance(VP, target) < Spell[2].radius then
 			CastSpell(2)
 		end
@@ -3948,7 +3948,7 @@ function Orianna:JungleClear()
 				CastSpell(1)
 			end	
 			if SReady[2] and ValidTarget(minion, Spell[2].range) and BM.JC.E:Value() then
-				local VP = VectorPointProjectionOnLineSegment(Vector(myHero), Vector(minion), Vector(self.Ball))
+				local VP = VectorPointProjectionOnLineSegment(Vector(myHero), Vector(self.Ball), Vector(target))
 				if GetDistance(VP, minion) < Spell[2].radius then
 					CastSpell(2)
 				end
@@ -3966,7 +3966,7 @@ function Orianna:KS()
 			CastSpell(1)
 		end
 		if SReady[2] and ValidTarget(target, Spell[2].range) and BM.C.E:Value() and GetAPHP(target) < Dmg[2](target) then
-			local VP = VectorPointProjectionOnLineSegment(Vector(myHero), Vector(target), Vector(self.Ball))
+			local VP = VectorPointProjectionOnLineSegment(Vector(myHero), Vector(self.Ball), Vector(target))
 			if GetDistance(VP, target) < Spell[2].radius then
 				CastSpell(2)
 			end
