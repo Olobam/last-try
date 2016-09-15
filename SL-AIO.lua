@@ -32,7 +32,6 @@ local OpenPredict = false
 local SLM = {}
 local SLM2 = {}
 local lastcheck = 0
-local lastcheck2 = 0
 local structures = {}
 local turrets = {}
 local Wards = {}
@@ -553,20 +552,15 @@ Callback.Add("Tick", function()
 				SLM[i.networkID] = i
 			end
 		end
-	end
-	if lastcheck2 + 1000 < GetTickCount() then
-		lastcheck2 = GetTickCount()
 		for _,i in pairs(minionManager.objects) do
 			if i.valid and i.distance < 2000 and i.alive and i.team == MINION_ALLY then
 				SLM2[i.networkID] = i
 			end
 		end
-	end
-	for _,i in pairs(structures) do
-		if i.valid and i.alive and i.team == MINION_ENEMY then
-			turrets[i.networkID] = i
-		else
-			turrets[i.networkID] = nil
+		for _,i in pairs(structures) do
+			if i.valid and i.alive and i.team == MINION_ENEMY then
+				turrets[i.networkID] = i
+			end
 		end
 	end
 end)
@@ -3894,7 +3888,7 @@ end
 
 function Orianna:Combo(target)
 	if SReady[0] and ValidTarget(target, Spell[0].range) and BM.C.Q:Value() then
-		CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
+		CastGenericSkillShot(myHero,target,Spell[0],0,BM.p)
 	end
 	if SReady[1] and BM.C.W:Value() and EnemiesAround(self.Ball.pos, Spell[1].radius) >= BM.C.Wm:Value() then
 		CastSpell(1)
@@ -3912,7 +3906,7 @@ end
 
 function Orianna:Harass(target)
 	if SReady[0] and ValidTarget(target, Spell[0].range) and BM.H.Q:Value() then
-		CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
+		CastGenericSkillShot(myHero,target,Spell[0],0,BM.p)
 	end
 	if SReady[1] and BM.H.W:Value() and EnemiesAround(self.Ball.pos, Spell[1].radius) >= BM.H.Wm:Value() then
 		CastSpell(1)
@@ -3923,7 +3917,7 @@ function Orianna:LaneClear()
 	for _,minion in pairs(SLM) do
 		if minion.team == MINION_ENEMY then
 			if SReady[0] and ValidTarget(minion, Spell[0].range) and BM.LC.Q:Value() then
-				CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
+				CastGenericSkillShot(myHero,minion,Spell[0],0,BM.p)
 			end
 			if SReady[1] and BM.LC.W:Value() and EnemyMinionsAround(self.Ball.pos, Spell[1].radius) >= BM.LC.Wm:Value() then
 				CastSpell(1)
@@ -3936,7 +3930,7 @@ function Orianna:JungleClear()
 	for _,minion in pairs(SLM) do
 		if minion.team == MINION_JUNGLE then
 			if SReady[0] and ValidTarget(minion, Spell[0].range) and BM.JC.Q:Value() then
-				CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
+				CastGenericSkillShot(myHero,minion,Spell[0],0,BM.p)
 			end
 			if SReady[1] and BM.JC.W:Value() and JungleMinionsAround(self.Ball.pos, Spell[1].radius) >= BM.JC.Wm:Value() then
 				CastSpell(1)
@@ -3954,7 +3948,7 @@ end
 function Orianna:KS()
 	for _,target in pairs(GetEnemyHeroes()) do
 		if SReady[0] and ValidTarget(target, Spell[0].range) and BM.C.Q:Value() and GetAPHP(target) < Dmg[0](target) then
-			CastGenericSkillShot(myHero,unit,Spell[0],0,BM.p)
+			CastGenericSkillShot(myHero,target,Spell[0],0,BM.p)
 		end
 		if SReady[1] and BM.C.W:Value() and EnemiesAround(self.Ball.pos, Spell[1].radius) >= BM.C.Wm:Value() and GetAPHP(target) < Dmg[1](target) then
 			CastSpell(1)
