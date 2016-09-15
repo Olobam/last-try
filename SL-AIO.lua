@@ -829,6 +829,8 @@ function Vayne:__init()
 	BM.E:Boolean('H', 'Use in Harass', true)
 	BM.E:Boolean('JC', 'Use in JungleClear', true)
 	BM.E:Info("q",'')
+	BM.E:Boolean("EAE", "Enable Auto E", true)
+	BM.E:Slider("DTE", "Distance to Enemy for auto E", 50, 0, 100, 5)
 	BM.E:Boolean("KS", "Enable KS", true)
 	BM.E:Info("",'')
 	BM.E:Slider("a", "accuracy", 30, 1, 50, 5)
@@ -1074,6 +1076,8 @@ function Vayne:Tick()
 	
 	self:Checks()
 	
+	self:AutoE()
+	
 	self:KS()
 
 	   if Mode == "Combo" then
@@ -1085,6 +1089,14 @@ function Vayne:Tick()
 		self:Harass(target)
 	else
 		return
+	end
+end
+
+function Vayne:AutoE()
+	for _,i in pairs(GetEnemyHeroes()) do
+		if BM.E.EAE:Value() and SReady[2] and GetDistance(GetPrediction(i,{ delay = .3, speed = math.huge, width = 1, range = 1500}).castPos) < BM.E.DTE:Value() and i.valid then
+			CastTargetSpell(i,2)
+		end
 	end
 end
 
