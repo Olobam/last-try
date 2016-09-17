@@ -8460,24 +8460,24 @@ function SLEvade:__init()
 				if i.charName == k.charName and self.supportedtypes[i.type].supported then
 					if i.displayname == "" then i.displayname = _ end
 					if i.danger == 0 then i.danger = 1 end
-					if not EMenu.Spells[_] then EMenu.Spells:Menu(_,""..i.charName.." | "..(self.str[i.slot] or "?").." - "..i.displayname) end
-						EMenu.Spells[_]:Boolean("Dodge".._, "Enable Dodge", true)
-						EMenu.Spells[_]:Boolean("Draw".._, "Enable Draw", true)
-						EMenu.Spells[_]:Boolean("Dashes".._, "Enable Evade Spells", true)
-						EMenu.Spells[_]:Info("Empty12".._, "")			
-						EMenu.Spells[_]:Slider("radius".._,"Radius",(i.radius or 150), ((i.radius-50) or 50),((i.radius+100) or 250), 5)
-						if i.dangerous then EMenu.Spells[_]:Slider("hp".._, "HP to Dodge", 100, 1, 100, 5)
-						else EMenu.Spells[_]:Slider("hp".._, "HP to Dodge", 85, 1, 100, 5)
+					if not EMenu.Spells[_] then EMenu.Spells:Menu(i.charName..""..self.str[i.slot]..""..i.displayname,""..i.charName.." | "..(self.str[i.slot] or "?").." - "..i.displayname) end
+						EMenu.Spells[i.charName..""..self.str[i.slot]..""..i.displayname]:Boolean("Dodge"..i.charName..""..self.str[i.slot]..""..i.displayname, "Enable Dodge", true)
+						EMenu.Spells[i.charName..""..self.str[i.slot]..""..i.displayname]:Boolean("Draw"..i.charName..""..self.str[i.slot]..""..i.displayname, "Enable Draw", true)
+						EMenu.Spells[i.charName..""..self.str[i.slot]..""..i.displayname]:Boolean("Dashes"..i.charName..""..self.str[i.slot]..""..i.displayname, "Enable Evade Spells", true)
+						EMenu.Spells[i.charName..""..self.str[i.slot]..""..i.displayname]:Info("Empty12"..i.charName..""..self.str[i.slot]..""..i.displayname, "")			
+						EMenu.Spells[i.charName..""..self.str[i.slot]..""..i.displayname]:Slider("radius"..i.charName..""..self.str[i.slot]..""..i.displayname,"Radius",(i.radius or 150), ((i.radius-50) or 50),((i.radius+100) or 250), 5)
+						if i.dangerous then EMenu.Spells[i.charName..""..self.str[i.slot]..""..i.displayname]:Slider("hp"..i.charName..""..self.str[i.slot]..""..i.displayname, "HP to Dodge", 100, 1, 100, 5)
+						else EMenu.Spells[i.charName..""..self.str[i.slot]..""..i.displayname]:Slider("hp"..i.charName..""..self.str[i.slot]..""..i.displayname, "HP to Dodge", 85, 1, 100, 5)
 						end
-						EMenu.Spells[_]:Slider("d".._,"Danger",(i.danger or 1), 1, 5, 1)
-						EMenu.Spells[_]:Info("Empty123".._, "")
-						EMenu.Spells[_]:Boolean("IsD".._,"Dangerous", i.dangerous or false)
-						EMenu.Spells[_]:Boolean("ffe".._,"Fast Evade", i.ffe or false)
-						EMenu.Spells[_]:Boolean("H".._, "Humanizer", false)
+						EMenu.Spells[i.charName..""..self.str[i.slot]..""..i.displayname]:Slider("d"..i.charName..""..self.str[i.slot]..""..i.displayname,"Danger",(i.danger or 1), 1, 5, 1)
+						EMenu.Spells[i.charName..""..self.str[i.slot]..""..i.displayname]:Info("Empty123"..i.charName..""..self.str[i.slot]..""..i.displayname, "")
+						EMenu.Spells[i.charName..""..self.str[i.slot]..""..i.displayname]:Boolean("IsD"..i.charName..""..self.str[i.slot]..""..i.displayname,"Dangerous", i.dangerous or false)
+						EMenu.Spells[i.charName..""..self.str[i.slot]..""..i.displayname]:Boolean("ffe"..i.charName..""..self.str[i.slot]..""..i.displayname,"Fast Evade", i.ffe or false)
+						EMenu.Spells[i.charName..""..self.str[i.slot]..""..i.displayname]:Boolean("H"..i.charName..""..self.str[i.slot]..""..i.displayname, "Humanizer", false)
 						if i.mcollision then
-							EMenu.Spells[_]:Boolean("Coll".._, "Collision", true)
+							EMenu.Spells[i.charName..""..self.str[i.slot]..""..i.displayname]:Boolean("Coll"..i.charName..""..self.str[i.slot]..""..i.displayname, "Collision", true)
 						else
-							EMenu.Spells[_]:Info("nohColl".._, "No Collision available")
+							EMenu.Spells[i.charName..""..self.str[i.slot]..""..i.displayname]:Info("nohColl"..i.charName..""..self.str[i.slot]..""..i.displayname, "No Collision available")
 						end	
 				end
 			end
@@ -8864,6 +8864,7 @@ function SLEvade:Skillshot()
 		s.spell.charName = myHero.charName
 		s.spell.proj = nil
 		s.spell.danger = 2
+		s.spell.slot = 0
 		s.spell.displayname = "DarkBinding"
         s.spell.killTime = 1.5
         s.spell.mcollision = true
@@ -8883,8 +8884,8 @@ function SLEvade:Skillshot()
 		s.check2 = GetDistance(myHero,s.p.endPos)/s.spell.speed+s.spell.delay+s.spell.killTime
 		s.dist = GetDistance(myHero,s.p.endPos)
         s.startTime = os.clock()
-        self.obj[s.spell.name] = s
-		DelayAction(function() self.obj[s.spell.name] = nil end,s.spell.killTime+s.spell.delay)
+        self.obj[s.spell.charName..""..self.str[s.spell.slot]..""..s.spell.displayname] = s
+		DelayAction(function() self.obj[s.spell.charName..""..self.str[s.spell.slot]..""..s.spell.displayname] = nil end,s.spell.killTime+s.spell.delay)
 end
 
 function SLEvade:Tickp()
@@ -9797,18 +9798,18 @@ if not SLE then return end
 			print(obj.spellName)
 		end
 		for _,l in pairs(Spells) do
-			if not self.obj[obj.spellName] and Spells[obj.spellName] and EMenu.Spells[obj.spellName] and EMenu.d:Value() <= EMenu.Spells[obj.spellName]["d"..obj.spellName]:Value() and (l.proj == obj.spellName or _ == obj.spellName or obj.spellName:lower():find(_:lower()) or obj.spellName:lower():find(l.proj:lower())) then
-				if not self.obj[obj.spellName] then self.obj[obj.spellName] = {} end
-				self.obj[obj.spellName].o = obj
-				self.obj[obj.spellName].caster = obj.spellOwner
-				self.obj[obj.spellName].mpos = nil
-				self.obj[obj.spellName].uDodge = nil
-				self.obj[obj.spellName].startTime = os.clock()
-				self.obj[obj.spellName].spell = l
-				self.obj[obj.spellName].range = l.range
-				self.obj[obj.spellName].check = GetDistance(myHero,obj.startPos)/l.speed
-				self.obj[obj.spellName].check2 = GetDistance(myHero,obj.endPos)/l.speed+l.killTime
-				self.obj[obj.spellName].dist = GetDistance(obj.spellOwner,obj.endPos)
+			if not self.obj[l.charName..""..self.str[l.slot]..""..l.displayname] and Spells[_] and EMenu.Spells[l.charName..""..self.str[l.slot]..""..l.displayname] and EMenu.d:Value() <= EMenu.Spells[l.charName..""..self.str[l.slot]..""..l.displayname]["d"..l.charName..""..self.str[l.slot]..""..l.displayname]:Value() and (l.proj == obj.spellName or _ == obj.spellName or obj.spellName:lower():find(_:lower()) or obj.spellName:lower():find(l.proj:lower())) then
+				if not self.obj[l.charName..""..self.str[l.slot]..""..l.displayname] then self.obj[l.charName..""..self.str[l.slot]..""..l.displayname] = {} end
+				self.obj[l.charName..""..self.str[l.slot]..""..l.displayname].o = obj
+				self.obj[l.charName..""..self.str[l.slot]..""..l.displayname].caster = obj.spellOwner
+				self.obj[l.charName..""..self.str[l.slot]..""..l.displayname].mpos = nil
+				self.obj[l.charName..""..self.str[l.slot]..""..l.displayname].uDodge = nil
+				self.obj[l.charName..""..self.str[l.slot]..""..l.displayname].startTime = os.clock()
+				self.obj[l.charName..""..self.str[l.slot]..""..l.displayname].spell = l
+				self.obj[l.charName..""..self.str[l.slot]..""..l.displayname].range = l.range
+				self.obj[l.charName..""..self.str[l.slot]..""..l.displayname].check = GetDistance(myHero,obj.startPos)/l.speed
+				self.obj[l.charName..""..self.str[l.slot]..""..l.displayname].check2 = GetDistance(myHero,obj.endPos)/l.speed+l.killTime
+				self.obj[l.charName..""..self.str[l.slot]..""..l.displayname].dist = GetDistance(obj.spellOwner,obj.endPos)
 			end
 		end
 	end
@@ -9826,28 +9827,28 @@ if not SLE then return end
 			print(spellProc.name)
 		end
 		for _,l in pairs(Spells) do
-			if not self.obj[spellProc.name] and Spells[spellProc.name] and EMenu.Spells[spellProc.name] and EMenu.d:Value() <= EMenu.Spells[spellProc.name]["d"..spellProc.name]:Value() and _ == spellProc.name then
-				if not self.obj[spellProc.name] then self.obj[spellProc.name] = {} end
-				self.obj[spellProc.name].p = spellProc
-				self.obj[spellProc.name].spell = l
-				self.obj[spellProc.name].caster = unit
-				self.obj[spellProc.name].mpos = nil
-				self.obj[spellProc.name].uDodge = nil
-				self.obj[spellProc.name].startTime = os.clock()+l.delay
-				self.obj[spellProc.name].TarE = (Vector(spellProc.endPos) - Vector(unit.pos)):normalized()*l.range
-				self.obj[spellProc.name].range = l.range
-				self.obj[spellProc.name].check = GetDistance(myHero,spellProc.startPos)/l.speed+l.delay
-				self.obj[spellProc.name].check2 = GetDistance(myHero,spellProc.endPos)/l.speed+l.delay+l.killTime
-				self.obj[spellProc.name].dist = GetDistance(unit,spellProc.endPos)
+			if not self.obj[l.charName..""..self.str[l.slot]..""..l.displayname] and Spells[_] and EMenu.Spells[l.charName..""..self.str[l.slot]..""..l.displayname] and EMenu.d:Value() <= EMenu.Spells[l.charName..""..self.str[l.slot]..""..l.displayname]["d"..l.charName..""..self.str[l.slot]..""..l.displayname]:Value() and spellProc.name:find(_) then
+				if not self.obj[l.charName..""..self.str[l.slot]..""..l.displayname] then self.obj[l.charName..""..self.str[l.slot]..""..l.displayname] = {} end
+				self.obj[l.charName..""..self.str[l.slot]..""..l.displayname].p = {startPos = Vector(unit), endPos = Vector(spellProc.endPos)}
+				self.obj[l.charName..""..self.str[l.slot]..""..l.displayname].spell = l
+				self.obj[l.charName..""..self.str[l.slot]..""..l.displayname].caster = unit
+				self.obj[l.charName..""..self.str[l.slot]..""..l.displayname].mpos = nil
+				self.obj[l.charName..""..self.str[l.slot]..""..l.displayname].uDodge = nil
+				self.obj[l.charName..""..self.str[l.slot]..""..l.displayname].startTime = os.clock()+l.delay
+				self.obj[l.charName..""..self.str[l.slot]..""..l.displayname].TarE = (Vector(spellProc.endPos) - Vector(unit.pos)):normalized()*l.range
+				self.obj[l.charName..""..self.str[l.slot]..""..l.displayname].range = l.range
+				self.obj[l.charName..""..self.str[l.slot]..""..l.displayname].check = GetDistance(myHero,spellProc.startPos)/l.speed+l.delay
+				self.obj[l.charName..""..self.str[l.slot]..""..l.displayname].check2 = GetDistance(myHero,spellProc.endPos)/l.speed+l.delay+l.killTime
+				self.obj[l.charName..""..self.str[l.slot]..""..l.displayname].dist = GetDistance(unit,spellProc.endPos)
 				if l.killTime and l.type == "Circle" then
-					DelayAction(function() self.obj[spellProc.name] = nil end, l.killTime + GetDistance(unit,spellProc.endPos)/l.speed + l.delay)
+					DelayAction(function() self.obj[l.charName..""..self.str[l.slot]..""..l.displayname] = nil end, l.killTime + GetDistance(unit,spellProc.endPos)/l.speed + l.delay)
 				elseif l.killTime > 0 and l.type ~= "Circle" then
-					DelayAction(function() self.obj[spellProc.name] = nil end, l.killTime + 1.3*GetDistance(myHero.pos,spellProc.startPos)/l.speed+l.delay)
+					DelayAction(function() self.obj[l.charName..""..self.str[l.slot]..""..l.displayname] = nil end, l.killTime + 1.3*GetDistance(myHero.pos,spellProc.startPos)/l.speed+l.delay)
 				else
-					DelayAction(function() self.obj[spellProc.name] = nil end, l.range/l.speed + l.delay/2)
+					DelayAction(function() self.obj[l.charName..""..self.str[l.slot]..""..l.displayname] = nil end, l.range/l.speed + l.delay/2)
 				end
 			elseif l.killName == spellProc.name then
-				self.obj[_] = nil				
+				self.obj[l.charName..""..self.str[l.slot]..""..l.displayname] = nil				
 			end
 		end
 	end
@@ -9855,9 +9856,11 @@ end
 
 function SLEvade:DeleteObject(obj)
 if not SLE then return end
-	if obj and obj.isSpell and self.obj[obj.spellName] and Spells[obj.spellName].type ~= "Circle" then
-			self.obj[obj.spellName] = nil
-	end	
+	for _,l in pairs(Spells) do
+		if obj and obj.isSpell and self.obj[l.charName..""..self.str[l.slot]..""..l.displayname] and l.type ~= "Circle" and (l.proj == obj.spellName or _ == obj.spellName or obj.spellName:lower():find(_:lower()) or obj.spellName:lower():find(l.proj:lower())) then
+			self.obj[l.charName..""..self.str[l.slot]..""..l.displayname] = nil
+		end	
+	end
 	if (obj.spellName == "YasuoWMovingWallR" or obj.spellName == "YasuoWMovingWallL" or obj.spellName == "YasuoWMovingWallMisVis") and obj and obj.isSpell and obj.spellOwner.isHero and obj.spellOwner.team == myHero.team then
 		self.YasuoWall[obj.spellName] = nil
 	end
