@@ -2058,11 +2058,11 @@ function KogMaw:Tick()
 	self.WOn = CanUseSpell(myHero,2) == 8
 	self:Pred()
 	
-	if Mode == "Combo" and target.valid then
+	if Mode == "Combo" and target and target.valid then
 		self:Combo(target)
 	elseif Mode == "LaneClear" then
 		self:LaneClear()
-	elseif Mode == "Harass" then
+	elseif Mode == "Harass" target and target.valid then
 		self:Harass(target)
 	else
 		return
@@ -3948,7 +3948,7 @@ function Orianna:JungleClear()
 				CastSpell(1)
 			end	
 			if SReady[2] and ValidTarget(minion, Spell[2].range) and BM.JC.E:Value() then
-				local VP = VectorPointProjectionOnLineSegment(Vector(myHero), Vector(self.Ball), Vector(target))
+				local VP = VectorPointProjectionOnLineSegment(Vector(myHero), Vector(self.Ball), Vector(minion))
 				if GetDistance(VP, minion) < Spell[2].radius then
 					CastSpell(2)
 				end
@@ -8203,7 +8203,7 @@ function SLWalker:LaneClear()
 			if OMenu.FS.AS:Value() then
 				if turret.alive and turret.distance > self.aarange then
 					if o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
-						if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"}))+self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) then
+						if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"}))+self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed())/2.25 then
 							return nil
 						else
 							return GetLowestUnit(o,self.aarange)
@@ -8214,7 +8214,7 @@ function SLWalker:LaneClear()
 				end
 			else
 				if o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
-					if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"}))*2.5 then
+					if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"}))+self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed())/2.25 then
 						return nil
 					else
 						return GetLowestUnit(o,self.aarange)
