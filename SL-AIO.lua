@@ -2062,7 +2062,7 @@ function KogMaw:Tick()
 		self:Combo(target)
 	elseif Mode == "LaneClear" then
 		self:LaneClear()
-	elseif Mode == "Harass" target and target.valid then
+	elseif Mode == "Harass" and target and target.valid then
 		self:Harass(target)
 	else
 		return
@@ -6513,6 +6513,7 @@ function Awareness:__init()
 		end,.001)
 	SLU.A:Menu("RT", "Recall Tracker")
 	SLU.A.RT:Boolean("E", "Enabled", true)
+	SLU.A.RT:Boolean("P", "Print", true)
 	SLU.A.RT:Boolean("DT", "Draw Timer", true)
 	SLU.A.RT:Boolean("DU", "Draw Unit pos", true)
 	if self.spells[myHero.charName] then
@@ -6637,6 +6638,25 @@ function Awareness:PrRe(u,r)
 		self.offy = self.offy + 30
 	else
 		table.remove(self.R, 1)
+	end
+	if r.isFinish then
+		for _,i in pairs(self.E) do
+			if u and i.u and u.networkID == i.u.networkID and spawn then
+				i.p = WorldToMinimap(spawn.pos)
+				i.p2 = spawn.pos
+			end
+		end
+	end
+	if u.team ~= myHero.team and u and r and SLU.A.RT.P:Value() and SLU.A.RT.E:Value() then
+		if r.isStart then
+			print(u.charName.."("..math.ceil(GetPercentHP(u)).."%) Started Recalling")
+		else
+			if math.min(8,r.passedTime/1000) == r.totalTime/1000 or r.isFinish then
+				print(u.charName.."("..math.ceil(GetPercentHP(u)).."%) Finished Recall")
+			elseif not r.isFinish then
+				print(u.charName.."("..math.ceil(GetPercentHP(u)).."%) Cancelled Recall")
+			end
+		end
 	end
 end
 
