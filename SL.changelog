@@ -2,7 +2,7 @@
   ["version"] = 1,
   ["Soraka"] = {"Fixed Banas", "Fucking tasty", "Bananas"},
   ["Utility"] = {"Removed Drugs because of the bad influence","Readded Drugs on request"},
-  ["SpellShield"] = {"xx","xx"}
+  ["SpellShield"] = {"xx","xx"},
   ["Evade"] = {"xx","xx"},
   ["Orbwalk"] = {"xx","xx"},
 }
