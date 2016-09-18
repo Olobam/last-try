@@ -12,7 +12,6 @@ GetWebResultAsync("https://raw.githubusercontent.com/xSxcSx/SL-Series/master/SL-
 
 class 'Aggro'
 
-
 function Aggro:__init(u,t)
 	self.unit = u 
 	self.team = t or MINION_ENEMY
