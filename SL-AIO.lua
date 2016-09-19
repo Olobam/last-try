@@ -322,14 +322,6 @@ local function AllyMinionsAround(pos, range)
 	return c
 end
 
-local function GetTeamNumber()
-	if myHero.team == 100 then
-		return "T2"
-	else
-		return "T1"
-	end
-end
-
 local function CircleSegment2(x,y,sRadius,eRadius,sAngle,eAngle,color)
 	for a = sAngle,eAngle do
 		DrawLine(x+sRadius*math.cos(a*math.pi/180),y+sRadius*math.sin(a*math.pi/180),x+eRadius*math.cos(a*math.pi/180),y+eRadius*math.sin(a*math.pi/180),1,color)
@@ -408,7 +400,7 @@ local function Sample(obj)
 end
 
 OnObjectLoad(function(obj)
-	if obj and (obj.type:lower():find("turret") or (obj.name == "Barracks_"..GetTeamNumber().."_L1" or obj.name == "Barracks_"..GetTeamNumber().."_C1" or obj.name == "Barracks_"..GetTeamNumber().."_R1" or obj.name == "HQ_"..GetTeamNumber())) and obj.team == MINION_ENEMY then
+	if obj and obj.type == Obj_AI_SpawnPoint or obj.type == Obj_AI_Turret or obj.type == Obj_AI_Barracks and obj.alive and obj.team == MINION_ENEMY then
 		structures[obj.networkID] = obj
 	end
 	if obj and obj.networkID then
@@ -426,6 +418,12 @@ OnObjectLoad(function(obj)
 	if obj.type == Obj_AI_SpawnPoint and obj.team ~= myHero.team then
 		spawn = obj
     end
+end)
+
+OnDeleteObj(function(obj)
+	if obj and obj.type == Obj_AI_SpawnPoint or obj.type == Obj_AI_Turret or obj.type == Obj_AI_Barracks and obj.team == MINION_ENEMY then
+		structures[obj.networkID] = nil
+	end
 end)
 
 local function DisableAll(b)
@@ -558,7 +556,7 @@ Callback.Add("Tick", function()
 			end
 		end
 		for _,i in pairs(structures) do
-			if i.valid and i.alive and i.team == MINION_ENEMY then
+			if i.valid and i.alive then
 				turrets[i.networkID] = i
 			end
 		end
@@ -8227,9 +8225,9 @@ end
 
 function SLWalker:LaneClear()
 	for _,o in pairs(SLM) do
-		for t,turret in pairs(turrets) do
+		for t,turret in pairs(structures) do
 			if OMenu.FS.AS:Value() then
-				if turret.alive and turret.distance > self.aarange then
+				if turret.distance > self.aarange then
 					if o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
 						if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"}))+self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed())/2 then
 							return nil
@@ -8660,7 +8658,7 @@ Spells = {
 	["RivenWindslashMissileRight"]={charName="Riven",slot=3,type="Line",delay=0.25,range=1100,radius=125,speed=1600,addHitbox=false,danger=5,dangerous=true,proj="RivenLightsaberMissile",killTime=0,displayname="WindSlash Right",mcollision=false},
 	["RivenWindslashMissileCenter"]={charName="Riven",slot=3,type="Line",delay=0.25,range=1100,radius=125,speed=1600,addHitbox=false,danger=5,dangerous=true,proj="RivenLightsaberMissile",killTime=0,displayname="WindSlash Center",mcollision=false},
 	["RivenWindslashMissileLeft"]={charName="Riven",slot=3,type="Line",delay=0.25,range=1100,radius=125,speed=1600,addHitbox=false,danger=5,dangerous=true,proj="RivenLightsaberMissile",killTime=0,displayname="WindSlash Left",mcollision=false},
-	["RivenMartyr"]={charName="Riven",slot=1,type="Circle",delay=0.25,range=0,radius=300,speed=math.huge,addHitbox=false,danger=5,dangerous=true,proj="nil",killTime=0.2,displayname="RivenW",mcollision=false},
+	-- ["RivenMartyr"]={charName="Riven",slot=1,type="Circle",delay=0.25,range=0,radius=300,speed=math.huge,addHitbox=false,danger=5,dangerous=true,proj="nil",killTime=0.2,displayname="RivenW",mcollision=false},
 	["RumbleGrenade"]={charName="Rumble",slot=2,type="Line",delay=0.25,range=850,radius=60,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="RumbleGrenade",killTime=0,displayname="Grenade",mcollision=true},
 	["RumbleCarpetBombM"]={charName="Rumble",slot=3,type="Line",delay=0.4,range=1700,radius=200,speed=1600,addHitbox=true,danger=4,dangerous=false,proj="RumbleCarpetBombMissile",killTime=0,displayname="Carpet Bomb",mcollision=false}, --doesnt work
 	["RyzeQ"]={charName="Ryze",slot=0,type="Line",delay=0,range=900,radius=50,speed=1700,addHitbox=true,danger=2,dangerous=false,proj="RyzeQ",killTime=0,displayname="",mcollision=true},
