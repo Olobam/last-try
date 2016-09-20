@@ -400,7 +400,7 @@ local function Sample(obj)
 end
 
 OnObjectLoad(function(obj)
-	if obj and obj.type == Obj_AI_SpawnPoint or obj.type == Obj_AI_Turret or obj.type == Obj_AI_Barracks and obj.alive and obj.team == MINION_ENEMY then
+	if obj and obj.type == Obj_AI_SpawnPoint or obj.type == Obj_AI_Turret or obj.type == Obj_AI_Barracks and obj.alive and obj.team ~= myHero.team then
 		structures[obj.networkID] = obj
 	end
 	if obj and obj.networkID then
