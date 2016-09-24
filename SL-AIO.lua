@@ -8288,7 +8288,7 @@ if not SLW then return end
 end
 
 function SLWalker:PredictHP(unit,time)
-	return self:GetPredictedHealth(unit,time,GetLatency()/2000)
+	return self:GetPredictedHealth(unit,time,0)
 end
 
 function SLWalker:Dmg(source,unit,spell)
@@ -8440,7 +8440,7 @@ if not SLW then return end
 				break
 			end
 		end
-		table.insert(self.AA,{a=u,t=s.target,st=os.clock(),p=self.projectilespeeds[u.charName],w=s.windUpTime,an=s.animationTime,d=GetDistance(u,s.target)})
+		table.insert(self.AA,{a=u,t=s.target,ht=(os.clock() + GetDistance(s.target,u) / (self.projectilespeeds[u.charName] or math.huge) - GetLatency()/2000)})
 	end
 	if s and s.target and (self.altAANames[s.name:lower()] or s.name:lower():find("attack")) then
 		self:Ex(2, s.target)
@@ -8522,7 +8522,9 @@ function SLWalker:LaneClear()
 						end
 					end
 				else
-					return turret
+					if turret.team ~= myHero.team then
+						return turret
+					end
 				end
 			else
 				if o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
@@ -8646,20 +8648,17 @@ end
 
 function SLWalker:GetPredictedHealth(unit, time, delay)
     local IC = 0
-    local i = 1
-	delay = (delay and delay + OMenu.FS.FD:Value()) or (GetLatency()/2000+OMenu.FS.FD:Value())
+	delay = (delay and delay + OMenu.FS.FD:Value()) or OMenu.FS.FD:Value()
 
-    while i <= #self.AA do
-		if self.AA[i].a.alive and self.AA[i].t.networkID == unit.networkID then
-			local ht = (self.AA[i].an - self.AA[i].w) + self.AA[i].st + self.AA[i].d/self.AA[i].p + delay
-			if self:GetTime() < ht - delay and ht + delay < self:GetTime() + time then
-				IC = IC + self.AA[i].a.totalDamage
+    for _,i in pairs(self.AA) do
+		if i.a.alive and i.t.networkID == unit.networkID then
+			if self:GetTime() < i.ht+delay and i.ht-delay < self:GetTime() + time then
+				IC = IC + i.a.totalDamage
 			end
 			if self:Dmg(myHero,unit,{name="Basic"}) > unit.health-IC then
 				break
 			end
-		end
-		i = i + 1		
+		end	
 	end
 	return unit.health - IC
 end
