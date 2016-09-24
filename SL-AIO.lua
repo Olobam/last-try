@@ -21,6 +21,7 @@ local SLSChamps = {
 	["Zed"] = true,
 	["Anivia"] = true,
 	["Syndra"] = true,
+	["Draven"] = true,
 }
 
 local SLPatchnew = nil
@@ -5760,6 +5761,283 @@ function Syndra:KS()
 	end
 end
 
+class 'Draven'
+
+function Draven:__init()
+
+	self.EpicJgl = {["SRU_Baron"]="Baron", ["SRU_Dragon"]="Dragon", ["SRU_RiftHerald"]="Herald", ["TT_Spiderboss"]="Vilemaw"}
+	self.BigJgl = {["SRU_Red"]="Red Buff", ["SRU_Blue"]="Blue Buff", ["SRU_Krug"]="Krugs", ["SRU_Murkwolf"]="Wolves", ["SRU_Razorbeak"]="Razor", ["SRU_Gromp"]="Gromp", ["Sru_Crab"]="Scuttles"}
+
+	Spell = {
+	[0] = { range = myHero.range+myHero.boundingRadius*2},
+	[1] = { range = 800 },
+	[2] = { range = 1050,delay = 0.25, radius = 130, speed = 1400},
+	[3] = { range = 25000,delay = 0.5, radius = 160, speed = 2000},
+	}
+	
+	Dmg = {
+	[0] = function(unit) return CalcDamage(myHero, unit, myHero.totalDamage+myHero.totalDamage*(.35+.1*GetCastLevel(myHero,0)), 0) end,
+	[2] = function(unit) return CalcDamage(myHero, unit, 25+45*GetCastLevel(myHero,2)+.5*myHero.totalDamage, 0) end,
+	[3] = function(unit) return CalcDamage(myHero, unit, 75+100*GetCastLevel(myHero,3)+1.1*myHero.totalDamage, 0) end,
+	}
+	
+	BM:Menu("C", "Combo")
+	BM.C:Boolean("Q", "Use Q", true)
+	BM.C:Boolean("W", "Use W", true)
+	BM.C:Boolean("E", "Use E", true)
+	
+	BM:Menu("H", "Harass")
+	BM.H:Boolean("Q", "Use Q", true)
+	BM.H:Boolean("W", "Use W", true)
+	BM.H:Boolean("E", "Use E", true)
+	
+	BM:Menu("LC", "LaneClear")
+	BM.LC:Boolean("Q", "Use Q", true)
+	BM.LC:Boolean("W", "Use W", false)
+	BM.LC:Boolean("E", "Use E", false)
+	
+	BM:Menu("JC", "JungleClear")
+	BM.JC:Boolean("Q", "Use Q", true)
+	BM.JC:Boolean("W", "Use W", true)
+	BM.JC:Boolean("E", "Use E", false)
+	
+	BM:Menu("JS","JungleSteal")
+	BM.JS:Boolean("E", "Use E", true)
+	BM.JS:Boolean("R", "Use R", false)
+	DelayAction(function()
+	BM.JS:Menu("S", "Enable for : ")
+		for _,i in pairs(self.EpicJgl) do
+			BM.JS.S:Boolean(_,i,true)
+		end
+		for _,i in pairs(self.BigJgl) do
+			BM.JS.S:Boolean(_,i,false)
+		end
+	end,.001)
+	
+	BM:Menu("KS", "Killsteal")
+	BM.KS:Boolean("E", "Use E", true)
+	BM.KS:Boolean("R", "Use R", true)
+	BM.KS:Slider("MaR", "Max Range To KS with R", 10000, 0, 25000, 100)
+	BM.KS:Slider("MiR", "Min Range To KS with R", 2500, 0, 25000, 100)
+	
+	BM:Menu("DS", "Catch Settings")
+	BM.DS:Boolean("E", "Enable Catch", true)
+	BM.DS:Slider("CR", "Catch Radius", 500,100,1000,5)
+	BM.DS:Boolean("UW", "Use W if not catchable", true)
+	BM.DS:Boolean("ED", "Enable Draw", true)
+	BM.DS:Boolean("DCR", "Draw Catch Radius", true)
+	
+	BM:Boolean("AW", "Use W on Slow", true)
+	
+	BM:Menu("TS", "TargetSelector")
+	ts = SLTS("AD",BM.TS,false)
+	
+	BM:Menu("p", "Prediction")
+	
+	
+	Callback.Add("CreateObj", function(o) self:CO(o) end)
+	Callback.Add("DeleteObj", function(o) self:DO(o) end)
+	Callback.Add("Draw", function() self:D() end)
+	Callback.Add("Tick", function() self:T() end)
+	Callback.Add("UpdateBuff", function(u,b) self:UB(u,b) end)
+	Callback.Add("RemoveBuff", function(u,b) self:RB(u,b) end)
+	
+	self.o = {}
+	self.CC = false
+	self.pos = nil
+	self.R = false
+	_G.DravenLoaded = true
+	
+	for i = 2,3 do
+		PredMenu(BM.p, i)	
+	end
+end
+
+function Draven:CO(o)
+	if o and o.name:lower():find("reticle_self") then
+		if not self.o[o.name] then self.o[o.name] = {} end
+		self.o[o.name].o = o
+	end
+end
+
+function Draven:DO(o)
+	if o and o.name:lower():find("reticle_self") then
+		self.o[o.name] = nil
+	end
+end
+
+function Draven:UB(u,b)
+	if u and u.isMe and b then
+		if b.Type == 10 then
+			self.CC = true
+		end
+		if b.Name == "DravenRDoublecast" then
+			self.R = true
+		end
+	end
+end
+
+function Draven:RB(u,b)
+	if u and u.isMe and b then
+		if b.Type == 10 then
+			self.CC = false
+		end
+		if b.Name == "DravenRDoublecast" then
+			self.R = false
+		end
+	end
+end
+
+function Draven:D()
+	for _, i in pairs(self.o) do
+		if BM.DS.ED:Value() then
+			if i.o then
+				DrawCircle(i.o.pos,75,1.5,20,ARGB(255,0,180,100))
+			end
+		end
+	end
+	if BM.DS.DCR:Value() and BM.DS.ED:Value() then
+		DrawCircle(GetMousePos(),BM.DS.CR:Value(),1.5,20,ARGB(255,0,180,100))
+	end
+end
+	
+function Draven:T()
+	if myHero.dead then return end
+	target = ts:GetTarget()
+	GetReady()
+	self:KS()
+	self:Catch()
+	self:AutoW()
+	self:JungleSteal()
+	
+    if Mode == "Combo" then
+		self:Combo(target)
+	elseif Mode == "LaneClear" then
+		self:LaneClear()
+		self:JungleClear()
+	elseif Mode == "Harass" then
+		self:Harass(target)
+	else
+		return
+	end
+end
+
+function Draven:Combo(u)	
+	if u then
+		if BM.C.Q:Value() and SReady[0] and ValidTarget(u, Spell[0].range) then
+			CastSpell(0)
+		end		
+		if BM.C.W:Value() and SReady[1] and ValidTarget(u, Spell[0].range) then
+			CastSpell(1)
+		end	
+		if BM.C.E:Value() and SReady[2] and ValidTarget(u, Spell[2].range) then
+			CastGenericSkillShot(myHero,u,Spell[2],2,BM.p)
+		end	
+	end
+end
+
+function Draven:Harass(u)	
+	if u then
+		if BM.H.Q:Value() and SReady[0] and ValidTarget(u, Spell[0].range) then
+			CastSpell(0)
+		end		
+		if BM.H.W:Value() and SReady[1] and ValidTarget(u, Spell[0].range) then
+			CastSpell(1)
+		end	
+		if BM.H.E:Value() and SReady[2] and ValidTarget(u, Spell[2].range) then
+			CastGenericSkillShot(myHero,u,Spell[2],2,BM.p)
+		end	
+	end
+end
+
+function Draven:LaneClear()	
+	for _,i in pairs(SLM) do
+		if i.team == MINION_ENEMY then
+			if BM.LC.Q:Value() and SReady[0] and ValidTarget(i, Spell[0].range) then
+				CastSpell(0)
+			end		
+			if BM.LC.W:Value() and SReady[1] and ValidTarget(i, Spell[0].range) then
+				CastSpell(1)
+			end	
+			if BM.LC.E:Value() and SReady[2] and ValidTarget(i, Spell[2].range) then
+				CastGenericSkillShot(myHero,i,Spell[2],2,BM.p)
+			end
+		end
+	end
+end
+
+function Draven:JungleClear()
+	for _,i in pairs(SLM) do
+		if i.team == MINION_JUNGLE then
+			if BM.JC.Q:Value() and SReady[0] and ValidTarget(i, Spell[0].range) then
+				CastSpell(0)
+			end		
+			if BM.JC.W:Value() and SReady[1] and ValidTarget(i, Spell[0].range) then
+				CastSpell(1)
+			end	
+			if BM.JC.E:Value() and SReady[2] and ValidTarget(i, Spell[2].range) then
+				CastGenericSkillShot(myHero,i,Spell[2],2,BM.p)
+			end
+		end
+	end
+end
+
+function Draven:KS()
+	for _,i in pairs(GetEnemyHeroes()) do
+		if BM.KS.E:Value() and SReady[2] and ValidTarget(i, Spell[2].range) and GetADHP(i) < Dmg[2](i) then
+			CastGenericSkillShot(myHero,i,Spell[2],2,BM.p)
+		end	
+		if BM.KS.R:Value() and SReady[3] and ValidTarget(i, Spell[3].range) and GetADHP(i) < Dmg[3](i) and i.distance > BM.KS.MiR:Value() and i.distance < BM.KS.MaR:Value() and not self.R then
+			CastGenericSkillShot(myHero,i,Spell[3],3,BM.p)
+		end			
+	end
+end
+
+function Draven:JungleSteal()
+	for _,i in pairs(SLM) do
+		if i.team == MINION_JUNGLE then
+			if i.valid and ((BM.JS.S[i.charName] and BM.JS.S[i.charName]:Value()) or (i.charName:find("Dragon") and BM.JS.S["SRU_Dragon"]:Value())) then	
+				if BM.JS.E:Value() and SReady[2] and ValidTarget(i, Spell[2].range) and GetADHP(i) < Dmg[2](i) then
+					CastGenericSkillShot(myHero,i,Spell[2],2,BM.p)
+				end
+				if BM.JS.R:Value() and SReady[3] and ValidTarget(i, Spell[3].range) and GetADHP(i) < Dmg[3](i) and not self.R then
+					CastGenericSkillShot(myHero,i,Spell[3],3,BM.p)
+				end	
+			end
+		end
+	end
+end
+
+function Draven:AutoW()
+	if SReady[1] and self.CC and BM.AW:Value() then 
+		CastSpell(1)
+	end
+	for _,i in pairs(self.o) do
+		if SReady[1] and BM.DS.UW:Value() and i.o and self.pos and BM.DS.E:Value() and GetDistance(i.o.pos,GetMousePos()) < BM.DS.CR:Value() and i.o.distance/2000+GetWindUp(myHero)*1000 < i.o.distance/myHero.ms then
+			CastSpell(1)
+		end
+	end
+end
+
+function Draven:Catch()
+	for _, i in pairs(self.o) do
+		if i.o and BM.DS.E:Value() then
+			self.pos = Vector(i.o.pos) + Vector(Vector(myHero.pos)-i.o.pos):normalized():perpendicular()*75
+			if GetDistance(i.o.pos,GetMousePos()) < BM.DS.CR:Value() and self.pos then
+				MoveToXYZ(self.pos)
+			end
+		end
+	end
+end
+
+function Draven:CleanObj()
+	for _, i in pairs(self.o) do
+		if i.o and not i.o.valid then
+			self.o[_] = nil
+		end
+	end
+end
+
 ---------------------------------------------------------------------------------------------
 -------------------------------------UTILITY-------------------------------------------------
 ---------------------------------------------------------------------------------------------
@@ -6577,6 +6855,8 @@ function Awareness:__init()
 	DelayAction(function()
 		self:LoadSprites()
 	end,1)
+	
+	self.DravenR = false
 end
 
 function Awareness:PrWp(u,wp)
@@ -6672,6 +6952,9 @@ function Awareness:UpdBuff(u,b)
 		if b.Name == "sightwardstealth" then
 			self.t = math.ceil((b.ExpireTime-b.StartTime)/10)
 		end
+		if u.isMe and b.Name == "DravenRDoublecast" then
+			self.DravenR = true
+		end
 	end
 end
 
@@ -6679,6 +6962,9 @@ function Awareness:RemBuff(u,b)
 	if u and b then
 		if b.Name == "sightwardstealth" then
 			self.t = 0
+		end
+		if u.isMe and b.Name == "DravenRDoublecast" then
+			self.DravenR = false
 		end
 	end
 end
@@ -6896,7 +7182,7 @@ function Awareness:Tk()
 	for _, i in pairs(self.spells) do
 		for k,p in pairs(self.R) do
 			if self.spells[myHero.charName] and p.u then
-				if p.at-(GetDistance(p.u.pos,spawn.pos)/i.s+i.d)-GetGameTimer()+GetLatency()*.001 < 0 and IsReady(i.sp) and SLU.A.RT.ER:Value() and SLU.A.RT.E:Value() and SLU.A.RT.U[p.u.charName]:Value() then
+				if p.at-(GetDistance(p.u.pos,spawn.pos)/i.s+i.d)-GetGameTimer()+GetLatency()*.001 < 0 and IsReady(i.sp) and SLU.A.RT.ER:Value() and SLU.A.RT.E:Value() and SLU.A.RT.U[p.u.charName]:Value() and not self.DravenR then
 					if p.u.health < self.spells[myHero.charName].dmg(p.u) and not self:Coll() then
 						CastSkillShot(i.sp,spawn.pos)
 					end	
@@ -7714,7 +8000,7 @@ function SLWalker:__init()
 		return ADDmg, APDmg + (GotBuff(source, "dianaarcready") > 0 and math.max(5*GetLevel(source)+15,10*GetLevel(source)-10,15*GetLevel(source)-60,20*GetLevel(source)-125,25*GetLevel(source)-200)+.8*GetBonusAP(source) or 0), TRUEDmg
     end,
     ["Draven"] = function(source, target, ADDmg, APDmg, TRUEDmg)
-		return ADDmg + (GotBuff(source, "DravenSpinning") > 0 and 45+10*GetCastLevel(myHero,_Q) / 100*(ADDmg) or 0), APDmg, TRUEDmg
+		return ADDmg + (GotBuff(source, "DravenSpinning") > 0 and 35+10*GetCastLevel(myHero,_Q) / 100*(ADDmg) or 0), APDmg, TRUEDmg
     end,
     ["Ekko"] = function(source, target, ADDmg, APDmg, TRUEDmg)
 		return ADDmg, APDmg + (GotBuff(source, "ekkoeattackbuff") > 0 and 30*GetCastLevel(source, _E)+20+.2*GetBonusAP(source) or 0), TRUEDmg
@@ -7860,7 +8146,7 @@ function SLWalker:__init()
 	OMenu.Adv:Slider("AAD", "Auto Attack Delay", -50,-50,50,5)
 	OMenu.Adv:Slider("MD", "Move Delay", 20,-50,50,5)
 	
-	if myHero.charName == "Draven" then
+	if myHero.charName == "Draven" and not _G.DravenLoaded then
 		OMenu:Menu("DS", "Draven Settings")
 		OMenu.DS:Boolean("E", "Enable Catch", true)
 		OMenu.DS:Slider("CR", "Catch Radius", 500,100,1000,5)
@@ -7948,7 +8234,7 @@ self:Orb()
 		end
 	end
 	for _, i in pairs(self.da) do
-		if i.o and myHero.charName == "Draven" and OMenu.DS.E:Value() then
+		if not _G.DravenLoaded and i.o and myHero.charName == "Draven" and OMenu.DS.E:Value() then
 			self.pos = Vector(i.o.pos) + Vector(Vector(myHero.pos)-i.o.pos):normalized():perpendicular()*75
 			if GetDistance(i.o.pos,GetMousePos()) < OMenu.DS.CR:Value() and self.pos then
 				MoveToXYZ(self.pos)
@@ -7990,13 +8276,13 @@ if not SLW then return end
 		end
 	end	
 	for _, i in pairs(self.da) do
-		if myHero.charName == "Draven" and OMenu.DS.ED:Value() then
+		if not _G.DravenLoaded and myHero.charName == "Draven" and OMenu.DS.ED:Value() then
 			if i.o then
 				DrawCircle(i.o.pos,75,1.5,20,ARGB(255,0,180,100))
 			end
 		end
 	end
-	if myHero.charName == "Draven" and OMenu.DS.DCR:Value() and OMenu.DS.ED:Value() then
+	if not _G.DravenLoaded and myHero.charName == "Draven" and OMenu.DS.DCR:Value() and OMenu.DS.ED:Value() then
 		DrawCircle(GetMousePos(),OMenu.DS.CR:Value(),1.5,20,ARGB(255,0,180,100))
 	end
 end
