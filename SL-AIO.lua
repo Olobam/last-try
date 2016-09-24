@@ -6645,11 +6645,12 @@ function Awareness:PrRe(u,r)
 	else
 		table.remove(self.R, 1)
 	end
-	if r.isFinish then
+	if r.isFinish and u.team ~= myHero.team and u and r then
 		for _,i in pairs(self.E) do
-			if u and i.u and u.networkID == i.u.networkID and spawn then
+			if i.u and u.networkID == i.u.networkID and spawn then
 				i.p = WorldToMinimap(spawn.pos)
 				i.p2 = spawn.pos
+				i.l = GetGameTimer()
 			end
 		end
 	end
@@ -6657,9 +6658,9 @@ function Awareness:PrRe(u,r)
 		if r.isStart then
 			print(u.charName.."("..math.ceil(GetPercentHP(u)).."%) Started Recalling")
 		else
-			if math.min(8,r.passedTime/1000) == r.totalTime/1000 or r.isFinish then
+			if r.isFinish then
 				print(u.charName.."("..math.ceil(GetPercentHP(u)).."%) Finished Recall")
-			elseif not r.isFinish then
+			else
 				print(u.charName.."("..math.ceil(GetPercentHP(u)).."%) Cancelled Recall")
 			end
 		end
@@ -6835,8 +6836,7 @@ function Awareness:draMin()
             elseif i.u.alive and i.l and i.ms and i.p2 and i.p and i.l and i.p2.x and i.p2.y and GetGameTimer()-i.l < 30 and (GetGameTimer()-i.l)*i.ms < 5000 then
                 if SLU.A.ME.DC:Value()  then
                     if not i.u.visible and i.u.alive and SLU.A.ME.DI:Value() and self.d2[i.u.networkID] then
-                        local p = WorldToMinimap(i.u.pos)
-                        self.d2[i.u.networkID]:Draw(p.x-12,p.y-12,25,25)
+                        self.d2[i.u.networkID]:Draw(i.p.x-12,i.p.y-12,25,25)
                     end
                     DrawCircleMinimap(i.p2, (GetGameTimer()-i.l)*i.ms, 0, 0, ARGB(1.25*(20-GetGameTimer()-i.l),255,255,255))
                 end
