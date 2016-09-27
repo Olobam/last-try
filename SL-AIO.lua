@@ -1517,9 +1517,6 @@ function Soraka:LaneClear()
 				Spell[0].delay = .25 + (GetDistance(myHero,minion) / Spell[0].range)*.55
 				CastGenericSkillShot(myHero,minion,Spell[0],0,BM.p)
 			end
-			if SReady[2] and ValidTarget(minion, Spell[2].range) and BM.LC.E:Value() then
-				CastGenericSkillShot(myHero,minion,Spell[2],2,BM.p)
-			end
 		end
 	end
 end
@@ -1530,9 +1527,6 @@ function Soraka:JungleClear()
 			if SReady[0] and ValidTarget(mob, Spell[0].range*1.1) and BM.JC.Q:Value() then
 				Spell[0].delay = .25 + (GetDistance(myHero,mob) / Spell[0].range)*.55
 				CastGenericSkillShot(myHero,mob,Spell[0],0,BM.p)
-			end
-			if SReady[2] and ValidTarget(mob, Spell[2].range) and BM.JC.E:Value() then
-				CastGenericSkillShot(myHero,mob,Spell[2],2,BM.p)
 			end
 		end
 	end
