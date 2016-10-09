@@ -53,7 +53,7 @@ if SLSChamps[myHero.charName] then
 end
 
 local function PredMenu(m,sp)
-	if not m["CP"] then m:DropDown("CP", "Choose Prediction", 1 ,{"OPred", "GPred", "IPred", "GoSPred"}) end
+	if not m["CP"] then m:DropDown("CP", "Choose Prediction", 1 ,{"OPred", "GPred", "IPred", "GoSPred","SLPred"}) end
 	m:DropDown("h"..str3[sp], "Hitchance"..str3[sp], 2, {"Low", "Medium", "High"})
 	if m.CP:Value() == 2 then
 		require 'GPrediction'
@@ -65,7 +65,15 @@ end
 
 local function GetValue(m,sp)
 	if not m["CP"] or not m["h"..str3[sp]] then return end
-	if m.CP:Value() == 4 then
+	if m.CP:Value() == 5 then
+		if m["h"..str3[sp]]:Value() == 1 then
+			return 1
+		elseif m["h"..str3[sp]]:Value() == 2 then
+			return 1
+		elseif m["h"..str3[sp]]:Value() == 3 then
+			return 2
+		end
+	elseif m.CP:Value() == 4 then
 		if m["h"..str3[sp]]:Value() == 1 then
 			return 1
 		elseif m["h"..str3[sp]]:Value() == 2 then
@@ -102,7 +110,11 @@ end
 
 local function GetCollision(m,sp,t)
 	if not m["CP"] or not m["h"..str3[sp]] then return end
-	if m.CP:Value() == 4 then
+	if m.CP:Value() == 5 then
+		return t.col or false
+	elseif m.CP:Value() == 4 then
+		return t.col or false
+	elseif m.CP:Value() == 4 then
 		return t.col or false
 	elseif m.CP:Value() == 3 then
 		return t.col or false
@@ -194,6 +206,11 @@ local function CastGenericSkillShot(s,u,t,sp,m)--source,unit,table,spell,menu
 		local Pred = GetPredictionForPlayer(s.pos,u,u.ms, t.speed, t.delay*1000, t.range, t.width, t.col, true)
 		if Pred.HitChance == GetValue(m,sp) and GetDistance(s,Pred.PredPos) < t.range then
 			CastSkillShot(sp, Pred.PredPos)
+		end
+	elseif m.CP:Value() == 5 then
+		local SLhc,SLpos = SLP:Predict({source=s,unit=u,speed=t.speed,range=t.range,delay=t.delay,width=t.width,type=t.type,collision=t.col})
+		if SLhc and SLhc+.1 >= GetValue(m,sp) and SLpos then
+			CastSkillShot(sp,SLpos)
 		end
 	end
 end
@@ -323,10 +340,16 @@ local function AllyMinionsAround(pos, range)
 	return c
 end
 
+local function CircleSegment(x,y,radius,sAngle,eAngle,color)
+    for a = sAngle,eAngle do
+        DrawLine(x,y,x+radius*math.cos(a*math.pi/180),y+radius*math.sin(a*math.pi/180),5,color)
+    end
+end
+
 local function CircleSegment2(x,y,sRadius,eRadius,sAngle,eAngle,color)
-	for a = sAngle,eAngle do
-		DrawLine(x+sRadius*math.cos(a*math.pi/180),y+sRadius*math.sin(a*math.pi/180),x+eRadius*math.cos(a*math.pi/180),y+eRadius*math.sin(a*math.pi/180),1,color)
-	end
+    for a = sAngle,eAngle do
+        DrawLine(x+sRadius*math.cos(a*math.pi/180),y+sRadius*math.sin(a*math.pi/180),x+eRadius*math.cos(a*math.pi/180),y+eRadius*math.sin(a*math.pi/180),1,color)
+    end
 end
 
 local function GetLowestUnit(i,range)
@@ -567,6 +590,7 @@ end)
 Callback.Add("Load", function()	
 	Update()
 	Init()
+	LoadSLP()
 	if SLSChamps[ChampName] and SLS.Loader.LC:Value() then
 		_G[ChampName]() 
 		if myHero.charName ~= "Orianna" and myHero.charName ~= "Ahri" and myHero.charName ~= "Anivia" then
@@ -2433,9 +2457,10 @@ function Jinx:__init()
 
 
 	Spell = {
+	[0] = { range = 25 * GetCastLevel(myHero,0) + 600 },
 	[1] = { delay = 0.6, speed = 3000, width = 85, range = 1500,type = "line",col=true},
 	[2] = { delay = 1, speed = 887, width = 120, range = 900,type = "circular",col=false},
-	[3] = { delay = 0.6, speed = 1700, width = 140, range = math.huge,type = "line",col=false}
+	[3] = { delay = 0.6, speed = 1700, width = 140, range = math.huge,type = "line",col=false},
 	}
 	
 	
@@ -8262,10 +8287,10 @@ if not SLW then return end
 	end
 	for _,i in pairs(SLM) do
 		if OMenu.D.LHM:Value() then
-			if self:Mode() == "LaneClear" or self:Mode() == "LastHit" or self:Mode() == "Harass" then
-				if i.visible and ValidTarget(i,self.aarange) and i.alive and self:PredictHP(i,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-i.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, i, self:Dmg(myHero,i,{name = "Basic"})) then
-					DrawCircle(i.pos,i.boundingRadius*1.2,1.5,20,ARGB(168,255,255,255))
-				end
+			if (self:Mode() == "LaneClear" or self:Mode() == "LastHit" or self:Mode() == "Harass") and i.visible and ValidTarget(i,self.aarange) and i.alive and self:PredictHP(i,1000*(self.windUpTime+i.distance/self:aaprojectilespeed())) < CalcPhysicalDamage(myHero, i, self:Dmg(myHero,i,{name = "Basic"})) then
+				DrawCircle(i.pos,i.boundingRadius*1.5,1.5,20,ARGB(168,255,255,255))
+			elseif self:Mode() == "LaneClear" and i.visible and ValidTarget(i,self.aarange) and i.alive and self:PredictHP(i,1000*(self.windUpTime+i.distance/self:aaprojectilespeed())) < CalcPhysicalDamage(myHero, i, self:Dmg(myHero,i,{name = "Basic"}))+self:PredictHP(i,1000*(self.windUpTime+i.distance/self:aaprojectilespeed()))/2 then
+				DrawCircle(i.pos,i.boundingRadius*1.5,1.5,20,ARGB(168,242,156,17))
 			end
 		end
 	end	
@@ -8494,7 +8519,7 @@ end
 function SLWalker:JungleClear()
 	for _,o in pairs(SLM) do
 		if OMenu.FS.AJ:Value() and o.team == MINION_JUNGLE and ValidTarget(o,self.aarange) and self:CanOrb(o) then
-			if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
+			if self:PredictHP(o,1000*(self.windUpTime+o.distance/self:aaprojectilespeed())) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
 				return nil
 			else
 				return GetHighestUnit(o,self.aarange)
@@ -8509,7 +8534,7 @@ function SLWalker:LaneClear()
 			if OMenu.FS.AS:Value() then
 				if turret.distance > self.aarange then
 					if o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
-						if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"}))+self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed())/2 then
+						if self:PredictHP(o,1000*(self.windUpTime+o.distance/self:aaprojectilespeed())) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"}))+self:PredictHP(o,1000*(self.windUpTime+o.distance/self:aaprojectilespeed()))/2 then
 							return nil
 						else
 							return GetLowestUnit(o,self.aarange)
@@ -8522,7 +8547,7 @@ function SLWalker:LaneClear()
 				end
 			else
 				if o.team == MINION_ENEMY and ValidTarget(o,self.aarange) and self:CanOrb(o) then
-					if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"}))+self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed())/2 then
+					if self:PredictHP(o,1000*(self.windUpTime+o.distance/self:aaprojectilespeed())) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"}))+self:PredictHP(o,1000*(self.windUpTime+o.distance/self:aaprojectilespeed()))/2 then
 						return nil
 					else
 						return GetLowestUnit(o,self.aarange)
@@ -8536,7 +8561,7 @@ end
 function SLWalker:LastHit()
 	for _,o in pairs(SLM) do
 		if ValidTarget(o,self.aarange) and self:CanOrb(o) then
-			if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
+			if self:PredictHP(o,1000*(self.windUpTime+o.distance/self:aaprojectilespeed())) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
 				 return o
 			end
 		end
@@ -10066,7 +10091,7 @@ if not SLE then return end
 		end
 		for _,l in pairs(Spells) do
 			if not self.obj[l.charName..""..self.str[l.slot]..""..l.displayname] and Spells[_] and EMenu.Spells[l.charName..""..self.str[l.slot]..""..l.displayname] and EMenu.d:Value() <= EMenu.Spells[l.charName..""..self.str[l.slot]..""..l.displayname]["d"..l.charName..""..self.str[l.slot]..""..l.displayname]:Value() and (l.proj == obj.spellName or _ == obj.spellName or obj.spellName:lower():find(_:lower()) or obj.spellName:lower():find(l.proj:lower())) then
-				if l.type ~= ("Ring" or "Circle") then 
+				if l.type == "Line" then 
 					endPos = Vector(obj.startPos)+Vector(Vector(obj.endPos)-obj.startPos):normalized()*l.range
 				else
 					endPos = Vector(obj.endPos)
@@ -10103,7 +10128,7 @@ if not SLE then return end
 		end
 		for _,l in pairs(Spells) do
 			if not self.obj[l.charName..""..self.str[l.slot]..""..l.displayname] and Spells[_] and EMenu.Spells[l.charName..""..self.str[l.slot]..""..l.displayname] and EMenu.d:Value() <= EMenu.Spells[l.charName..""..self.str[l.slot]..""..l.displayname]["d"..l.charName..""..self.str[l.slot]..""..l.displayname]:Value() and spellProc.name:find(_) then
-				if l.type ~= ("Ring" or "Circle") then 
+				if l.type == "Line" then 
 					endPos = Vector(spellProc.startPos)+Vector(Vector(spellProc.endPos)-spellProc.startPos):normalized()*l.range
 				else
 					endPos = Vector(spellProc.endPos)
@@ -10371,7 +10396,7 @@ end
 
 function SLTS:Draw()
 	if self:GetTarget() and self.m.dsel:Value() then
-		DrawCircle(self:GetTarget(),50,1,20,GoS.White)
+		DrawCircle(self:GetTarget().pos,self:GetTarget().boundingRadius*1.35,1,20,GoS.White)
 	end
 end
 
@@ -10484,56 +10509,377 @@ function AntiGapCloser:CheckAGC(unit,spellProc)
 	end
 end
 
+class 'SLPrediction'
+
+function SLPrediction:__init()
+	self.CCType = { 
+		[5] = "Stun", 
+		[24] = "Suppression",
+	}
+	self.Channel = {
+		{name = "katarinar", duration = 1},
+		{name = "drain", duration = 5},
+		{name = "crowstorm", duration = 1.5},
+		{name = "consume", duration = 1.5},
+		{name = "absolutezero", duration = 1},
+		{name = "ezrealtrueshotbarrage", duration = 1},
+		{name = "galioidolofdurand", duration = 1},
+		{name = "reapthewhirlwind", duration = 1},
+		{name = "missfortunebullettime", duration = 1},
+		{name = "shenstandunited", duration = 1},
+		{name = "meditate", duration = 1},
+		{name = "gate", duration = 1.5},
+	}
+	SLS:Menu("SLPred","|SL| Prediction [settings]")
+	SLS.SLPred:Slider("cb", "Collision Buffer", 10, 0, 50, 1)
+	SLS.SLPred:Boolean("mcoll","Check for Minion Collision", true)
+	SLS.SLPred:Boolean("hcoll","Check for Hero Collision", true)
+	SLS.SLPred:Boolean("dpos", "Draw Pred pos", false)
+	self.c = {}
+	self.um = {}
+	self.a = {}
+	self.s = {}
+	self.AA = {}
+	self.predictedpos = nil
+	self.hitchance = nil
+	self.p = {["Velkoz"]= 2000,["TeemoMushroom"] = math.huge,["TestCubeRender"] = math.huge ,["Xerath"] = 2000.0000 ,["Kassadin"] = math.huge ,["Rengar"] = math.huge ,["Thresh"] = 1000.0000 ,["Ziggs"] = 1500.0000 ,["ZyraPassive"] = 1500.0000 ,["ZyraThornPlant"] = 1500.0000 ,["KogMaw"] = 1800.0000 ,["HeimerTBlue"] = 1599.3999 ,["EliseSpider"] = 500.0000 ,["Skarner"] = 500.0000 ,["ChaosNexus"] = 500.0000 ,["Katarina"] = 467.0000 ,["Riven"] = 347.79999 ,["SightWard"] = 347.79999 ,["HeimerTYellow"] = 1599.3999 ,["Ashe"] = 2000.0000 ,["VisionWard"] = 2000.0000 ,["TT_NGolem2"] = math.huge ,["ThreshLantern"] = math.huge ,["TT_Spiderboss"] = math.huge ,["OrderNexus"] = math.huge ,["Soraka"] = 1000.0000 ,["Jinx"] = 2750.0000 ,["TestCubeRenderwCollision"] = 2750.0000 ,["Red_Minion_Wizard"] = 650.0000 ,["JarvanIV"] = 20.0000 ,["Blue_Minion_Wizard"] = 650.0000 ,["TT_ChaosTurret2"] = 1200.0000 ,["TT_ChaosTurret3"] = 1200.0000 ,["TT_ChaosTurret1"] = 1200.0000 ,["ChaosTurretGiant"] = 1200.0000 ,["Dragon"] = 1200.0000 ,["LuluSnowman"] = 1200.0000 ,["Worm"] = 1200.0000 ,["ChaosTurretWorm"] = 1200.0000 ,["TT_ChaosInhibitor"] = 1200.0000 ,["ChaosTurretNormal"] = 1200.0000 ,["AncientGolem"] = 500.0000 ,["ZyraGraspingPlant"] = 500.0000 ,["HA_AP_OrderTurret3"] = 1200.0000 ,["HA_AP_OrderTurret2"] = 1200.0000 ,["Tryndamere"] = 347.79999 ,["OrderTurretNormal2"] = 1200.0000 ,["Singed"] = 700.0000 ,["OrderInhibitor"] = 700.0000 ,["Diana"] = 347.79999 ,["HA_FB_HealthRelic"] = 347.79999 ,["TT_OrderInhibitor"] = 347.79999 ,["GreatWraith"] = 750.0000 ,["Yasuo"] = 347.79999 ,["OrderTurretDragon"] = 1200.0000 ,["OrderTurretNormal"] = 1200.0000 ,["LizardElder"] = 500.0000 ,["HA_AP_ChaosTurret"] = 1200.0000 ,["Ahri"] = 1750.0000 ,["Lulu"] = 1450.0000 ,["ChaosInhibitor"] = 1450.0000 ,["HA_AP_ChaosTurret3"] = 1200.0000 ,["HA_AP_ChaosTurret2"] = 1200.0000 ,["ChaosTurretWorm2"] = 1200.0000 ,["TT_OrderTurret1"] = 1200.0000 ,["TT_OrderTurret2"] = 1200.0000 ,["TT_OrderTurret3"] = 1200.0000 ,["LuluFaerie"] = 1200.0000 ,["HA_AP_OrderTurret"] = 1200.0000 ,["OrderTurretAngel"] = 1200.0000 ,["YellowTrinketUpgrade"] = 1200.0000 ,["MasterYi"] = math.huge ,["Lissandra"] = 2000.0000 ,["ARAMOrderTurretNexus"] = 1200.0000 ,["Draven"] = 1700.0000 ,["FiddleSticks"] = 1750.0000 ,["SmallGolem"] = math.huge ,["ARAMOrderTurretFront"] = 1200.0000 ,["ChaosTurretTutorial"] = 1200.0000 ,["NasusUlt"] = 1200.0000 ,["Maokai"] = math.huge ,["Wraith"] = 750.0000 ,["Wolf"] = math.huge ,["Sivir"] = 1750.0000 ,["Corki"] = 2000.0000 ,["Janna"] = 1200.0000 ,["Nasus"] = math.huge ,["Golem"] = math.huge ,["ARAMChaosTurretFront"] = 1200.0000 ,["ARAMOrderTurretInhib"] = 1200.0000 ,["LeeSin"] = math.huge ,["HA_AP_ChaosTurretTutorial"] = 1200.0000 ,["GiantWolf"] = math.huge ,["HA_AP_OrderTurretTutorial"] = 1200.0000 ,["YoungLizard"] = 750.0000 ,["Jax"] = 400.0000 ,["LesserWraith"] = math.huge ,["Blitzcrank"] = math.huge ,["ARAMChaosTurretInhib"] = 1200.0000 ,["Shen"] = 400.0000 ,["Nocturne"] = math.huge ,["Sona"] = 1500.0000 ,["ARAMChaosTurretNexus"] = 1200.0000 ,["YellowTrinket"] = 1200.0000 ,["OrderTurretTutorial"] = 1200.0000 ,["Caitlyn"] = 2500.0000 ,["Trundle"] = 347.79999 ,["Malphite"] = 1000.0000 ,["Mordekaiser"] = math.huge ,["ZyraSeed"] = math.huge ,["Vi"] = 1000.0000 ,["Tutorial_Red_Minion_Wizard"] = 650.0000 ,["Renekton"] = math.huge ,["Anivia"] = 1400.0000 ,["Fizz"] = math.huge ,["Heimerdinger"] = 1500.0000 ,["Evelynn"] = 467.0000 ,["Rumble"] = 347.79999 ,["Leblanc"] = 1700.0000 ,["Darius"] = math.huge ,["OlafAxe"] = math.huge ,["Viktor"] = 2300.0000 ,["XinZhao"] = 20.0000 ,["Orianna"] = 1450.0000 ,["Vladimir"] = 1400.0000 ,["Nidalee"] = 1750.0000 ,["Tutorial_Red_Minion_Basic"] = math.huge ,["ZedShadow"] = 467.0000 ,["Syndra"] = 1800.0000 ,["Zac"] = 1000.0000 ,["Olaf"] = 347.79999 ,["Veigar"] = 1100.0000 ,["Twitch"] = 2500.0000 ,["Alistar"] = math.huge ,["Akali"] = 467.0000 ,["Urgot"] = 1300.0000 ,["Leona"] = 347.79999 ,["Talon"] = math.huge ,["Karma"] = 1500.0000 ,["Jayce"] = 347.79999 ,["Galio"] = 1000.0000 ,["Shaco"] = math.huge ,["Taric"] = math.huge ,["TwistedFate"] = 1500.0000 ,["Varus"] = 2000.0000 ,["Garen"] = 347.79999 ,["Swain"] = 1600.0000 ,["Vayne"] = 2000.0000 ,["Fiora"] = 467.0000 ,["Quinn"] = 2000.0000 ,["Kayle"] = math.huge ,["Blue_Minion_Basic"] = math.huge ,["Brand"] = 2000.0000 ,["Teemo"] = 1300.0000 ,["Amumu"] = 500.0000 ,["Annie"] = 1200.0000 ,["Odin_Blue_Minion_caster"] = 1200.0000 ,["Elise"] = 1600.0000 ,["Nami"] = 1500.0000 ,["Poppy"] = 500.0000 ,["AniviaEgg"] = 500.0000 ,["Tristana"] = 2250.0000 ,["Graves"] = 3000.0000 ,["Morgana"] = 1600.0000 ,["Gragas"] = math.huge ,["MissFortune"] = 2000.0000 ,["Warwick"] = math.huge ,["Cassiopeia"] = 1200.0000 ,["Tutorial_Blue_Minion_Wizard"] = 650.0000 ,["DrMundo"] = math.huge ,["Volibear"] = 467.0000 ,["Irelia"] = 467.0000 ,["Odin_Red_Minion_Caster"] = 650.0000 ,["Lucian"] = 2800.0000 ,["Yorick"] = math.huge ,["RammusPB"] = math.huge ,["Red_Minion_Basic"] = math.huge ,["Udyr"] = 467.0000 ,["MonkeyKing"] = 20.0000 ,["Tutorial_Blue_Minion_Basic"] = math.huge ,["Kennen"] = 1600.0000 ,["Nunu"] = 500.0000 ,["Ryze"] = 2400.0000 ,["Zed"] = 467.0000 ,["Nautilus"] = 1000.0000 ,["Gangplank"] = 1000.0000 ,["Lux"] = 1600.0000 ,["Sejuani"] = 500.0000 ,["Ezreal"] = 2000.0000 ,["OdinNeutralGuardian"] = 1800.0000 ,["Khazix"] = 500.0000 ,["Sion"] = math.huge ,["Aatrox"] = 347.79999 ,["Hecarim"] = 500.0000 ,["Pantheon"] = 20.0000 ,["Shyvana"] = 467.0000 ,["Zyra"] = 1700.0000 ,["Karthus"] = 1200.0000 ,["Rammus"] = math.huge ,["Zilean"] = 1200.0000 ,["Chogath"] = 500.0000 ,["Malzahar"] = 2000.0000 ,["YorickRavenousGhoul"] = 347.79999 ,["YorickSpectralGhoul"] = 347.79999 ,["JinxMine"] = 347.79999 ,["YorickDecayedGhoul"] = 347.79999 ,["XerathArcaneBarrageLauncher"] = 347.79999 ,["Odin_SOG_Order_Crystal"] = 347.79999 ,["TestCube"] = 347.79999 ,["ShyvanaDragon"] = math.huge ,["FizzBait"] = math.huge ,["Blue_Minion_MechMelee"] = math.huge ,["OdinQuestBuff"] = math.huge ,["TT_Buffplat_L"] = math.huge ,["TT_Buffplat_R"] = math.huge ,["KogMawDead"] = math.huge ,["TempMovableChar"] = math.huge ,["Lizard"] = 500.0000 ,["GolemOdin"] = math.huge ,["OdinOpeningBarrier"] = math.huge ,["TT_ChaosTurret4"] = 500.0000 ,["TT_Flytrap_A"] = 500.0000 ,["TT_NWolf"] = math.huge ,["OdinShieldRelic"] = math.huge ,["LuluSquill"] = math.huge ,["redDragon"] = math.huge ,["MonkeyKingClone"] = math.huge ,["Odin_skeleton"] = math.huge ,["OdinChaosTurretShrine"] = 500.0000 ,["Cassiopeia_Death"] = 500.0000 ,["OdinCenterRelic"] = 500.0000 ,["OdinRedSuperminion"] = math.huge ,["JarvanIVWall"] = math.huge ,["ARAMOrderNexus"] = math.huge ,["Red_Minion_MechCannon"] = 1200.0000 ,["OdinBlueSuperminion"] = math.huge ,["SyndraOrbs"] = math.huge ,["LuluKitty"] = math.huge ,["SwainNoBird"] = math.huge ,["LuluLadybug"] = math.huge ,["CaitlynTrap"] = math.huge ,["TT_Shroom_A"] = math.huge ,["ARAMChaosTurretShrine"] = 500.0000 ,["Odin_Windmill_Propellers"] = 500.0000 ,["TT_NWolf2"] = math.huge ,["OdinMinionGraveyardPortal"] = math.huge ,["SwainBeam"] = math.huge ,["Summoner_Rider_Order"] = math.huge ,["TT_Relic"] = math.huge ,["odin_lifts_crystal"] = math.huge ,["OdinOrderTurretShrine"] = 500.0000 ,["SpellBook1"] = 500.0000 ,["Blue_Minion_MechCannon"] = 1200.0000 ,["TT_ChaosInhibitor_D"] = 1200.0000 ,["Odin_SoG_Chaos"] = 1200.0000 ,["TrundleWall"] = 1200.0000 ,["HA_AP_HealthRelic"] = 1200.0000 ,["OrderTurretShrine"] = 500.0000 ,["OriannaBall"] = 500.0000 ,["ChaosTurretShrine"] = 500.0000 ,["LuluCupcake"] = 500.0000 ,["HA_AP_ChaosTurretShrine"] = 500.0000 ,["TT_NWraith2"] = 750.0000 ,["TT_Tree_A"] = 750.0000 ,["SummonerBeacon"] = 750.0000 ,["Odin_Drill"] = 750.0000 ,["TT_NGolem"] = math.huge ,["AramSpeedShrine"] = math.huge ,["OriannaNoBall"] = math.huge ,["Odin_Minecart"] = math.huge ,["Summoner_Rider_Chaos"] = math.huge ,["OdinSpeedShrine"] = math.huge ,["TT_SpeedShrine"] = math.huge ,["odin_lifts_buckets"] = math.huge ,["OdinRockSaw"] = math.huge ,["OdinMinionSpawnPortal"] = math.huge ,["SyndraSphere"] = math.huge ,["Red_Minion_MechMelee"] = math.huge ,["SwainRaven"] = math.huge ,["crystal_platform"] = math.huge ,["MaokaiSproutling"] = math.huge ,["Urf"] = math.huge ,["TestCubeRender10Vision"] = math.huge ,["MalzaharVoidling"] = 500.0000 ,["GhostWard"] = 500.0000 ,["MonkeyKingFlying"] = 500.0000 ,["LuluPig"] = 500.0000 ,["AniviaIceBlock"] = 500.0000 ,["TT_OrderInhibitor_D"] = 500.0000 ,["Odin_SoG_Order"] = 500.0000 ,["RammusDBC"] = 500.0000 ,["FizzShark"] = 500.0000 ,["LuluDragon"] = 500.0000 ,["OdinTestCubeRender"] = 500.0000 ,["TT_Tree1"] = 500.0000 ,["ARAMOrderTurretShrine"] = 500.0000 ,["Odin_Windmill_Gears"] = 500.0000 ,["ARAMChaosNexus"] = 500.0000 ,["TT_NWraith"] = 750.0000 ,["TT_OrderTurret4"] = 500.0000 ,["Odin_SOG_Chaos_Crystal"] = 500.0000 ,["OdinQuestIndicator"] = 500.0000 ,["JarvanIVStandard"] = 500.0000 ,["TT_DummyPusher"] = 500.0000 ,["OdinClaw"] = 500.0000 ,["EliseSpiderling"] = 2000.0000 ,["QuinnValor"] = math.huge ,["UdyrTigerUlt"] = math.huge ,["UdyrTurtleUlt"] = math.huge ,["UdyrUlt"] = math.huge ,["UdyrPhoenixUlt"] = math.huge ,["ShacoBox"] = 1500.0000 ,["HA_AP_Poro"] = 1500.0000 ,["AnnieTibbers"] = math.huge ,["UdyrPhoenix"] = math.huge ,["UdyrTurtle"] = math.huge ,["UdyrTiger"] = math.huge ,["HA_AP_OrderShrineTurret"] = 500.0000 ,["HA_AP_Chains_Long"] = 500.0000 ,["HA_AP_BridgeLaneStatue"] = 500.0000 ,["HA_AP_ChaosTurretRubble"] = 500.0000 ,["HA_AP_PoroSpawner"] = 500.0000 ,["HA_AP_Cutaway"] = 500.0000 ,["HA_AP_Chains"] = 500.0000 ,["ChaosInhibitor_D"] = 500.0000 ,["ZacRebirthBloblet"] = 500.0000 ,["OrderInhibitor_D"] = 500.0000 ,["Nidalee_Spear"] = 500.0000 ,["Nidalee_Cougar"] = 500.0000 ,["TT_Buffplat_Chain"] = 500.0000 ,["WriggleLantern"] = 500.0000 ,["TwistedLizardElder"] = 500.0000 ,["RabidWolf"] = math.huge ,["HeimerTGreen"] = 1599.3999 ,["HeimerTRed"] = 1599.3999 ,["ViktorFF"] = 1599.3999 ,["TwistedGolem"] = math.huge ,["TwistedSmallWolf"] = math.huge ,["TwistedGiantWolf"] = math.huge ,["TwistedTinyWraith"] = 750.0000 ,["TwistedBlueWraith"] = 750.0000 ,["TwistedYoungLizard"] = 750.0000 ,["Red_Minion_Melee"] = math.huge ,["Blue_Minion_Melee"] = math.huge ,["Blue_Minion_Healer"] = 1000.0000 ,["Ghast"] = 750.0000 ,["blueDragon"] = 800.0000 ,["Red_Minion_MechRange"] = 3000, ["SRU_OrderMinionRanged"] = 650, ["SRU_ChaosMinionRanged"] = 650, ["SRU_OrderMinionSiege"] = 1200, ["SRU_ChaosMinionSiege"] = 1200, ["SRUAP_Turret_Chaos1"]  = 1200, ["SRUAP_Turret_Chaos2"]  = 1200, ["SRUAP_Turret_Chaos3"] = 1200, ["SRUAP_Turret_Order1"]  = 1200, ["SRUAP_Turret_Order2"]  = 1200, ["SRUAP_Turret_Order3"] = 1200, ["SRUAP_Turret_Chaos4"] = 1200, ["SRUAP_Turret_Chaos5"] = 500, ["SRUAP_Turret_Order4"] = 1200, ["SRUAP_Turret_Order5"] = 500 }
+	Callback.Add("ProcessWaypoint", function(u,w) self:ProcessWaypoint(u,w) end)
+	Callback.Add("ProcessSpell", function(u,s) self:ProcessSpell(u,s) end)
+	Callback.Add("ProcessSpellComplete", function(u,s) self:ProcessSpellComplete(u,s) end)
+	Callback.Add("Animation", function(u,a) self:Animation(u,a) end)
+	Callback.Add("UpdateBuff", function(u,b) self:UpdateBuff(u,b) end)
+	Callback.Add("RemoveBuff", function(u,b) self:RemoveBuff(u,b) end)
+	Callback.Add("Draw", function() self:Draw() end)
+	Callback.Add("Tick", function() self:Tick() end)
+end
+
+function SLPrediction:UpdateBuff(u,b)
+if not SLP then return end
+	if u and b and u.team ~= myHero.team then
+		if self.CCType[b.Type] then
+			self.s[u.networkID] = true
+		end
+	end
+end
+
+function SLPrediction:RemoveBuff(u,b)
+if not SLP then return end
+	if u and b and u.team ~= myHero.team then
+		if self.CCType[b.Type] then
+			self.s[u.networkID] = false
+		end
+	end
+end
+
+function SLPrediction:Animation(u,a)
+if not SLP then return end
+	for _,__ in pairs(self.c) do 
+		if u and a and u.networkID == _ and a == "Run" then
+			self.c[_] = nil
+		end
+	end
+end
+
+function SLPrediction:ProcessWaypoint(u,w)
+if not SLP then return end
+	if u and u.isHero and w and w.index == 1 and u.team ~= myHero.team then
+		if not self.um[u.networkID] then self.um[u.networkID] = {} end
+		self.um[u.networkID] = {ep=w.position,sp=u.pos,u=u,st=os.clock(),a=false}
+		for _,__ in pairs(self.um) do
+			if __.pos ~= w.position and u == __.u and u.networkID == __ then
+				self.um[_] = {ep=nil,sp=nil,u=nil,st=nil,ds=nil,a=false}
+			end
+		end
+	end
+	if u and u.isHero and w and w.dashspeed > 0 and u.team ~= myHero.team then
+		self.um[u.networkID] = {ep=w.position,sp=u.pos,u=u,st=os.clock(),d=GetDistance(u,w.position)/w.dashspeed,a=false,ds=w.dashspeed}
+		DelayAction(function() self.um[u.networkID] = nil end,.25+GetDistance(u,w.position)/w.dashspeed)
+	end
+end
+
+function SLPrediction:Tick()
+if not SLP then return end
+	for _,__ in pairs(self.um) do
+		if self.a[_] and __.ep then
+			self.a[_] = false
+		end
+	end
+end
+
+function SLPrediction:Draw()
+if not SLP then return end
+	if SLSChamps[myHero.charName] and BM.p and BM.p.CP:Value() == 5 and SLS.SLPred.dpos:Value() then
+		if self.predictedpos then
+			DrawCircle(self.predictedpos,50,1,20,GoS.Red)
+		end
+	end
+end
+
+function SLPrediction:ProcessSpell(u,s)
+if not SLP then return end
+	for _,__ in pairs(self.Channel) do
+		if s.name:lower() == __.name and u and s then
+			self.c[u.networkID] = {et = os.clock() + __.duration + s.windUpTime,s = s}
+			DelayAction(function() self.c[u.networkID] = nil end,__.duration+s.windUpTime)
+		end
+	end
+	if u and u.team ~= myHero.team and s and s.name and s.name:lower():find("attack") and not self.a[u.networkID] then
+		self.a[u.networkID] = true
+	end
+end
+
+function SLPrediction:ProcessSpellComplete(u,s)
+if not SLP then return end
+	if u and u.team ~= myHero.team and s and s.name and s.name:lower():find("attack") and self.a[u.networkID] then
+		DelayAction(function()
+			self.a[u.networkID] = false
+		end,(os.clock() + GetDistance(s.target,u) / (self.p[u.charName] or math.huge) - GetLatency()/2000)*.001)
+	end
+	if u.team == myHero.team and s.name:lower():find("attack") and not u.isMe then
+		for i = 1, #self.AA do
+			if self.AA[i].a == u then
+				table.remove(self.AA, i)
+				break
+			end
+		end
+		table.insert(self.AA,{a=u,t=s.target,ht=(os.clock() + GetDistance(s.target,u) / (self.p[u.charName] or math.huge) - GetLatency()/2000)})
+	end
+end
+
+function SLPrediction:MinionCollision(s,u,pos,width)
+local c = nil
+	if SLS.SLPred.mcoll:Value() then
+		for m,p in pairs(minionManager.objects) do
+			if p and p.alive and u.networkID ~= p.networkID and p.team ~= myHero.team then
+				local vPPOLS = VectorPointProjectionOnLineSegment(Vector(s.pos),Vector(pos),Vector(p.pos))
+				if vPPOLS and GetDistance(vPPOLS,p.pos) < p.boundingRadius+width+SLS.SLPred.cb:Value() then
+					c = vPPOLS
+				end
+			end
+		end
+	end
+	return c
+end
+
+function SLPrediction:HeroCollision(s,u,pos,width)
+local c = nil
+	if SLS.SLPred.hcoll:Value() then
+		for m,p in pairs(GetEnemyHeroes()) do
+			if p and p.alive and u.networkID ~= p.networkID then
+				local vPPOLS = VectorPointProjectionOnLineSegment(Vector(s.pos),Vector(pos),Vector(p.pos))
+				if vPPOLS and GetDistance(vPPOLS,p.pos) < p.boundingRadius+width+SLS.SLPred.cb:Value() then
+					c = vPPOLS
+				end
+			end
+		end
+	end
+	return c
+end
+
+function SLPrediction:IsMoving(u)
+	for _,__ in pairs(self.um) do
+		if __.u.networkID == u.networkID then
+			if not self.a[_] and not self.c[_] and not self.s[_] and __.ep and GetDistance(__.u,__.ep) > 5 then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+function SLPrediction:pos(d,w)
+	for _,__ in pairs(self.um) do
+		if __ and self:IsMoving(__.u) then
+			if not __.u.visible then
+				return Vector(__.sp)+Vector(Vector(__.ep)-__.sp):normalized()*((__.ds or __.u.ms)*(os.clock()-__.st) + w+__.u.boundingRadius+d*100)
+			else
+				if not __.ds then
+					return Vector(__.u)+Vector(__.u.direction):normalized()*d*(__.u.ms+(w+__.u.boundingRadius)/2)
+				else
+					return Vector(__.ep)
+				end
+			end
+		end
+	end
+end
+
+function SLPrediction:GetPredictedHealth(unit, time)
+    local Inc = 0
+    for _,__ in pairs(self.AA) do
+		if __.a.alive and __.t.networkID == unit.networkID then
+			if os.clock() < __.ht and __.ht < os.clock() + time then
+				Inc = Inc + __.a.totalDamage
+			end
+			if myHero.totalDamage > unit.health-Inc then
+				break
+			end
+		end	
+	end
+	return unit.health - Inc
+end
+
+function SLPrediction:Predict(table)--{source=source,unit=unit,speed=speed,range=range,delay=delay,width=width,type="",collision=collision}
+	if not table.unit then print("not a valid unit") return end
+	table.source = table.source or myHero
+	table.speed = table.speed or math.huge
+	table.range = table.range or 1200
+	table.delay = table.delay or 0
+	table.width = table.width or (table.source.boundingRadius or myHero.boundingRadius)
+	table.collision = table.collision or false
+	table.type = table.type or ""
+	if table.unit.type == myHero.type then
+		for _,__ in pairs(self.um) do
+			if _ == table.unit.networkID and __ then
+				if self:pos(table.delay,table.width) and table.collision and not self:HeroCollision(table.source,table.unit,self:pos(table.delay,table.width),table.width) and not self:MinionCollision(table.source,table.unit,self:pos(table.delay,table.width),table.width) then
+					self.predictedpos = self:pos(table.delay,table.width)
+				elseif self:pos(table.delay,table.width) and not table.collision then
+					self.predictedpos = self:pos(table.delay,table.width)
+				end
+			end
+		end
+		if not self:IsMoving(table.unit) and table.unit.visible then
+			self.hitchance = 2
+			self.predictedpos = table.unit.pos
+		else
+			self.hitchance = math.min(2,math.ceil((table.unit.ms/table.width)/GetLatency()/2000+table.delay+GetDistance(table.source,self.predictedpos)/table.speed))
+		end
+	else
+		self.predictedpos = table.unit.pos
+		self.hitchance = math.min(2,math.ceil((table.unit.ms/table.width)/GetLatency()/2000+table.delay+GetDistance(table.source,self.predictedpos)/table.speed))
+	end
+	return self.hitchance and self.hitchance,self.predictedpos and self.predictedpos
+end
+
+function LoadSLP()
+if not _G.SLP then _G.SLP = SLPrediction() end
+return SLP
+end
+
 class 'Update'
 
 function Update:__init()
 	if not AutoUpdater then return end
-	self.webV = "Error"
-	self.Stat = "Error"
-	self.Do = true
-
-	function AutoUpdate(data)
-		if tonumber(data) > SLAIO then
-			self.webV = data
-			self.State = "|SL| Update to v"..self.webV
-			Callback.Add("Draw", function() self:Box() end)
-			Callback.Add("WndMsg", function(key,msg) self:Click(key,msg) end)
+	self.Data = nil
+	self.CallDraw = nil
+	self.CallWnd = nil
+	self.Do = nil
+	self.lockCL = false
+	self.Sprites = {}
+	GetWebResultAsync("https://raw.githubusercontent.com/xSxcSx/SL-Series/master/SL.changelog", 
+	function(page) 
+		if page == "404: Not Found" then return end
+		assert(load("change = "..page))()
+		if change and type(change) == "table" and change.version and change.version > SLAIO then
+			local y = 0
+			for _,i in pairs(change) do
+				y = y + 30 * (type(i) == "table" and #i or 1) + 75
+			end
+			change.height = y
+			self.Data = change
+			change = nil
+			
+			for _,i in pairs(self.Data) do
+				if FileExist(SPRITE_PATH.."Champions\\Circle50\\".._..".png") then
+					self.Sprites[_] = Sprite("Champions\\Circle50\\".._..".png", 50, 50, 0, 0) 
+				else
+					GetWebResultAsync("https://raw.githubusercontent.com/LoggeL/ChampSprites/master/Circle50/".. _ ..".png", function (b)
+					DelayAction(function()
+						if b ~= "404: Not Found" then 
+							DownloadFileAsync("https://raw.githubusercontent.com/LoggeL/ChampSprites/master/Circle50/".. _ ..".png", SPRITE_PATH.."Champions\\Circle50\\".. _ ..".png", 
+							function() 	
+							DelayAction(function()
+								self.Sprites[_] = Sprite("Champions\\Circle50\\".. _ ..".png", 50, 50, 0, 0) 
+							end,.1)
+						end)
+					elseif FileExist(SPRITE_PATH.."Champions\\Circle50\\Unknown.png") then
+						self.Sprites[_] = Sprite("Champions\\Circle50\\Unknown.png", 50, 50, 0, 0)
+					end
+				end,.1)
+			end)
+				end
+			end
+			
+			self.CallDraw = Callback.Add("Draw", function() self:Draw() end)
+			self.CallWnd  = Callback.Add("WndMsg", function(k,m) self:Click(k,m) end)
 		end
-	end
-
-	GetWebResultAsync("https://raw.githubusercontent.com/xSxcSx/SL-Series/master/SL-AIO.version", AutoUpdate)
+	end)
 end
 
-function Update:Box()
-	if not self.Do then return end
-	local cur = GetCursorPos()
-	FillRect(0,0,360,85,GoS.Red)
-	if cur.x < 350 and cur.y < 75 then
-		FillRect(0,0,350,75,GoS.White)
+function Update:Draw()
+	FillRect(172,WINDOW_H*.2-50,232,93,GoS.Black)
+	FillRect(175,WINDOW_H*.2-47,195,85,GoS.Yellow)
+	local cp = GetCursorPos()
+	if cp.x > 375 and cp.x < 400 and cp.y > WINDOW_H*.2-47 and cp.y < WINDOW_H*.2+38 or self.lockCL then
+		FillRect(375,WINDOW_H*.2-47,25,85,GoS.White)
+		
+		FillRect(398,WINDOW_H*.2-48,WINDOW_W*.5+5,self.Data.height+5,GoS.Black)
+		FillRect(400,WINDOW_H*.2-47,WINDOW_W*.5,self.Data.height,ARGB(255,128,123,110))
+		
+		local y = 75
+		
+		DrawText("SL-AIO Changelog to version ".. self.Data.version,50,500,WINDOW_H*.2-30,ARGB(255,255,188,0))
+		for _,i in pairs(self.Data) do
+			if _ ~= "version" and _ ~= "height" then
+			
+				DrawText(_,30,420,WINDOW_H*.2+y-50,ARGB(255,255,188,0))
+				
+				if self.Sprites[_] then
+					self.Sprites[_]:Draw(425,WINDOW_H*.2+y)
+				else
+				--	FillRect(425,WINDOW_H*.2+y,50,50,ARGB(255,255,188,0))
+					DrawText("Placeholder",20,425,WINDOW_H*.2+y,ARGB(255,255,188,0))
+				end
+				
+				for n,m in pairs(i) do
+					FillRect(525,WINDOW_H*.2+y,WINDOW_W*.5-150,20,ARGB(255,255,188,0))
+					DrawText(m,20,530,WINDOW_H*.2+y,GoS.Black)
+					y = y + 30
+				end
+				y = y + 75
+			end
+		end
 	else
-		FillRect(0,0,350,75,GoS.Black)
+		FillRect(375,WINDOW_H*.2-47,25,85,GoS.Yellow)
 	end
 	
-	DrawText(self.State, 40, 10, 10, GoS.Green)
+	DrawText("Changelog",30,240,WINDOW_H*.2-20,GoS.Black)
 	
-	FillRect(360,10,50,60,GoS.Red)
-	FillRect(365,15,40,50,GoS.White)
-	if cur.x < 370 or cur.x > 400 or cur.y<7 or cur.y > 60 then
-		DrawText("X", 60, 370,7, GoS.Black)
-	else
-		DrawText("X", 60, 370,7, GoS.Red)
+	DrawLine(380,WINDOW_H*.2-40,395,WINDOW_H*.2-3,3,GoS.Black)
+	DrawLine(395,WINDOW_H*.2-3,380,WINDOW_H*.2+35,3,GoS.Black)
+	
+	CircleSegment(150,WINDOW_H*.2,85,0,360,GoS.Red)
+	
+	if not self.Do then --Changelog info
+		if math.sqrt((cp.x-150)^2+(cp.y-WINDOW_H*.2)^2) < 80 then
+			CircleSegment(150,WINDOW_H*.2,75,0,360,ARGB(255,128,123,110))
+		else
+			CircleSegment(150,WINDOW_H*.2,75,0,360,GoS.Black)
+		end
+		local t = GetTextArea("Update to",25)
+		DrawText("Update to",25,150-t.x+5,WINDOW_H*.2-t.y,GoS.Green)
+		local t = GetTextArea("v "..self.Data.version,30)
+		DrawText("v "..self.Data.version,30,150-t.x,WINDOW_H*.2+t.y*.5,GoS.Green)
+	elseif GetTickCount() - self.Do < 3700 then
+		CircleSegment(150,WINDOW_H*.2,75,0,360,ARGB(255,128,123,110))
+		CircleSegment(150,WINDOW_H*.2,75,0,math.min((GetTickCount() - self.Do)*.1,360),GoS.Green)
+		DrawText("Updating...",35,75,WINDOW_H*.2-15,GoS.Black)
+	else 
+		CircleSegment(150,WINDOW_H*.2,75,0,360,ARGB(255,128,123,110))
+		DrawText("Updated!",35,85,WINDOW_H*.2-15,GoS.Green)
 	end
-	
+		
 end
 
 function Update:Click(key,msg)
-	local cur = GetCursorPos()
-	if key == 513 and cur.x < 350 and cur.y < 75 then
-		self.State = "Downloading..."
-		DownloadFileAsync("https://raw.githubusercontent.com/xSxcSx/SL-Series/master/SL-AIO.lua", SCRIPT_PATH .. "SL-AIO.lua", function() self.State = "Update Complete" PrintChat("<font color=\"#fd8b12\"><b>[SL-AIO] - <font color=\"#F2EE00\">Reload the Script with 2x F6</b></font>") return	end)
-	elseif key == 513 and cur.x > 370 and cur.x < 400 and cur.y > 7 and cur.y < 60 then
-		Callback.Del("Draw", function() self:Box() end)
-		self.Do = false
+	local cp = GetCursorPos()
+	if key == 513 then
+		if cp.x > 375 and cp.x < 400 and cp.y > WINDOW_H*.2-47 and cp.y < WINDOW_H*.2+38 then
+			self.lockCL = not self.lockCL
+		elseif math.sqrt((cp.x-150)^2+(cp.y-WINDOW_H*.2)^2) < 80 and not self.Do then
+			self.Do = GetTickCount()
+	        if GetUser() == "Zwei" or GetUser() == "Ein" or GetUser() == "SxcS" then print("Dev detected! Update manually!") return end
+			DownloadFileAsync("https://raw.githubusercontent.com/xSxcSx/SL-Series/master/SL-AIO.lua", SCRIPT_PATH .. "SL-AIO.lua", function() print("Reload after download is finished!") return end)
+		end
 	end
 end
 
