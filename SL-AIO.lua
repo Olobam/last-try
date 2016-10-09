@@ -6597,7 +6597,7 @@ function HitMe:CreateObj(obj)
 		for _,l in pairs(self.s) do
 			if obj.spellName:lower():find("attack") then return end
 			if not self.object[l.charName..""..self.str[l.slot]..""..l.displayname] and self.s[_] and SLS.SB.Spells[l.charName..""..self.str[l.slot]..""..l.displayname] and SLS.SB.dV:Value() <= SLS.SB.Spells[l.charName..""..self.str[l.slot]..""..l.displayname]["d"..l.charName..""..self.str[l.slot]..""..l.displayname]:Value() and (l.proj == obj.spellName or _ == obj.spellName or obj.spellName:lower():find(_:lower()) or obj.spellName:lower():find(l.proj:lower())) then
-				if l.type ~= ("Ring" or "Circle") then 
+				if l.type == "Line" then 
 					endPos = Vector(obj.startPos)+Vector(Vector(obj.endPos)-obj.startPos):normalized()*l.range
 				else
 					endPos = Vector(obj.endPos)
@@ -6625,7 +6625,7 @@ function HitMe:Detect(unit,spellProc)
 	if unit and unit.isHero and unit.team == MINION_ENEMY then
 		for _,l in pairs(self.s) do
 			if not self.object[l.charName..""..self.str[l.slot]..""..l.displayname] and self.s[_] and SLS.SB.Spells[l.charName..""..self.str[l.slot]..""..l.displayname] and SLS.SB.dV:Value() <= SLS.SB.Spells[l.charName..""..self.str[l.slot]..""..l.displayname]["d"..l.charName..""..self.str[l.slot]..""..l.displayname]:Value() and (l.proj == spellProc.name or _ == spellProc.name or spellProc.name:lower():find(_:lower()) or spellProc.name:lower():find(l.proj:lower())) then
-				if l.type ~= ("Ring" or "Circle") then 
+				if l.type == "Line" then 
 					endPos = Vector(spellProc.startPos)+Vector(Vector(spellProc.endPos)-spellProc.startPos):normalized()*l.range
 				else
 					endPos = Vector(spellProc.endPos)
