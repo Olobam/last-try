@@ -5494,9 +5494,11 @@ function Syndra:__init()
 		end
 	end,.001)
 	
+	BM:Boolean("DS", "Draw Spheres", true)
 	BM:Boolean("AQ", "Auto Q on immobile", true)
 	BM:Boolean("AW", "Auto W on immobile", true)
 	
+	Callback.Add("Draw", function() self:Draw() end)
 	Callback.Add("Tick", function() self:Tick() end)
 	Callback.Add("UpdateBuff", function(u,b) self:UpdateBuff(u,b) end)
 	Callback.Add("RemoveBuff", function(u,b) self:RemoveBuff(u,b) end)
@@ -5532,7 +5534,7 @@ function Syndra:AntiGapCloser(unit,range)
 end
 
 function Syndra:CreateObj(o)
-	if o.name == "Seed" then
+	if o.name == "Seed" and o.charName == "SyndraSphere" then
 		self.count = self.count+1
 		if not self.o[o.networkID] then self.o[o.networkID] = {} end
 		self.o[o.networkID].o = o
@@ -5558,6 +5560,19 @@ function Syndra:RemoveBuff(u,b)
 	if u and u.team == MINION_ENEMY and b and u.isHero then
 		if self.CCType[b.Type] then
 			self.CC = false
+		end
+	end
+end
+
+function Syndra:Draw()
+	if BM.DS:Value() then
+		for _,i in pairs(self.o) do
+			if self:QCheck() and i and i.o.alive and i.o and i.o.valid and SReady[2] and i.o.distance < Spell[-1].range+Spell[2].range then
+			local Vec = Vector(myHero) + Vector((Vector(i.o)-myHero)):normalized()*(Spell[-1].range+Spell[2].range/2)
+				DrawLine3D(i.o.pos.x,i.o.pos.y,i.o.pos.z,Vec.x,Vec.y,Vec.z,1,GoS.White)
+				DrawCircle(i.o.pos,i.o.boundingRadius*1.5,1,20,GoS.White)
+				DrawCircle(Vec,i.o.boundingRadius*1.5,1,20,GoS.White)
+			end
 		end
 	end
 end
@@ -5628,7 +5643,7 @@ end
 function Syndra:CastE(u)
 	for _,i in pairs(self.o) do
 		if self:QCheck() and i and i.o and u.distance < Spell[-1].range+Spell[2].range and u.valid and SReady[2] then
-		local Vec = Vector(myHero) + Vector((Vector(i.o)-myHero)):normalized()*(Spell[-1].range+Spell[2].range-i.o.distance/1000)
+		local Vec = Vector(myHero) + Vector((Vector(i.o)-myHero)):normalized()*(Spell[-1].range+Spell[2].range/2)
 		local vp = VectorPointProjectionOnLineSegment(Vector(myHero.pos),Vector(Vec),Vector(u.pos))
 			if vp and GetDistance(u,vp) < Spell[-1].width and i.o.distance < Spell[2].range then
 				CastSkillShot(2,i.o.pos)
@@ -6597,7 +6612,7 @@ function HitMe:CreateObj(obj)
 		for _,l in pairs(self.s) do
 			if obj.spellName:lower():find("attack") then return end
 			if not self.object[l.charName..""..self.str[l.slot]..""..l.displayname] and self.s[_] and SLS.SB.Spells[l.charName..""..self.str[l.slot]..""..l.displayname] and SLS.SB.dV:Value() <= SLS.SB.Spells[l.charName..""..self.str[l.slot]..""..l.displayname]["d"..l.charName..""..self.str[l.slot]..""..l.displayname]:Value() and (l.proj == obj.spellName or _ == obj.spellName or obj.spellName:lower():find(_:lower()) or obj.spellName:lower():find(l.proj:lower())) then
-				if l.type == "Line" then 
+				if l.type == ("Line" or "Cone") then 
 					endPos = Vector(obj.startPos)+Vector(Vector(obj.endPos)-obj.startPos):normalized()*l.range
 				else
 					endPos = Vector(obj.endPos)
@@ -6625,7 +6640,7 @@ function HitMe:Detect(unit,spellProc)
 	if unit and unit.isHero and unit.team == MINION_ENEMY then
 		for _,l in pairs(self.s) do
 			if not self.object[l.charName..""..self.str[l.slot]..""..l.displayname] and self.s[_] and SLS.SB.Spells[l.charName..""..self.str[l.slot]..""..l.displayname] and SLS.SB.dV:Value() <= SLS.SB.Spells[l.charName..""..self.str[l.slot]..""..l.displayname]["d"..l.charName..""..self.str[l.slot]..""..l.displayname]:Value() and (l.proj == spellProc.name or _ == spellProc.name or spellProc.name:lower():find(_:lower()) or spellProc.name:lower():find(l.proj:lower())) then
-				if l.type == "Line" then 
+				if l.type == ("Line" or "Cone") then 
 					endPos = Vector(spellProc.startPos)+Vector(Vector(spellProc.endPos)-spellProc.startPos):normalized()*l.range
 				else
 					endPos = Vector(spellProc.endPos)
@@ -8460,7 +8475,7 @@ if not SLW then return end
 				break
 			end
 		end
-		table.insert(self.AA,{a=u,t=s.target,ht=(os.clock() + GetDistance(s.target,u) / (self.projectilespeeds[u.charName] or math.huge) - GetLatency()/2000)})
+		table.insert(self.AA,{a=u,t=s.target,ht=os.clock() + GetDistance(s.target,u) / (self.projectilespeeds[u.charName] or math.huge) - (GetLatency()/2000+s.windUpTime)})
 	end
 	if s and s.target and (self.altAANames[s.name:lower()] or s.name:lower():find("attack")) then
 		self:Ex(2, s.target)
@@ -8986,7 +9001,7 @@ Spells = {
 	["SwainShadowGrasp"]={charName="Swain",slot=1,type="Circle",delay=0.25,range=900,radius=180,speed=math.huge,addHitbox=true,danger=3,dangerous=true,proj="SwainShadowGrasp",killTime=1.5,displayname="Shadow Grasp",mcollision=false},
 	["SyndraQ"]={charName="Syndra",slot=0,type="Circle",delay=0.6,range=800,radius=150,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="SyndraQSpell",killTime=0.2,displayname="",mcollision=false},
 	["SyndraWCast"]={charName="Syndra",slot=1,type="Circle",delay=0.25,range=950,radius=210,speed=1450,addHitbox=true,danger=2,dangerous=false,proj="syndrawcast",killTime=0.2,displayname="SyndraW",mcollision=false},
-	["SyndraE"]={charName="Syndra",slot=2,type="Cone",delay=0,range=950,radius=100,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="SyndraE",killTime=0,displayname="SyndraE",mcollision=false},
+	["SyndraE"]={charName="Syndra",slot=2,type="Cone",delay=0,range=950,radius=100,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="SyndraEMissile",killTime=0,displayname="SyndraE",mcollision=false},
 	["syndrae5"]={charName="Syndra",slot=2,type="Line",delay=0,range=950,radius=100,speed=2000,addHitbox=true,danger=2,dangerous=false,proj="syndrae5",killTime=0,displayname="SyndraE2",mcollision=false},
 	["TalonRake"]={charName="Talon",slot=1,type="Cone",delay=0.25,range=800,radius=80,speed=2300,angle=45,addHitbox=true,danger=2,dangerous=true,proj="talonrakemissileone",killTime=0,displayname="Rake",mcollision=false},
 	["TalonRakeMissileTwo"]={charName="Talon",slot=1,type="Cone",delay=0.25,range=800,radius=80,speed=1850,angle=45,addHitbox=true,danger=2,dangerous=true,proj="talonrakemissiletwo",killTime=0,displayname="Rake2",mcollision=false},
@@ -10088,12 +10103,12 @@ function SLEvade:CreateObject(obj)
 if not SLE then return end
 	-- if obj and obj.isSpell and obj.spellOwner.isMe and obj.spellOwner.team == MINION_ALLY then
 	if obj and obj.isSpell and obj.spellOwner.isHero and obj.spellOwner.team == MINION_ENEMY then
-		if EMenu.Draws.DevOpt:Value() then
+		if EMenu.Draws.DevOpt:Value() and obj.spellOwner.isMe then
 			print(obj.spellName)
 		end
 		for _,l in pairs(Spells) do
 			if not self.obj[l.charName..""..self.str[l.slot]..""..l.displayname] and Spells[_] and EMenu.Spells[l.charName..""..self.str[l.slot]..""..l.displayname] and EMenu.d:Value() <= EMenu.Spells[l.charName..""..self.str[l.slot]..""..l.displayname]["d"..l.charName..""..self.str[l.slot]..""..l.displayname]:Value() and (l.proj == obj.spellName or _ == obj.spellName or obj.spellName:lower():find(_:lower()) or obj.spellName:lower():find(l.proj:lower())) then
-				if l.type == "Line" then 
+				if l.type == ("Line" or "Cone") then 
 					endPos = Vector(obj.startPos)+Vector(Vector(obj.endPos)-obj.startPos):normalized()*l.range
 				else
 					endPos = Vector(obj.endPos)
@@ -10125,12 +10140,12 @@ function SLEvade:Detection(unit,spellProc)
 if not SLE then return end
 	-- if unit and spellProc and spellProc.name and unit.team == myHero.team then
 	if unit and spellProc and spellProc.name and unit.team ~= myHero.team then
-		if EMenu.Draws.DevOpt:Value() then
+		if EMenu.Draws.DevOpt:Value() and unit.isMe then
 			print(spellProc.name)
 		end
 		for _,l in pairs(Spells) do
 			if not self.obj[l.charName..""..self.str[l.slot]..""..l.displayname] and Spells[_] and EMenu.Spells[l.charName..""..self.str[l.slot]..""..l.displayname] and EMenu.d:Value() <= EMenu.Spells[l.charName..""..self.str[l.slot]..""..l.displayname]["d"..l.charName..""..self.str[l.slot]..""..l.displayname]:Value() and spellProc.name:find(_) then
-				if l.type == "Line" then 
+				if l.type == ("Line" or "Cone") then 
 					endPos = Vector(spellProc.startPos)+Vector(Vector(spellProc.endPos)-spellProc.startPos):normalized()*l.range
 				else
 					endPos = Vector(spellProc.endPos)
@@ -10205,7 +10220,15 @@ function SLTS:__init(type, m, s)
 	self.m:DropDown("mode", "TargetSelector Mode:", 1, {"Normal","Less Cast", "Less Cast Priority", "Priority", "Most AP", "Most AD", "Closest", "Near Mouse", "Lowest Health", "Lowest Health Priority"})
 	for i=0,3 do
 		if Spell[i] and not Spell[i].ally then
-			self.m:Slider("range"..self.str[i], "Range to check for enemies for : "..self.str[i], Spell[i].range,0,Spell[i].range+2000,50)
+			if myHero.charName ~= "Syndra" then
+				self.m:Slider("range"..self.str[i], "Range to check for enemies for : "..self.str[i], Spell[i].range,0,Spell[i].range+2000,50)
+			else
+				if Spell[i] and Spell[2] and Spell[i].range ~= Spell[2].range then
+					self.m:Slider("range"..self.str[i], "Range to check for enemies for : "..self.str[i], Spell[i].range,0,Spell[i].range+2000,50)
+				elseif Spell[2] and Spell[2].range then
+					self.m:Slider("range"..self.str[2], "Range to check for enemies for : "..self.str[2], Spell[2].range+Spell[-1].range,0,Spell[2].range+Spell[-1].range+2000,50)
+				end
+			end
 		end
 	end
 	DelayAction(function()
