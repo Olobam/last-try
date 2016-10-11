@@ -591,8 +591,9 @@ Callback.Add("Load", function()
 	Update()
 	Init()
 	LoadSLP()
-	if SLSChamps[ChampName] and SLS.Loader.LC:Value() then
+	if SLSChamps[ChampName] and L.LC:Value() then
 		_G[ChampName]() 
+		DmgDraw()
 		if myHero.charName ~= "Orianna" and myHero.charName ~= "Ahri" and myHero.charName ~= "Anivia" then
 			Drawings()
 		end
@@ -602,8 +603,7 @@ Callback.Add("Load", function()
 	else
 		PrintChat("<font color=\"#fd8b12\"><b>["..SLPatchnew.."] [SL-AIO] v.: "..SLAIO.." - <font color=\"#FFFFFF\">" ..ChampName.." <font color=\"#F2EE00\"> is not Supported </b></font>")
 	end
-	if SLS.Loader.LU:Value() then
-		DmgDraw()
+	if L.LU:Value() then
 		if SLU.Load.LA:Value() then
 			Activator()
 		end
@@ -626,31 +626,25 @@ Callback.Add("Load", function()
 			WardJump()
 		end
 	end
-	if SLS.Loader.LE:Value() then
+	if L.LE:Value() then
 		if not _G.MapPosition then
 			require('MapPositionGoS')
 		end
 		LoadSLE()
 	end
-	if SLS.Loader.LWal:Value() then
+	if L.LWal:Value() then
 		LoadSLW()
 	end
-	if SLS.Loader.LRS:Value() then
-		Recommend()
-	end
+	Recommend()
 	SLOrb()
 end)   
  
 class 'Init'
 
 function Init:__init()
-	local AntiGapCloser = {}
-	local GapCloser = {}
-	local MapPositionGOS = {["Vayne"] = true, ["Poppy"] = true, ["Kalista"] = true, ["Kindred"] = true,}
-	
-	SLS = MenuConfig("SL-AIO", "["..SLPatchnew.."][v.:"..SLAIO.."] SL-AIO")
-	SLS:Menu("Loader", "|SL| Loader")
-	L = SLS["Loader"]
+	SxcS = MenuConfig("","----["..SLPatchnew.."][v.:"..SLAIO.."|"..Stage.."]----")
+	L = MenuConfig("Loader", "|SL-AIO| Script-Loader")
+	L:Info("R","")
 	L:Boolean("LC", "Load Champion", true)
 	L:Info("0.1", "")
 	L:Boolean("LU", "Load Utility", true)
@@ -658,16 +652,15 @@ function Init:__init()
 	L:Boolean("LE", "Load Evade", false)
 	L:Info("0.6xc", "")
 	L:Boolean("LWal", "Load Orbwalker", false)
-	L:Info("0.9xc", "")
-	L:Boolean("LRS", "Load Recommended Scripts",true)
 	L:Info("xxx", "")
 	L:Info("0.7.", "You will have to press 2f6")
 	L:Info("0.8.", "to apply the changes")
+	AntiGapCloser = {}
+	GapCloser = {}
+	MapPositionGOS = {["Vayne"] = true, ["Poppy"] = true, ["Kalista"] = true, ["Kindred"] = true,}
 	
 	if L.LC:Value() and SLSChamps[ChampName] then
-		SLS:Menu(ChampName, "|SL| "..ChampName) 
-		BM = SLS[ChampName] 
-		
+		BM = MenuConfig("Champions", "|SL-AIO| "..myHero.charName)
 		if AntiGapCloser[ChampName] == true then 
 			BM.M:Menu("AGP", "AntiGapCloser") 
 		end
@@ -675,10 +668,9 @@ function Init:__init()
 			BM.M:Menu("GC", "GapCloser")
 		end
 	end
-	if L.LU:Value() then
-		SLS:Menu("|SL| Utility", "|SL| Utility") 
-		SLU = SLS["|SL| Utility"]
-		SLU:Menu("Load", "|SL| Loader")
+	if L.LU:Value() then 
+		SLU = MenuConfig("Utility", "|SL-AIO| Utility")
+		SLU:Menu("Load", "Utility-Loader")
 		SLU.Load:Boolean("LA", "Load Activator", true)
 		SLU.Load:Info("as^dasc", "")
 		SLU.Load:Boolean("LSK", "Load SkinChanger", true)
@@ -698,18 +690,15 @@ function Init:__init()
 		SLU.Load:Info("0.7.", "You will have to press 2f6")
 		SLU.Load:Info("0.8.", "to apply the changes")
 		
-		SLU:Menu("Activator", "|SL| Activator")
+		SLU:Menu("Activator", "Activator")
 		M = SLU["Activator"]
 	end
 	if L.LE:Value() then
-		SLS:Menu("|SL| Evade", "|SL| Evade") 
-		EMenu = SLS["|SL| Evade"] 
+		EMenu = MenuConfig("Evade", "|SL-AIO| Evade")
 	end
 	if L.LWal:Value() then
-		SLS:Menu("|SL| Walker", "|SL| Walker") 
-		OMenu = SLS["|SL| Walker"] 
+		OMenu = MenuConfig("Orbwalk", "|SL-AIO| OrbWalk")
 	end
-	
 	if MapPositionGOS[ChampName] == true and FileExist(COMMON_PATH .. "MapPositionGOS.lua") then
 		if not _G.MapPosition then
 			require('MapPositionGoS')
@@ -720,8 +709,8 @@ function Init:__init()
 			require 'OpenPredict'
 		end
 	end
-	SLS:Info("Creators", "Made by : SxcS & Zwei")
-	SLS:Info("Verison", "Current Version : "..SLAIO.." | "..Stage)
+	Zwei = MenuConfig("Creators", "----[ by : SxcS & Zwei ]----")
+	L:Info("Verison", "Current Version : "..SLAIO.." | "..Stage)
 end
 
 class 'Recommend'
@@ -734,16 +723,14 @@ function Recommend:__init()
 	[4] = {Name = "ChallengerEvade",Link = "https://raw.githubusercontent.com/D3ftsu/GoS/master/ChallengerEvade.lua",      			Author = "Deftsu",	File = "ChallengerEvade"},
 	[5] = {Name = "NEET´s Tracker", Link = "https://raw.githubusercontent.com/VTNEETS/NEET-Scripts/master/NEET%27s%20Tracker.lua",	Author = "Ryzuki",	File = "NEET´s Tracker"},
 	}
-
-	SLS:Menu("Re","|SL| Recommended Scripts")
-	SLS.Re:Info("xx.x", "Load : ")
+	L:Menu("Re","Recommended Scripts")
+	L.Re:Info("xx.x", "Load : ")
 	for n,i in pairs(self.RecommendedUtility) do
-		SLS.Re:Boolean("S"..n,"- "..i.Name.." ["..i.Author.."]", false)
+		L.Re:Boolean("S"..n,"- "..i.Name.." ["..i.Author.."]", false)
 	end
-	SLS.Re:Info("xxx","2x F6 after download")
-	
+	L.Re:Info("xxx","2x F6 after download")	
 	for n,i in pairs(self.RecommendedUtility) do
-		if SLS.Re["S"..n]:Value() and not pcall (require, i.File) then
+		if L.Re["S"..n]:Value() and not pcall (require, i.File) then
 			DownloadFileAsync(i.Link, SCRIPT_PATH .. i.File..".lua", function() 
 				if pcall (require, i.File) then
 					print("|SL| Downloaded "..i.Name.." from "..i.Author.." succesfully.") 
@@ -751,7 +738,7 @@ function Recommend:__init()
 					print("Error downloading, please install manually")
 				end
 			end)
-		elseif SLS.Re["S"..n]:Value() and FileExist(SCRIPT_PATH .. i.File .. ".lua") then
+		elseif L.Re["S"..n]:Value() and FileExist(SCRIPT_PATH .. i.File .. ".lua") then
 			require(i.File)
 			print("|SL| Loaded "..i.Name)
 		end
@@ -6089,25 +6076,25 @@ function DmgDraw:__init()
 	self.dX = {}
 	self.Own = nil
 
-	SLS:SubMenu("D","|SL| Draw Damage")
-	SLS.D:Boolean("dAA","Count AA to kill", true)
-	SLS.D:Boolean("dAAc","Consider Crit", true)
-	SLS.D:Slider("dR","Draw Range", 1500, 500, 3000, 100)
+	BM:SubMenu("D","Damage Draw")
+	BM.D:Boolean("dAA","Count AA to kill", true)
+	BM.D:Boolean("dAAc","Consider Crit", true)
+	BM.D:Slider("dR","Draw Range", 1500, 500, 3000, 100)
 	
 	if SLSChamps[ChampName] then
 		self.Own = true
 		for i=1,4,1 do
 			if Dmg[i-1] then
-				SLS.D:Boolean(self.spellName[i], "Draw "..self.spellName[i], true)
-				SLS.D:ColorPick(self.spellName[i].."c", "Color for "..self.spellName[i], self.dC[i])
+				BM.D:Boolean(self.spellName[i], "Draw "..self.spellName[i], true)
+				BM.D:ColorPick(self.spellName[i].."c", "Color for "..self.spellName[i], self.dC[i])
 			end
 		end
 	else
 		self.Own = false
 		for i=1,4,1 do
 			if getdmg(self.spellName[i],myHero,myHero,1,3)~=0 then
-				SLS.D:Boolean(self.spellName[i], "Draw "..self.spellName[i], true)
-				SLS.D:ColorPick(self.spellName[i].."c", "Color for "..self.spellName[i], self.dC[i])
+				BM.D:Boolean(self.spellName[i], "Draw "..self.spellName[i], true)
+				BM.D:ColorPick(self.spellName[i].."c", "Color for "..self.spellName[i], self.dC[i])
 			end
 		end
 	end
@@ -6129,7 +6116,7 @@ function DmgDraw:Set()
 		local lock = false
 			GetReady()
 		for i=1,4,1 do
-			if SLS.D[self.spellName[i]] and SLS.D[self.spellName[i]]:Value() and (SReady[i-1] or CanUseSpell(myHero,i-1) == 8) and GetDistance(GetOrigin(myHero),GetOrigin(champ)) < SLS.D.dR:Value() then
+			if BM.D[self.spellName[i]] and BM.D[self.spellName[i]]:Value() and (SReady[i-1] or CanUseSpell(myHero,i-1) == 8) and GetDistance(GetOrigin(myHero),GetOrigin(champ)) < BM.D.dR:Value() then
 				if self.Own then
 					self.dmgSpell[GetObjectName(champ)][i] = Dmg[i-1](champ)
 				else
@@ -6153,9 +6140,9 @@ function DmgDraw:Set()
 				lock = true
 			end
 		end
-		if SLS.D.dAA:Value() and SLS.D.dAAc:Value() then 
+		if BM.D.dAA:Value() and BM.D.dAAc:Value() then 
 			self.aa[GetObjectName(champ)] = math.ceil(GetCurrentHP(champ)/(CalcDamage(myHero, champ, GetBaseDamage(myHero)+GetBonusDmg(myHero),0)*(GetCritChance(myHero)+1)))
-		elseif SLS.D.dAA:Value() and not SLS.D.dAAc:Value() then 
+		elseif BM.D.dAA:Value() and not BM.D.dAAc:Value() then 
 			self.aa[GetObjectName(champ)] = math.ceil(GetCurrentHP(champ)/(CalcDamage(myHero, champ, GetBaseDamage(myHero)+GetBonusDmg(myHero),0)))
 		end
 	end
@@ -6168,11 +6155,11 @@ function DmgDraw:Draw()
 		if bar.x ~= 0 and bar.y ~= 0 then
 			for i=4,1,-1 do
 				if self.dCheck[GetObjectName(champ)] and self.dCheck[GetObjectName(champ)][i] then
-					FillRect(bar.x+self.dX[GetObjectName(champ)][i][1],bar.y,self.dX[GetObjectName(champ)][i][2],9,SLS.D[self.spellName[i].."c"]:Value())
+					FillRect(bar.x+self.dX[GetObjectName(champ)][i][1],bar.y,self.dX[GetObjectName(champ)][i][2],9,BM.D[self.spellName[i].."c"]:Value())
 					FillRect(bar.x+self.dX[GetObjectName(champ)][i][1],bar.y-1,2,11,GoS.Black)
 				end
 			end
-			if SLS.D.dAA:Value() and bar.x ~= 0 and bar.y ~= 0 and self.aa[GetObjectName(champ)] then 
+			if BM.D.dAA:Value() and bar.x ~= 0 and bar.y ~= 0 and self.aa[GetObjectName(champ)] then 
 				DrawText(self.aa[GetObjectName(champ)].." AA", 15, bar.x + 75, bar.y + 25, GoS.White)
 			end
 		end
@@ -6184,14 +6171,14 @@ class 'Drawings'
 function Drawings:__init()
 	if not SLSChamps[ChampName] then return end
 	self.SNames={[0]="Q",[1]="W",[2]="E",[3]="R"}
-	SLS[ChampName]:SubMenu("Dr", "Drawings")
-	SLS[ChampName].Dr:Boolean("UD", "Use Drawings", true)
-	SLS[ChampName].Dr:ColorPick("CP", "Circle color", {255,102,102,102})
-	SLS[ChampName].Dr:DropDown("DQM", "Draw Quality", 3, {"High", "Medium", "Low"})
-	SLS[ChampName].Dr:Slider("DWi", "Circle width", 1, 1, 5, 1)
+	BM:SubMenu("Dr", "Drawings")
+	BM.Dr:Boolean("UD", "Use Drawings", true)
+	BM.Dr:ColorPick("CP", "Circle color", {255,102,102,102})
+	BM.Dr:DropDown("DQM", "Draw Quality", 3, {"High", "Medium", "Low"})
+	BM.Dr:Slider("DWi", "Circle width", 1, 1, 5, 1)
 	for i=0,3 do
 		if Spell and Spell[i] and Spell[i].range and Spell[i].range > 200 then
-			SLS[ChampName].Dr:Boolean("D"..self.SNames[i], "Draw "..self.SNames[i], true)
+			BM.Dr:Boolean("D"..self.SNames[i], "Draw "..self.SNames[i], true)
 		end
 	end
 	Callback.Add("Draw", function() self:Draw() end)
@@ -6200,8 +6187,8 @@ end
 function Drawings:Draw()
 	for l=0,3 do
 		if Spell and Spell[l] and Spell[l].range and Spell[l].range > 200 then
-			if SLS[ChampName].Dr.UD:Value() and SReady[l] and SLS[ChampName].Dr["D"..self.SNames[l]]:Value() then
-				DrawCircle(myHero.pos, Spell[l].range, SLS[ChampName].Dr.DWi:Value(), SLS[ChampName].Dr.DQM:Value()*20, SLS[ChampName].Dr.CP:Value())
+			if BM.Dr.UD:Value() and SReady[l] and BM.Dr["D"..self.SNames[l]]:Value() then
+				DrawCircle(myHero.pos, Spell[l].range, BM.Dr.DWi:Value(), BM.Dr.DQM:Value()*20, BM.Dr.CP:Value())
 			end
 		end
 	end
@@ -6213,7 +6200,7 @@ function HitMe:__init()
  
      self.str = {[-4] = "R2", [-3] = "P", [-2] = "Q3", [-1] = "Q2", [_Q] = "Q", [_W] = "W", [_E] = "E", [_R] = "R"}
  
-    SLS:SubMenu("SB","|SL| Spellblock")
+    BM:SubMenu("SB","Spellblock")
   
 	
 self.s = {
@@ -6432,13 +6419,13 @@ self.s = {
 	--["ZyraRSplash"]={charName="Zyra",slot=3,type="Circle",delay=0.7,range=700,radius=550,speed=math.huge,addHitbox=true,danger=4,dangerous=false,proj="ZyraRSplash",killTime=1,displayname="Splash",mcollision=false},--bugged spell
 }
 	
-	SLS.SB:Menu("Spells", "Spells")
-	SLS.SB:Boolean("uS","Enable",true)
-	SLS.SB:Slider("dV","Danger Value",2,1,5,1)
-	SLS.SB:Slider("hV","Humanize Value",50,0,100,1)
-	SLS.SB:Boolean("EC","Enable Collision", true)
-	SLS.SB:KeyBinding("DoD", "DodgeOnlyDangerous", string.byte(" "))
-	SLS.SB:KeyBinding("DoD2", "DodgeOnlyDangerous2", string.byte("V"))
+	BM.SB:Menu("Spells", "Spells")
+	BM.SB:Boolean("uS","Enable",true)
+	BM.SB:Slider("dV","Danger Value",2,1,5,1)
+	BM.SB:Slider("hV","Humanize Value",50,0,100,1)
+	BM.SB:Boolean("EC","Enable Collision", true)
+	BM.SB:KeyBinding("DoD", "DodgeOnlyDangerous", string.byte(" "))
+	BM.SB:KeyBinding("DoD2", "DodgeOnlyDangerous2", string.byte("V"))
 	self.object = {}
 	self.DoD = false
 	self.fT = .75
@@ -6450,12 +6437,12 @@ self.s = {
 				if i.charName == k.charName then
 					if i.displayname == "" then i.displayname = _ end
 					if i.danger == 0 then i.danger = 1 end
-					if not SLS.SB.Spells[i.charName..""..self.str[i.slot]..""..i.displayname] then SLS.SB.Spells:Menu(i.charName..""..self.str[i.slot]..""..i.displayname,""..k.charName.." | "..(self.str[i.slot] or "?").." - "..i.displayname) end
-						SLS.SB.Spells[i.charName..""..self.str[i.slot]..""..i.displayname]:Boolean("Dodge"..i.charName..""..self.str[i.slot]..""..i.displayname, "Enable Dodge", true)
-						SLS.SB.Spells[i.charName..""..self.str[i.slot]..""..i.displayname]:Boolean("IsD"..i.charName..""..self.str[i.slot]..""..i.displayname,"Dangerous", i.dangerous or false)		
-						SLS.SB.Spells[i.charName..""..self.str[i.slot]..""..i.displayname]:Info("Empty12"..i.charName..""..self.str[i.slot]..""..i.displayname, "")
-						SLS.SB.Spells[i.charName..""..self.str[i.slot]..""..i.displayname]:Slider("radius"..i.charName..""..self.str[i.slot]..""..i.displayname,"Radius",(i.radius or 150), ((i.radius-50) or 50),((i.radius+100) or 250), 5)
-						SLS.SB.Spells[i.charName..""..self.str[i.slot]..""..i.displayname]:Slider("d"..i.charName..""..self.str[i.slot]..""..i.displayname,"Danger",(i.danger or 1), 1, 5, 1)	
+					if not BM.SB.Spells[i.charName..""..self.str[i.slot]..""..i.displayname] then BM.SB.Spells:Menu(i.charName..""..self.str[i.slot]..""..i.displayname,""..k.charName.." | "..(self.str[i.slot] or "?").." - "..i.displayname) end
+						BM.SB.Spells[i.charName..""..self.str[i.slot]..""..i.displayname]:Boolean("Dodge"..i.charName..""..self.str[i.slot]..""..i.displayname, "Enable Dodge", true)
+						BM.SB.Spells[i.charName..""..self.str[i.slot]..""..i.displayname]:Boolean("IsD"..i.charName..""..self.str[i.slot]..""..i.displayname,"Dangerous", i.dangerous or false)		
+						BM.SB.Spells[i.charName..""..self.str[i.slot]..""..i.displayname]:Info("Empty12"..i.charName..""..self.str[i.slot]..""..i.displayname, "")
+						BM.SB.Spells[i.charName..""..self.str[i.slot]..""..i.displayname]:Slider("radius"..i.charName..""..self.str[i.slot]..""..i.displayname,"Radius",(i.radius or 150), ((i.radius-50) or 50),((i.radius+100) or 250), 5)
+						BM.SB.Spells[i.charName..""..self.str[i.slot]..""..i.displayname]:Slider("d"..i.charName..""..self.str[i.slot]..""..i.displayname,"Danger",(i.danger or 1), 1, 5, 1)	
 				end
 			end
 		end
@@ -6467,7 +6454,7 @@ self.s = {
 end
 
 function HitMe:Ti()
-	if SLS.SB.uS:Value() then
+	if BM.SB.uS:Value() then
 		heroes[myHero.networkID] = nil
 		for _,i in pairs(self.object) do
 			if i.o and i.spell.type == "linear" and GetDistance(myHero,i.o) >= 3000 then return end
@@ -6480,12 +6467,12 @@ function HitMe:Ti()
 			i.spell.mcollision = i.spell.mcollision or false
 			i.spell.danger = i.spell.danger or 2
 			i.spell.type = i.spell.type or nil
-			self.fT = SLS.SB.hV:Value()
+			self.fT = BM.SB.hV:Value()
 			self.YasuoWall = {}
 			self:MinionCollision(_,i)
 			self:HeroCollsion(_,i)
 			self:WallCollision(_,i)
-			if SLS.SB.DoD:Value() or SLS.SB.DoD2:Value() then
+			if BM.SB.DoD:Value() or BM.SB.DoD2:Value() then
 					self.DoD = true
 				else
 					self.DoD = false
@@ -6497,7 +6484,7 @@ function HitMe:Ti()
 				if i then
 					self.dT = i.spell.delay + GetDistance(myHero,i.startPos) / i.spell.speed
 				end
-				if ((not self.DoD and SLS.SB.dV:Value() <= SLS.SB.Spells[i.spell.charName..""..self.str[i.spell.slot]..""..i.spell.displayname]["d"..i.spell.charName..""..self.str[i.spell.slot]..""..i.spell.displayname]:Value()) or (self.DoD and SLS.SB.Spells[i.spell.charName..""..self.str[i.spell.slot]..""..i.spell.displayname]["IsD"..i.spell.charName..""..self.str[i.spell.slot]..""..i.spell.displayname]:Value())) and SLS.SB.Spells[i.spell.charName..""..self.str[i.spell.slot]..""..i.spell.displayname]["Dodge"..i.spell.charName..""..self.str[i.spell.slot]..""..i.spell.displayname]:Value() then
+				if ((not self.DoD and BM.SB.dV:Value() <= BM.SB.Spells[i.spell.charName..""..self.str[i.spell.slot]..""..i.spell.displayname]["d"..i.spell.charName..""..self.str[i.spell.slot]..""..i.spell.displayname]:Value()) or (self.DoD and BM.SB.Spells[i.spell.charName..""..self.str[i.spell.slot]..""..i.spell.displayname]["IsD"..i.spell.charName..""..self.str[i.spell.slot]..""..i.spell.displayname]:Value())) and BM.SB.Spells[i.spell.charName..""..self.str[i.spell.slot]..""..i.spell.displayname]["Dodge"..i.spell.charName..""..self.str[i.spell.slot]..""..i.spell.displayname]:Value() then
 					if (i.spell.type == "Line" or i.spell.type == "Cone") and i then
 							i.startPos = Vector(i.startPos)
 							i.endPos = Vector(i.endPos)
@@ -6557,7 +6544,7 @@ function HitMe:Ti()
 end
 
 function HitMe:MinionCollision(_,i)
-	if i.spell.type == "Line" and i.spell.mcollision and i.p and SLS.SB.EC:Value() and not i.hcoll and not i.wcoll then
+	if i.spell.type == "Line" and i.spell.mcollision and i.p and BM.SB.EC:Value() and not i.hcoll and not i.wcoll then
 		for m,p in pairs(SLM2) do
 			if p and p.alive and GetDistance(p.pos,i.startPos) < i.range then
 				i.vP = VectorPointProjectionOnLineSegment(Vector(self.opos),i.endPos,Vector(p.pos))
@@ -6574,7 +6561,7 @@ function HitMe:MinionCollision(_,i)
 end
 
 function HitMe:HeroCollsion(_,i)
-	if i.spell.type == "Line" and i.spell.mcollision and i.p and SLS.SB.EC:Value() and not i.mcoll and not i.wcoll then
+	if i.spell.type == "Line" and i.spell.mcollision and i.p and BM.SB.EC:Value() and not i.mcoll and not i.wcoll then
 		for m,p in pairs(heroes) do
 			if p and p.alive and p.team == MINION_ALLY and GetDistance(p.pos,i.startPos) < i.range then
 				i.vP = VectorPointProjectionOnLineSegment(Vector(self.opos),i.endPos,Vector(p.pos))
@@ -6591,7 +6578,7 @@ function HitMe:HeroCollsion(_,i)
 end
 
 function HitMe:WallCollision(_,i)
-	if i.spell.type == "Line" and i.spell.mcollision and i.p and SLS.SB.EC:Value()  and not i.mcoll and not i.hcoll then
+	if i.spell.type == "Line" and i.spell.mcollision and i.p and BM.SB.EC:Value()  and not i.mcoll and not i.hcoll then
 		for m,p in pairs(self.YasuoWall) do
 			if p.obj and p.obj.valid and p.obj.spellOwner.team == MINION_ALLY and GetDistance(p.obj.pos,i.p.startPos) < i.range then
 				i.vP = VectorPointProjectionOnLineSegment(Vector(self.opos),i.p.endPos,Vector(p.obj.pos))
@@ -6611,7 +6598,7 @@ function HitMe:CreateObj(obj)
 	if obj and obj.isSpell and obj.spellOwner.isHero and obj.spellOwner.team == MINION_ENEMY then
 		for _,l in pairs(self.s) do
 			if obj.spellName:lower():find("attack") then return end
-			if not self.object[l.charName..""..self.str[l.slot]..""..l.displayname] and self.s[_] and SLS.SB.Spells[l.charName..""..self.str[l.slot]..""..l.displayname] and SLS.SB.dV:Value() <= SLS.SB.Spells[l.charName..""..self.str[l.slot]..""..l.displayname]["d"..l.charName..""..self.str[l.slot]..""..l.displayname]:Value() and (l.proj == obj.spellName or _ == obj.spellName or obj.spellName:lower():find(_:lower()) or obj.spellName:lower():find(l.proj:lower())) then
+			if not self.object[l.charName..""..self.str[l.slot]..""..l.displayname] and self.s[_] and BM.SB.Spells[l.charName..""..self.str[l.slot]..""..l.displayname] and BM.SB.dV:Value() <= BM.SB.Spells[l.charName..""..self.str[l.slot]..""..l.displayname]["d"..l.charName..""..self.str[l.slot]..""..l.displayname]:Value() and (l.proj == obj.spellName or _ == obj.spellName or obj.spellName:lower():find(_:lower()) or obj.spellName:lower():find(l.proj:lower())) then
 				if l.type == ("Line" or "Cone") then 
 					endPos = Vector(obj.startPos)+Vector(Vector(obj.endPos)-obj.startPos):normalized()*l.range
 				else
@@ -6639,7 +6626,7 @@ end
 function HitMe:Detect(unit,spellProc)
 	if unit and unit.isHero and unit.team == MINION_ENEMY then
 		for _,l in pairs(self.s) do
-			if not self.object[l.charName..""..self.str[l.slot]..""..l.displayname] and self.s[_] and SLS.SB.Spells[l.charName..""..self.str[l.slot]..""..l.displayname] and SLS.SB.dV:Value() <= SLS.SB.Spells[l.charName..""..self.str[l.slot]..""..l.displayname]["d"..l.charName..""..self.str[l.slot]..""..l.displayname]:Value() and (l.proj == spellProc.name or _ == spellProc.name or spellProc.name:lower():find(_:lower()) or spellProc.name:lower():find(l.proj:lower())) then
+			if not self.object[l.charName..""..self.str[l.slot]..""..l.displayname] and self.s[_] and BM.SB.Spells[l.charName..""..self.str[l.slot]..""..l.displayname] and BM.SB.dV:Value() <= BM.SB.Spells[l.charName..""..self.str[l.slot]..""..l.displayname]["d"..l.charName..""..self.str[l.slot]..""..l.displayname]:Value() and (l.proj == spellProc.name or _ == spellProc.name or spellProc.name:lower():find(_:lower()) or spellProc.name:lower():find(l.proj:lower())) then
 				if l.type == ("Line" or "Cone") then 
 					endPos = Vector(spellProc.startPos)+Vector(Vector(spellProc.endPos)-spellProc.startPos):normalized()*l.range
 				else
@@ -6659,8 +6646,8 @@ function HitMe:Detect(unit,spellProc)
 			end
 		end
 		for _,l in pairs(self.s) do
-			if spellProc.target and spellProc.target == myHero and not spellProc.name:lower():find("attack") and SLS.SB.uS:Value() then
-				_G[ChampName]:HitMe(unit,spellProc,((l.delay or 0) + GetDistance(myHero,spellProc.startPos) / (l.speed or math.huge))*SLS.SB.hV:Value()*.001,l.type)
+			if spellProc.target and spellProc.target == myHero and not spellProc.name:lower():find("attack") and BM.SB.uS:Value() then
+				_G[ChampName]:HitMe(unit,spellProc,((l.delay or 0) + GetDistance(myHero,spellProc.startPos) / (l.speed or math.huge))*BM.SB.hV:Value()*.001,l.type)
 			end
 		end
 	end
@@ -6684,7 +6671,7 @@ self.bCount1 = 0
 self.lastCommand = 0
 self.lastspell = 0
 
-	SLU:SubMenu("Hum", "|SL| Humanizer")
+	SLU:SubMenu("Hum", "Humanizer")
 	SLU.Hum:Boolean("Draw", "Draw blocked movements", true)
 	SLU.Hum:Boolean("Draw1", "Draw blocked spells", true)
 	SLU.Hum:Boolean("enable", "Use Movement Limiter", true)
@@ -6797,7 +6784,7 @@ function Awareness:__init()
 	self.E = {}
 	self.offy = 60
 	
-	SLU:Menu("A", "|SL| Awareness")
+	SLU:Menu("A", "Awareness")
 	
 	SLU.A:Menu("HUD", "HUD")
 		SLU.A.HUD:Boolean("E", "Enabled",true)
@@ -7310,7 +7297,7 @@ end
 class 'Reallifeinfo'
 
 function Reallifeinfo:__init()
-	SLU:Menu("Date", "|SL| Real life info")
+	SLU:Menu("Date", "Real life info")
 	SLU.Date:Menu("DDA", "Draw Date")
 	SLU.Date.DDA:Boolean("DrawDate", "Draw Current Date", true)
 	SLU.Date.DDA:Slider("Horizontal", "Horizontal (Drawings)", GetResolution().x*.9, 0, GetResolution().x, 10)
@@ -7368,7 +7355,7 @@ function WardJump:__init()
 		{id = 3340,stack = true},
 	}
 	
-	SLU:SubMenu("WJ","|SL| Ward Jump")
+	SLU:SubMenu("WJ","Ward Jump")
 	SLU.WJ:Key("k", "Ward Jump Key", string.byte("T"))
 	
 	self.champtable = {["Katarina"] = 2, ["Jax"] = 0 }
@@ -7462,7 +7449,7 @@ end
 class 'AutoLevel'
 
 function AutoLevel:__init()
-	SLU:SubMenu(myHero.charName.."AL", "|SL| Auto Level")
+	SLU:SubMenu(myHero.charName.."AL", "Auto Level")
 	SLU[myHero.charName.."AL"]:Boolean("aL", "Use AutoLvl", false)
 	SLU[myHero.charName.."AL"]:DropDown("aLS", "AutoLvL", 1, {"Q-W-E","Q-E-W","W-Q-E","W-E-Q","E-Q-W","E-W-Q"})
 	SLU[myHero.charName.."AL"]:Slider("sL", "Start AutoLvl with LvL x", 4, 1, 18, 1)
@@ -7498,7 +7485,7 @@ class 'SkinChanger'
 
 function SkinChanger:__init()
 
-	SLU:SubMenu("S", "|SL| Skin")
+	SLU:SubMenu("S", "SkinChanger")
 	SLU.S:Boolean("uS", "Use Skin", true)
 	SLU.S:Slider("sV", "Skin Number", 0, 0, 15, 1)
 	
@@ -8139,7 +8126,7 @@ function SLWalker:__init()
 	OMenu.FS:Boolean("AJ", "Attack Jungle", true)
 	OMenu.FS:Boolean("AS", "Attack Structures", true)
 	OMenu.FS:Boolean("EL", "Enable Kite Limiter", true)
-	OMenu.FS:Slider("DK", "Dont Kite if Attackspeed > x",3,0.5,5,0.1)
+	OMenu.FS:Slider("DK", "Dont Kite if Attackspeed > x",2.5,0.5,2.6,0.1)
 	OMenu.FS:Slider("FD", "Farm Delay", 0,-20,20,1)
 	
 	OMenu:Menu("D", "Drawings")
@@ -10420,7 +10407,7 @@ function SLTS:FocusSelected(m,k)
 end
 
 function SLTS:Draw()
-	if self:GetTarget() and self.m.dsel:Value() then
+	if self:GetTarget() and self.m.dsel:Value() and self:GetTarget().pos and self:GetTarget().boundingRadius then
 		DrawCircle(self:GetTarget().pos,self:GetTarget().boundingRadius*1.35,1,20,GoS.White)
 	end
 end
@@ -10555,11 +10542,6 @@ function SLPrediction:__init()
 		{name = "meditate", duration = 1},
 		{name = "gate", duration = 1.5},
 	}
-	SLS:Menu("SLPred","|SL| Prediction [settings]")
-	SLS.SLPred:Slider("cb", "Collision Buffer", 10, 0, 50, 1)
-	SLS.SLPred:Boolean("mcoll","Check for Minion Collision", true)
-	SLS.SLPred:Boolean("hcoll","Check for Hero Collision", true)
-	SLS.SLPred:Boolean("dpos", "Draw Pred pos", false)
 	self.c = {}
 	self.um = {}
 	self.a = {}
@@ -10568,13 +10550,14 @@ function SLPrediction:__init()
 	self.predictedpos = nil
 	self.hitchance = nil
 	self.p = {["Velkoz"]= 2000,["TeemoMushroom"] = math.huge,["TestCubeRender"] = math.huge ,["Xerath"] = 2000.0000 ,["Kassadin"] = math.huge ,["Rengar"] = math.huge ,["Thresh"] = 1000.0000 ,["Ziggs"] = 1500.0000 ,["ZyraPassive"] = 1500.0000 ,["ZyraThornPlant"] = 1500.0000 ,["KogMaw"] = 1800.0000 ,["HeimerTBlue"] = 1599.3999 ,["EliseSpider"] = 500.0000 ,["Skarner"] = 500.0000 ,["ChaosNexus"] = 500.0000 ,["Katarina"] = 467.0000 ,["Riven"] = 347.79999 ,["SightWard"] = 347.79999 ,["HeimerTYellow"] = 1599.3999 ,["Ashe"] = 2000.0000 ,["VisionWard"] = 2000.0000 ,["TT_NGolem2"] = math.huge ,["ThreshLantern"] = math.huge ,["TT_Spiderboss"] = math.huge ,["OrderNexus"] = math.huge ,["Soraka"] = 1000.0000 ,["Jinx"] = 2750.0000 ,["TestCubeRenderwCollision"] = 2750.0000 ,["Red_Minion_Wizard"] = 650.0000 ,["JarvanIV"] = 20.0000 ,["Blue_Minion_Wizard"] = 650.0000 ,["TT_ChaosTurret2"] = 1200.0000 ,["TT_ChaosTurret3"] = 1200.0000 ,["TT_ChaosTurret1"] = 1200.0000 ,["ChaosTurretGiant"] = 1200.0000 ,["Dragon"] = 1200.0000 ,["LuluSnowman"] = 1200.0000 ,["Worm"] = 1200.0000 ,["ChaosTurretWorm"] = 1200.0000 ,["TT_ChaosInhibitor"] = 1200.0000 ,["ChaosTurretNormal"] = 1200.0000 ,["AncientGolem"] = 500.0000 ,["ZyraGraspingPlant"] = 500.0000 ,["HA_AP_OrderTurret3"] = 1200.0000 ,["HA_AP_OrderTurret2"] = 1200.0000 ,["Tryndamere"] = 347.79999 ,["OrderTurretNormal2"] = 1200.0000 ,["Singed"] = 700.0000 ,["OrderInhibitor"] = 700.0000 ,["Diana"] = 347.79999 ,["HA_FB_HealthRelic"] = 347.79999 ,["TT_OrderInhibitor"] = 347.79999 ,["GreatWraith"] = 750.0000 ,["Yasuo"] = 347.79999 ,["OrderTurretDragon"] = 1200.0000 ,["OrderTurretNormal"] = 1200.0000 ,["LizardElder"] = 500.0000 ,["HA_AP_ChaosTurret"] = 1200.0000 ,["Ahri"] = 1750.0000 ,["Lulu"] = 1450.0000 ,["ChaosInhibitor"] = 1450.0000 ,["HA_AP_ChaosTurret3"] = 1200.0000 ,["HA_AP_ChaosTurret2"] = 1200.0000 ,["ChaosTurretWorm2"] = 1200.0000 ,["TT_OrderTurret1"] = 1200.0000 ,["TT_OrderTurret2"] = 1200.0000 ,["TT_OrderTurret3"] = 1200.0000 ,["LuluFaerie"] = 1200.0000 ,["HA_AP_OrderTurret"] = 1200.0000 ,["OrderTurretAngel"] = 1200.0000 ,["YellowTrinketUpgrade"] = 1200.0000 ,["MasterYi"] = math.huge ,["Lissandra"] = 2000.0000 ,["ARAMOrderTurretNexus"] = 1200.0000 ,["Draven"] = 1700.0000 ,["FiddleSticks"] = 1750.0000 ,["SmallGolem"] = math.huge ,["ARAMOrderTurretFront"] = 1200.0000 ,["ChaosTurretTutorial"] = 1200.0000 ,["NasusUlt"] = 1200.0000 ,["Maokai"] = math.huge ,["Wraith"] = 750.0000 ,["Wolf"] = math.huge ,["Sivir"] = 1750.0000 ,["Corki"] = 2000.0000 ,["Janna"] = 1200.0000 ,["Nasus"] = math.huge ,["Golem"] = math.huge ,["ARAMChaosTurretFront"] = 1200.0000 ,["ARAMOrderTurretInhib"] = 1200.0000 ,["LeeSin"] = math.huge ,["HA_AP_ChaosTurretTutorial"] = 1200.0000 ,["GiantWolf"] = math.huge ,["HA_AP_OrderTurretTutorial"] = 1200.0000 ,["YoungLizard"] = 750.0000 ,["Jax"] = 400.0000 ,["LesserWraith"] = math.huge ,["Blitzcrank"] = math.huge ,["ARAMChaosTurretInhib"] = 1200.0000 ,["Shen"] = 400.0000 ,["Nocturne"] = math.huge ,["Sona"] = 1500.0000 ,["ARAMChaosTurretNexus"] = 1200.0000 ,["YellowTrinket"] = 1200.0000 ,["OrderTurretTutorial"] = 1200.0000 ,["Caitlyn"] = 2500.0000 ,["Trundle"] = 347.79999 ,["Malphite"] = 1000.0000 ,["Mordekaiser"] = math.huge ,["ZyraSeed"] = math.huge ,["Vi"] = 1000.0000 ,["Tutorial_Red_Minion_Wizard"] = 650.0000 ,["Renekton"] = math.huge ,["Anivia"] = 1400.0000 ,["Fizz"] = math.huge ,["Heimerdinger"] = 1500.0000 ,["Evelynn"] = 467.0000 ,["Rumble"] = 347.79999 ,["Leblanc"] = 1700.0000 ,["Darius"] = math.huge ,["OlafAxe"] = math.huge ,["Viktor"] = 2300.0000 ,["XinZhao"] = 20.0000 ,["Orianna"] = 1450.0000 ,["Vladimir"] = 1400.0000 ,["Nidalee"] = 1750.0000 ,["Tutorial_Red_Minion_Basic"] = math.huge ,["ZedShadow"] = 467.0000 ,["Syndra"] = 1800.0000 ,["Zac"] = 1000.0000 ,["Olaf"] = 347.79999 ,["Veigar"] = 1100.0000 ,["Twitch"] = 2500.0000 ,["Alistar"] = math.huge ,["Akali"] = 467.0000 ,["Urgot"] = 1300.0000 ,["Leona"] = 347.79999 ,["Talon"] = math.huge ,["Karma"] = 1500.0000 ,["Jayce"] = 347.79999 ,["Galio"] = 1000.0000 ,["Shaco"] = math.huge ,["Taric"] = math.huge ,["TwistedFate"] = 1500.0000 ,["Varus"] = 2000.0000 ,["Garen"] = 347.79999 ,["Swain"] = 1600.0000 ,["Vayne"] = 2000.0000 ,["Fiora"] = 467.0000 ,["Quinn"] = 2000.0000 ,["Kayle"] = math.huge ,["Blue_Minion_Basic"] = math.huge ,["Brand"] = 2000.0000 ,["Teemo"] = 1300.0000 ,["Amumu"] = 500.0000 ,["Annie"] = 1200.0000 ,["Odin_Blue_Minion_caster"] = 1200.0000 ,["Elise"] = 1600.0000 ,["Nami"] = 1500.0000 ,["Poppy"] = 500.0000 ,["AniviaEgg"] = 500.0000 ,["Tristana"] = 2250.0000 ,["Graves"] = 3000.0000 ,["Morgana"] = 1600.0000 ,["Gragas"] = math.huge ,["MissFortune"] = 2000.0000 ,["Warwick"] = math.huge ,["Cassiopeia"] = 1200.0000 ,["Tutorial_Blue_Minion_Wizard"] = 650.0000 ,["DrMundo"] = math.huge ,["Volibear"] = 467.0000 ,["Irelia"] = 467.0000 ,["Odin_Red_Minion_Caster"] = 650.0000 ,["Lucian"] = 2800.0000 ,["Yorick"] = math.huge ,["RammusPB"] = math.huge ,["Red_Minion_Basic"] = math.huge ,["Udyr"] = 467.0000 ,["MonkeyKing"] = 20.0000 ,["Tutorial_Blue_Minion_Basic"] = math.huge ,["Kennen"] = 1600.0000 ,["Nunu"] = 500.0000 ,["Ryze"] = 2400.0000 ,["Zed"] = 467.0000 ,["Nautilus"] = 1000.0000 ,["Gangplank"] = 1000.0000 ,["Lux"] = 1600.0000 ,["Sejuani"] = 500.0000 ,["Ezreal"] = 2000.0000 ,["OdinNeutralGuardian"] = 1800.0000 ,["Khazix"] = 500.0000 ,["Sion"] = math.huge ,["Aatrox"] = 347.79999 ,["Hecarim"] = 500.0000 ,["Pantheon"] = 20.0000 ,["Shyvana"] = 467.0000 ,["Zyra"] = 1700.0000 ,["Karthus"] = 1200.0000 ,["Rammus"] = math.huge ,["Zilean"] = 1200.0000 ,["Chogath"] = 500.0000 ,["Malzahar"] = 2000.0000 ,["YorickRavenousGhoul"] = 347.79999 ,["YorickSpectralGhoul"] = 347.79999 ,["JinxMine"] = 347.79999 ,["YorickDecayedGhoul"] = 347.79999 ,["XerathArcaneBarrageLauncher"] = 347.79999 ,["Odin_SOG_Order_Crystal"] = 347.79999 ,["TestCube"] = 347.79999 ,["ShyvanaDragon"] = math.huge ,["FizzBait"] = math.huge ,["Blue_Minion_MechMelee"] = math.huge ,["OdinQuestBuff"] = math.huge ,["TT_Buffplat_L"] = math.huge ,["TT_Buffplat_R"] = math.huge ,["KogMawDead"] = math.huge ,["TempMovableChar"] = math.huge ,["Lizard"] = 500.0000 ,["GolemOdin"] = math.huge ,["OdinOpeningBarrier"] = math.huge ,["TT_ChaosTurret4"] = 500.0000 ,["TT_Flytrap_A"] = 500.0000 ,["TT_NWolf"] = math.huge ,["OdinShieldRelic"] = math.huge ,["LuluSquill"] = math.huge ,["redDragon"] = math.huge ,["MonkeyKingClone"] = math.huge ,["Odin_skeleton"] = math.huge ,["OdinChaosTurretShrine"] = 500.0000 ,["Cassiopeia_Death"] = 500.0000 ,["OdinCenterRelic"] = 500.0000 ,["OdinRedSuperminion"] = math.huge ,["JarvanIVWall"] = math.huge ,["ARAMOrderNexus"] = math.huge ,["Red_Minion_MechCannon"] = 1200.0000 ,["OdinBlueSuperminion"] = math.huge ,["SyndraOrbs"] = math.huge ,["LuluKitty"] = math.huge ,["SwainNoBird"] = math.huge ,["LuluLadybug"] = math.huge ,["CaitlynTrap"] = math.huge ,["TT_Shroom_A"] = math.huge ,["ARAMChaosTurretShrine"] = 500.0000 ,["Odin_Windmill_Propellers"] = 500.0000 ,["TT_NWolf2"] = math.huge ,["OdinMinionGraveyardPortal"] = math.huge ,["SwainBeam"] = math.huge ,["Summoner_Rider_Order"] = math.huge ,["TT_Relic"] = math.huge ,["odin_lifts_crystal"] = math.huge ,["OdinOrderTurretShrine"] = 500.0000 ,["SpellBook1"] = 500.0000 ,["Blue_Minion_MechCannon"] = 1200.0000 ,["TT_ChaosInhibitor_D"] = 1200.0000 ,["Odin_SoG_Chaos"] = 1200.0000 ,["TrundleWall"] = 1200.0000 ,["HA_AP_HealthRelic"] = 1200.0000 ,["OrderTurretShrine"] = 500.0000 ,["OriannaBall"] = 500.0000 ,["ChaosTurretShrine"] = 500.0000 ,["LuluCupcake"] = 500.0000 ,["HA_AP_ChaosTurretShrine"] = 500.0000 ,["TT_NWraith2"] = 750.0000 ,["TT_Tree_A"] = 750.0000 ,["SummonerBeacon"] = 750.0000 ,["Odin_Drill"] = 750.0000 ,["TT_NGolem"] = math.huge ,["AramSpeedShrine"] = math.huge ,["OriannaNoBall"] = math.huge ,["Odin_Minecart"] = math.huge ,["Summoner_Rider_Chaos"] = math.huge ,["OdinSpeedShrine"] = math.huge ,["TT_SpeedShrine"] = math.huge ,["odin_lifts_buckets"] = math.huge ,["OdinRockSaw"] = math.huge ,["OdinMinionSpawnPortal"] = math.huge ,["SyndraSphere"] = math.huge ,["Red_Minion_MechMelee"] = math.huge ,["SwainRaven"] = math.huge ,["crystal_platform"] = math.huge ,["MaokaiSproutling"] = math.huge ,["Urf"] = math.huge ,["TestCubeRender10Vision"] = math.huge ,["MalzaharVoidling"] = 500.0000 ,["GhostWard"] = 500.0000 ,["MonkeyKingFlying"] = 500.0000 ,["LuluPig"] = 500.0000 ,["AniviaIceBlock"] = 500.0000 ,["TT_OrderInhibitor_D"] = 500.0000 ,["Odin_SoG_Order"] = 500.0000 ,["RammusDBC"] = 500.0000 ,["FizzShark"] = 500.0000 ,["LuluDragon"] = 500.0000 ,["OdinTestCubeRender"] = 500.0000 ,["TT_Tree1"] = 500.0000 ,["ARAMOrderTurretShrine"] = 500.0000 ,["Odin_Windmill_Gears"] = 500.0000 ,["ARAMChaosNexus"] = 500.0000 ,["TT_NWraith"] = 750.0000 ,["TT_OrderTurret4"] = 500.0000 ,["Odin_SOG_Chaos_Crystal"] = 500.0000 ,["OdinQuestIndicator"] = 500.0000 ,["JarvanIVStandard"] = 500.0000 ,["TT_DummyPusher"] = 500.0000 ,["OdinClaw"] = 500.0000 ,["EliseSpiderling"] = 2000.0000 ,["QuinnValor"] = math.huge ,["UdyrTigerUlt"] = math.huge ,["UdyrTurtleUlt"] = math.huge ,["UdyrUlt"] = math.huge ,["UdyrPhoenixUlt"] = math.huge ,["ShacoBox"] = 1500.0000 ,["HA_AP_Poro"] = 1500.0000 ,["AnnieTibbers"] = math.huge ,["UdyrPhoenix"] = math.huge ,["UdyrTurtle"] = math.huge ,["UdyrTiger"] = math.huge ,["HA_AP_OrderShrineTurret"] = 500.0000 ,["HA_AP_Chains_Long"] = 500.0000 ,["HA_AP_BridgeLaneStatue"] = 500.0000 ,["HA_AP_ChaosTurretRubble"] = 500.0000 ,["HA_AP_PoroSpawner"] = 500.0000 ,["HA_AP_Cutaway"] = 500.0000 ,["HA_AP_Chains"] = 500.0000 ,["ChaosInhibitor_D"] = 500.0000 ,["ZacRebirthBloblet"] = 500.0000 ,["OrderInhibitor_D"] = 500.0000 ,["Nidalee_Spear"] = 500.0000 ,["Nidalee_Cougar"] = 500.0000 ,["TT_Buffplat_Chain"] = 500.0000 ,["WriggleLantern"] = 500.0000 ,["TwistedLizardElder"] = 500.0000 ,["RabidWolf"] = math.huge ,["HeimerTGreen"] = 1599.3999 ,["HeimerTRed"] = 1599.3999 ,["ViktorFF"] = 1599.3999 ,["TwistedGolem"] = math.huge ,["TwistedSmallWolf"] = math.huge ,["TwistedGiantWolf"] = math.huge ,["TwistedTinyWraith"] = 750.0000 ,["TwistedBlueWraith"] = 750.0000 ,["TwistedYoungLizard"] = 750.0000 ,["Red_Minion_Melee"] = math.huge ,["Blue_Minion_Melee"] = math.huge ,["Blue_Minion_Healer"] = 1000.0000 ,["Ghast"] = 750.0000 ,["blueDragon"] = 800.0000 ,["Red_Minion_MechRange"] = 3000, ["SRU_OrderMinionRanged"] = 650, ["SRU_ChaosMinionRanged"] = 650, ["SRU_OrderMinionSiege"] = 1200, ["SRU_ChaosMinionSiege"] = 1200, ["SRUAP_Turret_Chaos1"]  = 1200, ["SRUAP_Turret_Chaos2"]  = 1200, ["SRUAP_Turret_Chaos3"] = 1200, ["SRUAP_Turret_Order1"]  = 1200, ["SRUAP_Turret_Order2"]  = 1200, ["SRUAP_Turret_Order3"] = 1200, ["SRUAP_Turret_Chaos4"] = 1200, ["SRUAP_Turret_Chaos5"] = 500, ["SRUAP_Turret_Order4"] = 1200, ["SRUAP_Turret_Order5"] = 500 }
+
 	Callback.Add("ProcessWaypoint", function(u,w) self:ProcessWaypoint(u,w) end)
 	Callback.Add("ProcessSpell", function(u,s) self:ProcessSpell(u,s) end)
 	Callback.Add("ProcessSpellComplete", function(u,s) self:ProcessSpellComplete(u,s) end)
 	Callback.Add("Animation", function(u,a) self:Animation(u,a) end)
 	Callback.Add("UpdateBuff", function(u,b) self:UpdateBuff(u,b) end)
 	Callback.Add("RemoveBuff", function(u,b) self:RemoveBuff(u,b) end)
-	Callback.Add("Draw", function() self:Draw() end)
+	-- Callback.Add("Draw", function() self:Draw() end)
 	Callback.Add("Tick", function() self:Tick() end)
 end
 
@@ -10633,7 +10616,7 @@ end
 
 function SLPrediction:Draw()
 if not SLP then return end
-	if SLSChamps[myHero.charName] and BM.p and BM.p.CP:Value() == 5 and SLS.SLPred.dpos:Value() then
+	if SLSChamps[myHero.charName] and BM.p and BM.p.CP:Value() == 5 then
 		if self.predictedpos then
 			DrawCircle(self.predictedpos,50,1,20,GoS.Red)
 		end
@@ -10673,13 +10656,11 @@ end
 
 function SLPrediction:MinionCollision(s,u,pos,width)
 local c = nil
-	if SLS.SLPred.mcoll:Value() then
-		for m,p in pairs(minionManager.objects) do
-			if p and p.alive and u.networkID ~= p.networkID and p.team ~= myHero.team then
-				local vPPOLS = VectorPointProjectionOnLineSegment(Vector(s.pos),Vector(pos),Vector(p.pos))
-				if vPPOLS and GetDistance(vPPOLS,p.pos) < p.boundingRadius+width+SLS.SLPred.cb:Value() then
-					c = vPPOLS
-				end
+	for m,p in pairs(minionManager.objects) do
+		if p and p.alive and u.networkID ~= p.networkID and p.team ~= myHero.team then
+			local vPPOLS = VectorPointProjectionOnLineSegment(Vector(s.pos),Vector(pos),Vector(p.pos))
+			if vPPOLS and GetDistance(vPPOLS,p.pos) < p.boundingRadius+width+15 then
+				c = vPPOLS
 			end
 		end
 	end
@@ -10688,13 +10669,11 @@ end
 
 function SLPrediction:HeroCollision(s,u,pos,width)
 local c = nil
-	if SLS.SLPred.hcoll:Value() then
-		for m,p in pairs(GetEnemyHeroes()) do
-			if p and p.alive and u.networkID ~= p.networkID then
-				local vPPOLS = VectorPointProjectionOnLineSegment(Vector(s.pos),Vector(pos),Vector(p.pos))
-				if vPPOLS and GetDistance(vPPOLS,p.pos) < p.boundingRadius+width+SLS.SLPred.cb:Value() then
-					c = vPPOLS
-				end
+	for m,p in pairs(GetEnemyHeroes()) do
+		if p and p.alive and u.networkID ~= p.networkID then
+			local vPPOLS = VectorPointProjectionOnLineSegment(Vector(s.pos),Vector(pos),Vector(p.pos))
+			if vPPOLS and GetDistance(vPPOLS,p.pos) < p.boundingRadius+width+15 then
+				c = vPPOLS
 			end
 		end
 	end
