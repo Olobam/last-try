@@ -655,16 +655,16 @@ function Init:__init()
 	L:Info("xxx", "")
 	L:Info("0.7.", "You will have to press 2f6")
 	L:Info("0.8.", "to apply the changes")
-	AntiGapCloser = {}
-	GapCloser = {}
+	xAntiGapCloser = {}
+	xGapCloser = {}
 	MapPositionGOS = {["Vayne"] = true, ["Poppy"] = true, ["Kalista"] = true, ["Kindred"] = true,}
 	
 	if L.LC:Value() and SLSChamps[ChampName] then
 		BM = MenuConfig("Champions", "|SL-AIO| "..myHero.charName)
-		if AntiGapCloser[ChampName] == true then 
+		if xAntiGapCloser[ChampName] == true then 
 			BM.M:Menu("AGP", "AntiGapCloser") 
 		end
-		if GapCloser[ChampName] == true then 
+		if xGapCloser[ChampName] == true then 
 			BM.M:Menu("GC", "GapCloser")
 		end
 	end
@@ -6859,8 +6859,6 @@ function Awareness:__init()
 		end
 	end,.001)
 	
-	SLU.A:Info("MSTM", "More Soon TM")
-	
 	for _,i in pairs(GetEnemyHeroes()) do 
 		self.E[i.networkID] = {u = i, l = 0, p = nil, p2 = nil, ms = 0, h = GetPercentHP(i), m = GetPercentMP(i)} 
 	end
@@ -8596,7 +8594,7 @@ function SLWalker:Harass()
 		end
 		if o and o.team == MINION_ENEMY then
 			if self:CanOrb(o) and ValidTarget(o,self.aarange)then
-				if self:PredictHP(o,(GetAttackSpeed(myHero)*self.BaseAttackSpeed)-o.distance/self:aaprojectilespeed()) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
+				if self:PredictHP(o,1000*(self.windUpTime+o.distance/self:aaprojectilespeed())) < CalcPhysicalDamage(myHero, o, self:Dmg(myHero,o,{name = "Basic"})) then
 					return GetLowestUnit(o,self.aarange)
 				end
 			end
