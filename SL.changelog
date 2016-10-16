@@ -1,5 +1,5 @@
 {
-  ["version"] = 1,
+  ["version"] = 0.01,
   ["Soraka"] = {"Fixed Banas", "Fucking tasty", "Bananas"},
   ["Utility"] = {"Removed Drugs because of the bad influence","Readded Drugs on request"},
   ["Spellblock"] = {"xx","xx"},
