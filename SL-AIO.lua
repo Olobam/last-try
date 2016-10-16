@@ -721,7 +721,6 @@ function Recommend:__init()
 	[2] = {Name = "Recall Tracker",	Link = "https://raw.githubusercontent.com/qqwer1/GoS-Lua/master/RecallTracker.lua",	       		Author = "Noddy",	File = "RecallTracker"},
 	[3] = {Name = "GoSEvade",       Link = "https://raw.githubusercontent.com/KeVuong/GoS/master/Evade.lua",                   		Author = "MeoBeo",	File = "Evade"},
 	[4] = {Name = "ChallengerEvade",Link = "https://raw.githubusercontent.com/D3ftsu/GoS/master/ChallengerEvade.lua",      			Author = "Deftsu",	File = "ChallengerEvade"},
-	[5] = {Name = "NEET´s Tracker", Link = "https://raw.githubusercontent.com/VTNEETS/NEET-Scripts/master/NEET%27s%20Tracker.lua",	Author = "Ryzuki",	File = "NEET´s Tracker"},
 	}
 	L:Menu("Re","Recommended Scripts")
 	L.Re:Info("xx.x", "Load : ")
