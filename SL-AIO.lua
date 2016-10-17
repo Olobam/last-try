@@ -8459,7 +8459,7 @@ if not SLW then return end
 				break
 			end
 		end
-		table.insert(self.AA,{a=u,t=s.target,ht=os.clock() + GetDistance(s.target,u) / (self.projectilespeeds[u.charName] or math.huge) - (GetLatency()/2000+s.windUpTime)})
+		table.insert(self.AA,{a=u,t=s.target,ht=self:GetTime() + GetDistance(s.target,u) / (self.projectilespeeds[u.charName] or math.huge) - (s.windUpTime*1000+GetLatency()/2000)})
 	end
 	if s and s.target and (self.altAANames[s.name:lower()] or s.name:lower():find("attack")) then
 		self:Ex(2, s.target)
@@ -8471,7 +8471,7 @@ function SLWalker:ResetAA()
 end
 
 function SLWalker:Time()
-	return os.clock()*1000
+	return GetTickCount()
 end
 
 function SLWalker:CanMove()
@@ -8640,7 +8640,7 @@ function SLWalker:aaprojectilespeed()
 end
 
 function SLWalker:GetTime()
-	return os.clock()
+	return GetGameTimer()
 end
 
 function SLWalker:CreateO(obj)
