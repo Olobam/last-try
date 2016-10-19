@@ -8229,11 +8229,6 @@ end
 self.aarange = myHero.range+myHero.boundingRadius*2+(self.rangebuffer[myHero.charName] and self.rangebuffer[myHero.charName].r or 0)
 self.ts.range = self.aarange
 self:Orb()
-	for t,turret in pairs(turrets) do
-		if turret.dead then
-			turrets[t] = nil		
-		end
-	end
 	for _, i in pairs(self.da) do
 		if not _G.DravenLoaded and i.o and myHero.charName == "Draven" and OMenu.DS.E:Value() then
 			self.pos = Vector(i.o.pos) + Vector(Vector(myHero.pos)-i.o.pos):normalized():perpendicular()*75
@@ -8523,7 +8518,7 @@ function SLWalker:LaneClear()
 						end
 					end
 				else
-					if turret.team ~= myHero.team then
+					if turret.team ~= myHero.team and not turret.dead then
 						return turret
 					end
 				end
@@ -8817,7 +8812,7 @@ Spells = {
 	["BrandW"]={charName="Brand",slot=1,type="Circle",delay=0.85,range=900,radius=240,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="nil",killTime=0.275,displayname="Pillar of Flame"}, -- doesnt work
 	["BraumQ"]={charName="Braum",slot=0,type="Line",delay=0.25,range=1000,radius=60,speed=1700,addHitbox=true,danger=3,dangerous=true,proj="BraumQMissile",killTime=0,displayname="Winter's Bite",mcollision=true},
 	["BraumRWrapper"]={charName="Braum",slot=3,type="Line",delay=0.5,range=1250,radius=115,speed=1400,addHitbox=true,danger=4,dangerous=true,proj="braumrmissile",killTime=0,displayname="Glacial Fissure",mcollision=false},
-	["CaitlynPiltoverPeacemaker"]={charName="Caitlyn",slot=0,type="Line",delay=0.6,range=1300,radius=90,speed=1800,addHitbox=true,danger=2,dangerous=false,proj="CaitlynPiltoverPeacemaker",killTime=0,displayname="Piltover Peacemaker",mcollision=false},
+	["CaitlynPiltoverPeacemaker"]={charName="Caitlyn",slot=0,type="Line",delay=0.6,range=1300,radius=90,speed=1800,addHitbox=true,danger=2,dangerous=false,proj="CaitlynPiltoverPeacemaker",killTime=2,displayname="Piltover Peacemaker",mcollision=false},
 	["CaitlynEntrapment"]={charName="Caitlyn",slot=2,type="Line",delay=0.4,range=1000,radius=70,speed=1600,addHitbox=true,danger=1,dangerous=false,proj="CaitlynEntrapmentMissile",killTime=0,displayname="90 Caliber Net",mcollision=true},
 	["CassiopeiaQ"]={charName="Cassiopeia",slot=0,type="Circle",delay=0.75,range=850,radius=150,speed=math.huge,addHitbox=true,danger=2,dangerous=false,proj="CassiopeiaNoxiousBlast",killTime=0.2,displayname="Noxious Blast",mcollision=false},
 	["CassiopeiaR"]={charName="Cassiopeia",slot=3,type="Cone",delay=0.6,range=825,radius=80,speed=math.huge,angle=80,addHitbox=false,danger=5,dangerous=true,proj="CassiopeiaPetrifyingGaze",killTime=0,displayname="Petrifying Gaze",mcollision=false},
@@ -9167,6 +9162,7 @@ function SLEvade:Skillshot()
 		s.range = 1200
         s.mpos = nil
 		s.debug = true
+		s.humanizer= true
 		s.check = GetDistance(myHero,s.startPos)/s.spell.speed+s.spell.delay
 		s.check2 = GetDistance(myHero,s.endPos)/s.spell.speed+s.spell.delay+s.spell.killTime
 		s.dist = GetDistance(myHero,s.endPos)
@@ -9290,7 +9286,7 @@ function SLEvade:WallCollision(_,i)
 end
 
 function SLEvade:sObjpos(_,i)
-	if i.spell.speed ~= math.huge and i then
+	if i.spell.speed ~= math.huge and i and os.clock() > i.startTime then
 		return i.startPos+Vector(Vector(i.endPos)-i.startPos):normalized()*math.floor((i.spell.speed*(os.clock()-i.startTime) + (i.spell.radius+myHero.boundingRadius)/2))
 	else
 		return Vector(i.startPos)
@@ -9317,7 +9313,7 @@ end
 
 function SLEvade:Humanizer(_,i)
 	if not i.status then
-		if (i.debug or EMenu.Spells[_]["H".._]:Value()) and i.caster and i.caster.visible then
+		if (not i.debug or EMenu.Spells[_] and EMenu.Spells[_]["H".._]:Value() or i.humanizer and i.humanizer or false) and i.caster and i.caster.visible then
 			return (i.spell.delay + GetDistance(myHero,i.startPos) / i.spell.speed)/(myHero.ms/100)
 		else
 			return 0 
@@ -9474,7 +9470,7 @@ function SLEvade:UDodge(_,i)
 end
 
 function SLEvade:Pathfinding(_,i)
-	if i.debug or EMenu.Spells[_]["ffe".._]:Value() then
+	if not i.debug or (EMenu.Spells[_] and EMenu.Spells[_]["ffe".._]:Value() or false) then
 		DelayAction(function()
 			if i.spell.type == "Line" and i then
 					i.startPos = Vector(i.startPos)
