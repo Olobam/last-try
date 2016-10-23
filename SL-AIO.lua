@@ -5246,7 +5246,7 @@ function Anivia:Combo(u)
 				CastGenericSkillShot(myHero,u,Spell[0],0,BM.p)
 			end
 			for _,i in pairs(self.o) do
-				if self.Q2Casted and EnemyMinionsAround(i.o.pos,120+myHero.boundingRadius) > 0 then
+				if self.Q2Casted and EnemyHeroesAround(i.o.pos,120+myHero.boundingRadius) > 0 then
 					CastSpell(0)
 				end
 			end	
@@ -5272,7 +5272,7 @@ function Anivia:Harass(u)
 				CastGenericSkillShot(myHero,u,Spell[0],0,BM.p)
 			end
 			for _,i in pairs(self.o) do
-				if self.Q2Casted and EnemyMinionsAround(i.o.pos,120+myHero.boundingRadius) > 0 then
+				if self.Q2Casted and EnemyHeroesAround(i.o.pos,120+myHero.boundingRadius) > 0 then
 					CastSpell(0)
 				end
 			end
@@ -5421,7 +5421,7 @@ function Syndra:__init()
     [0] = function(unit) return 5+45*GetCastLevel(myHero,0)+.75*myHero.ap end,
 	[1] = function(unit) return 40+40*GetCastLevel(myHero,1)+.7*myHero.ap end,
     [2] = function(unit) return 25+45*GetCastLevel(myHero,2)+.4*myHero.ap end,
-    [3] = function(unit) return (45+45*GetCastLevel(myHero,3)+.2*myHero.ap)*(self.count and self.count or 3) end,
+    [3] = function(unit) return (45+45*GetCastLevel(myHero,3)+.2*myHero.ap)*(self.count+3 or 3) end,
 	}
 
 	self.EpicJgl = {["SRU_Baron"]="Baron", ["SRU_Dragon"]="Dragon", ["SRU_RiftHerald"]="Herald", ["TT_Spiderboss"]="Vilemaw"}
@@ -5499,7 +5499,7 @@ function Syndra:__init()
 	
 	self.CC = false
 	self.o = {}
-	self.count = 3
+	self.count = 0
 	self.WCast = 0
 	
 	for i = 0,2 do
@@ -5564,6 +5564,7 @@ function Syndra:Draw()
 end
 
 function Syndra:Tick()
+	if self.count < 0 then self.count = 0 end
 	if myHero.dead then return end
 	target = ts:GetTarget()
 	GetReady()
@@ -9313,7 +9314,7 @@ end
 
 function SLEvade:Humanizer(_,i)
 	if not i.status then
-		if (not i.debug or EMenu.Spells[_] and EMenu.Spells[_]["H".._]:Value() or i.humanizer and i.humanizer or false) and i.caster and i.caster.visible then
+		if (i.debug and not i.debug or EMenu.Spells[_] and EMenu.Spells[_]["H".._]:Value() or i.humanizer and i.humanizer or false) and i.caster and i.caster.visible then
 			return (i.spell.delay + GetDistance(myHero,i.startPos) / i.spell.speed)/(myHero.ms/100)
 		else
 			return 0 
@@ -9470,7 +9471,7 @@ function SLEvade:UDodge(_,i)
 end
 
 function SLEvade:Pathfinding(_,i)
-	if not i.debug or (EMenu.Spells[_] and EMenu.Spells[_]["ffe".._]:Value() or false) then
+	if (i.debug and not i.debug) or (EMenu.Spells[_] and EMenu.Spells[_]["ffe".._]:Value() or false) then
 		DelayAction(function()
 			if i.spell.type == "Line" and i then
 					i.startPos = Vector(i.startPos)
