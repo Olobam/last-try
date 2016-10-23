@@ -1,4 +1,4 @@
-local SLAIO,Stage = 0.01,"BETA"
+local SLAIO,Stage = 0.02,"BETA"
 
 local SLSChamps = {	
 	["Vayne"] = true,
