@@ -1,11 +1,6 @@
 local SLUtility = 0.13
 local SLUPatchnew = nil
 local Updater = true
-if GetGameVersion():sub(3,4) >= "10" then
-		SLUPatchnew = GetGameVersion():sub(1,4)
-	else
-		SLUPatchnew = GetGameVersion():sub(1,3)
-end
 
 require 'OpenPredict'
 
