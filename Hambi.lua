@@ -1,5 +1,4 @@
 local SLUtility = 0.13
-local SLUPatchnew = nil
 local Updater = true
 
 require 'OpenPredict'
@@ -9,8 +8,6 @@ local charName = myHero.charName
 Callback.Add("Load", function()	
 	SLUtilityUpdater()
 	Initi()
-	
-	PrintChat("<font color=\"#fd8b12\"><b>["..SLUPatchnew.."] [SL-Utility] v.: "..SLUtility.." - <font color=\"#F2EE00\"> Loaded </b></font>")
 	
 	if SLU.Load.LA:Value() then
 		Activator()
